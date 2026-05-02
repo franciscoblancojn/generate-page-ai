@@ -7,15 +7,17 @@ $customFields = [];
 $yoastFields = [];
 if (isset($_POST['save']) && $_POST['save'] == "duplication") {
     $post_id = $_POST['post_id'] ?? $CONFIG['post_id'];
-    if (isset($post_id)) {
+    if (isset($_POST['save_post']) && $_POST['save_post'] == 1 && isset($post_id)) {
         $CONFIG['post_id'] = $post_id;
+        $CONFIG['customFields_prompt'] = [];
+        $CONFIG['yoastFields_prompt'] = [];
         $respond_duplicados = [
             "status" => "ok",
             "message" => "Post Cargado.",
             'data' => [],
         ];
     }
-    if (isset($post_id) && isset($_POST['set_custom_field']) && $_POST['set_custom_field'] == "1") {
+    if (isset($_POST['set_custom_field']) && $_POST['set_custom_field'] == "1" && isset($post_id)) {
         $customFields = $_POST['customFields'] ?? [];
         if (!empty($customFields)) {
             DPAI_CF::SET($post_id, $customFields);
@@ -35,17 +37,13 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             ];
         }
     }
-    if (isset($post_id) && isset($_POST['generate_duplicate']) && $_POST['generate_duplicate'] == "1") {
+    if (isset($_POST['generate_duplicate']) && $_POST['generate_duplicate'] == "1" && isset($post_id)) {
         $prompt = $_POST['prompt'];
         if (isset($prompt)) {
             $CONFIG['prompt'] = $prompt;
             $customFields = DPAI_CF::GET($post_id);
             $yoastFields = DPAI_YOAST::GET($post_id);
             $respond_duplicados = DPAI_DUPLICADOS::getDuplicados($post_id, $prompt, $customFields, $yoastFields);
-            FWUSystemLog::add(DPAI_KEY, [
-                'type' => "respond_duplicados",
-                'data' => $respond_duplicados
-            ]);
             if ($respond_duplicados['status'] == 'ok') {
                 $POST_DATA = $DUPLICADOS[$post_id] ?? [];
                 $POST_DATA['post_id'] = $post_id;
@@ -96,21 +94,19 @@ if (isset($post_id)) {
                 ?>
             </td>
         </tr>
+    </table>
+    <button
+        type="submit"
+        name="save_post"
+        value="1"
+        class="button button-primary">
+        Cargar Post
+    </button>
+    <table class="form-table">
         <?php
         if (isset($post_id)) {
             $post = get_post_meta($post_id);
         ?>
-            <tr>
-                <th scope="row">
-                    <label for="post_id">
-                        Post Name
-                        <?= tooltip('Nombre de la pagina a duplicar.') ?>
-                    </label>
-                </th>
-                <td>
-                    <?= get_the_title($post_id); ?>
-                </td>
-            </tr>
             <tr>
                 <th scope="row">
                     <label for="post_id">
@@ -121,30 +117,7 @@ if (isset($post_id)) {
             </tr>
             <tr>
                 <td colspan="2">
-                    <table class="form-table">
-                        <?php
-                        foreach ($customFields as $key => $value) {
-                        ?>
-                            <tr>
-                                <th scope="row">
-                                    <label for="<?= $key ?>">
-                                        <?= $key ?>
-                                    </label>
-                                </th>
-                                <td>
-                                    <input
-                                        type="text"
-                                        id="<?= $key ?>"
-                                        name="customFields[<?= $key ?>]"
-                                        placeholder="<?= $key ?>"
-                                        value="<?= esc_attr($value) ?>"
-                                        class="regular-text" />
-                                </td>
-                            </tr>
-                        <?php
-                        }
-                        ?>
-                    </table>
+                    <?= DPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt']) ?>
                 </td>
             </tr>
             <?php
@@ -160,30 +133,7 @@ if (isset($post_id)) {
                 </tr>
                 <tr>
                     <td colspan="2">
-                        <table class="form-table">
-                            <?php
-                            foreach ($yoastFields as $key => $value) {
-                            ?>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="<?= $key ?>">
-                                            <?= $key ?>
-                                        </label>
-                                    </th>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            id="<?= $key ?>"
-                                            name="yoastFields[<?= $key ?>]"
-                                            placeholder="<?= $key ?>"
-                                            value="<?= esc_attr($value) ?>"
-                                            class="regular-text" />
-                                    </td>
-                                </tr>
-                            <?php
-                            }
-                            ?>
-                        </table>
+                        <?= DPAI_Custom_Yoast($yoastFields, $CONFIG['yoastFields_prompt']) ?>
                     </td>
                 </tr>
             <?php
@@ -195,13 +145,6 @@ if (isset($post_id)) {
     </table>
 
     <div class="content-btn">
-        <button
-            type="submit"
-            name="submit"
-            value="Cargar Post"
-            class="button button-primary">
-            Cargar Post
-        </button>
 
         <?php
         if (isset($post_id)) {

@@ -40,8 +40,6 @@ function getRespond($respond)
 $DPAI_USE_DATA_CONFIG = new DPAI_USE_DATA_CONFIG();
 $DPAI_USE_DATA_DUPLICADOS = new DPAI_USE_DATA_DUPLICADOS();
 
-$defaultTag =  $TAGS[0]['key'];
-
 $CONFIG = $DPAI_USE_DATA_CONFIG->get();
 
 $TAGS = [
@@ -58,6 +56,9 @@ $TAGS = [
         'title' => 'Duplicados Pendientes',
     ],
 ];
+
+$defaultTag =  $TAGS[0]['key'];
+
 ?>
 <div id="page-<?= DPAI_KEY ?>" class="wrap">
     <h1>Duplicate Page AI</h1>

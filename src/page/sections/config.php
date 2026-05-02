@@ -12,12 +12,13 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
         $CONFIG['apikey'] = $_POST['apikey'];
         $CONFIG['list_modelos'] = null;
     }
+    $CONFIG['generate_img'] = isset($_POST['generate_img']);
     if (isset($_POST['modelo'])) {
         $CONFIG['modelo'] = $_POST['modelo'];
     }
     if (isset($CONFIG['apikey']) && $CONFIG['list_modelos'] == null) {
         $respond_config = DPAI_AI::getModels();
-        if($respond_config['status'] == "ok"){
+        if ($respond_config['status'] == "ok") {
             $CONFIG['list_modelos'] = $respond_config['data'] ?? [];
         }
     }
@@ -51,6 +52,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
                     class="regular-text" />
             </td>
         </tr>
+
         <?php
         if (isset($CONFIG['list_modelos']) && count($CONFIG['list_modelos']) > 0) {
             $modelos = $CONFIG['list_modelos'];
@@ -80,6 +82,28 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
         <?php
         }
         ?>
+
+        <tr>
+            <th scope="row">
+                <label for="generate_img">
+                    Generar images.
+                    <?= tooltip('Permitir que Gemini genere la imagen principal para tus duplicados.') ?>
+                </label>
+            </th>
+            <td>
+                <input
+                    type="checkbox"
+                    id="generate_img"
+                    name="generate_img"
+                    placeholder="Generar images principales."
+                    <?= $CONFIG['generate_img']  ? "checked" : "" ?>
+                    class="regular-text" />
+
+                <label for="generate_img">
+                    Esto puede agotar tus tokens mas rapido.
+                </label>
+            </td>
+        </tr>
     </table>
 
     <div class="content-btn">
