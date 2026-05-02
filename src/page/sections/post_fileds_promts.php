@@ -8,9 +8,11 @@ $yoastFields = [];
 if (isset($_POST['save']) && $_POST['save'] == "duplication") {
     $post_id = $_POST['post_id'] ?? $CONFIG['post_id'];
     if (isset($_POST['save_post']) && $_POST['save_post'] == 1 && isset($post_id)) {
+        if ($CONFIG['post_id'] != $post_id) {
+            $CONFIG['customFields_prompt'] = [];
+            $CONFIG['yoastFields_prompt'] = [];
+        }
         $CONFIG['post_id'] = $post_id;
-        $CONFIG['customFields_prompt'] = [];
-        $CONFIG['yoastFields_prompt'] = [];
         $respond_duplicados = [
             "status" => "ok",
             "message" => "Post Cargado.",
@@ -36,8 +38,22 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                 'data' => [],
             ];
         }
+        $CONFIG['customFields'] = $_POST['customFields'] ?? [];
         $CONFIG['customFields_prompt'] = $_POST['customFields_prompt'] ?? [];
+        $CONFIG['yoastFields'] = $_POST['yoastFields'] ?? [];
         $CONFIG['yoastFields_prompt'] = $_POST['yoastFields_prompt'] ?? [];
+    }
+    if (isset($_POST['save_prompt']) && $_POST['save_prompt'] == "1" && isset($post_id)) {
+        $prompt = $_POST['prompt'];
+        if (isset($prompt)) {
+            $CONFIG['prompt'] = $prompt;
+        }
+    }
+    if (isset($_POST['upgrade_promts']) && $_POST['upgrade_promts'] == "1" && isset($post_id)) {
+        $prompt = $_POST['prompt'];
+        if (isset($prompt)) {
+            $CONFIG['prompt'] = $prompt;
+        }
     }
     if (isset($_POST['generate_duplicate']) && $_POST['generate_duplicate'] == "1" && isset($post_id)) {
         $prompt = $_POST['prompt'];
@@ -45,7 +61,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             $CONFIG['prompt'] = $prompt;
             $customFields = DPAI_CF::GET($post_id);
             $yoastFields = DPAI_YOAST::GET($post_id);
-            $respond_duplicados = DPAI_DUPLICADOS::getDuplicados($post_id, $prompt, $customFields, $yoastFields);
+            $respond_duplicados = DPAI_DUPLICADOS::getDuplicados($CONFIG);
             if ($respond_duplicados['status'] == 'ok') {
                 $POST_DATA = $DUPLICADOS[$post_id] ?? [];
                 $POST_DATA['post_id'] = $post_id;
@@ -78,27 +94,27 @@ if (isset($post_id)) {
                 <?= DPAI_Tooltip("Post", "Selecciona la página a duplicar.") ?>
             </th>
             <td>
-                <?php
-                wp_dropdown_pages([
-                    'name'              => 'post_id',
-                    'id'                => 'post_id',
-                    'show_option_none'  => '-- Seleccionar --',
-                    'option_none_value' => '',
-                    'selected'          => $post_id,
-                ]);
-                ?>
+                <div class="content-btn">
+                    <?php
+                    wp_dropdown_pages([
+                        'name'              => 'post_id',
+                        'id'                => 'post_id',
+                        'show_option_none'  => '-- Seleccionar --',
+                        'option_none_value' => '',
+                        'selected'          => $post_id,
+                    ]);
+                    ?>
+                    <button
+                        type="submit"
+                        name="save_post"
+                        value="1"
+                        class="button button-primary">
+                        Cargar Post
+                    </button>
+                </div>
             </td>
         </tr>
     </table>
-    <button
-        type="submit"
-        name="save_post"
-        value="1"
-        class="button button-primary">
-        Cargar Post
-    </button>
-    <br />
-    <br />
     <?php
     if (isset($post_id)) {
         $post = get_post_meta($post_id);
@@ -124,7 +140,7 @@ if (isset($post_id)) {
                 Guardar Campos Personalisados
             </button>
         </div>
-        <h3>Prompt para generar Duplicados</h3>
+        <h3>Prompt para generar Contenido</h3>
         <textarea
             id="prompt"
             name="prompt"
@@ -133,13 +149,30 @@ if (isset($post_id)) {
             style="min-height: 200px;"
             rows="8"><?= $CONFIG['prompt'] ?></textarea>
 
-        <button
-            type="submit"
-            name="generate_duplicate"
-            value="1"
-            class="button">
-            Generar Duplicados
-        </button>
+        <div class="content-btn">
+            <button
+                type="submit"
+                name="save_prompt"
+                value="1"
+                class="button">
+                Guardar Prompt
+            </button>
+            <button
+                type="submit"
+                name="upgrade_promts"
+                value="1"
+                class="button button-primary">
+                Mejorar Prompts con IA
+            </button>
+            <button
+                type="submit"
+                name="generate_duplicate"
+                value="1"
+                class="button">
+                Generar Duplicados
+            </button>
+        </div>
+
     <?php
     }
     ?>

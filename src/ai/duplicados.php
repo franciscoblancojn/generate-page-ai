@@ -49,8 +49,16 @@ class DPAI_DUPLICADOS
 
         return $PROMPT;
     }
-    public static function getPrompt($post_id, $prompt, $customFields, $yoastFields)
+    public static function getPrompt($CONFIG)
     {
+        [
+            "post_id" => $post_id,
+            "prompt" => $prompt,
+            "customFields" => $customFields,
+            "customFields_prompt" => $customFields_prompt,
+            "yoastFields" => $yoastFields,
+            "yoastFields_prompt" => $yoastFields_prompt,
+        ] = $CONFIG;
 
         $title = get_the_title($post_id);
         $content = get_post_field('post_content', $post_id);
@@ -61,8 +69,12 @@ class DPAI_DUPLICADOS
             " . $content . "
             ----CAMPOS PERSONALIZADOS----
             " . json_encode($customFields) . "
+            ----PROMPTS PARA CAMPOS PERSONALIZADOS----
+            " . json_encode($customFields_prompt) . "
             ----DATOS DE YOAST SEO----
             " . json_encode($yoastFields) . "
+            ----PROMPTS PARA DATOS DE YOAST SEO----
+            " . json_encode($yoastFields_prompt) . "
             ----PROMP BASE----
             " . $prompt . "
             ----
@@ -70,7 +82,7 @@ class DPAI_DUPLICADOS
             Formato de json : {title:'title',customFields:{key:'value',...},yoastFields:{key:'value',...}}
             En caso que se pidan varias respuesta este es el formato a usar:
             Formato de array : [{title:'title',customFields:{key:'value',...},yoastFields:{key:'value',...}},{title:'title2',customFields:{key:'value',...},yoastFields:{key:'value',...}}]
-            Importante, ten en cuenta el prompt base.
+            Importante, ten en cuenta el prompt base y prompts personalizados por campos o datos de yoast, en caso de que exista prompts personalizados usa tanto el prompt personalizado como el prompt base para generar contenido.
         ";
         return $PROMPT;
     }
@@ -107,13 +119,21 @@ class DPAI_DUPLICADOS
         }
     }
 
-    public static function getDuplicados($post_id, $prompt, $customFields, $yoastFields)
+    public static function getDuplicados($CONFIG)
     {
-        $jsonResponse = [];
         try {
+            [
+                "post_id" => $post_id,
+                "prompt" => $prompt,
+                "customFields" => $customFields,
+                "customFields_prompt" => $customFields_prompt,
+                "yoastFields" => $yoastFields,
+                "yoastFields_prompt" => $yoastFields_prompt,
+            ] = $CONFIG;
+
             $DPAI_USE_DATA_CONFIG = new DPAI_USE_DATA_CONFIG();
             $CONFIG = $DPAI_USE_DATA_CONFIG->get();
-            $PROMPT = self::getPrompt($post_id, $prompt, $customFields, $yoastFields);
+            $PROMPT = self::getPrompt($CONFIG);
             $result = self::getDuplicadosByPrompt($PROMPT);
             FWUSystemLog::add(DPAI_KEY, [
                 'type' => "IA Duplicados result",
@@ -121,7 +141,9 @@ class DPAI_DUPLICADOS
                 'PROMPT' => $PROMPT,
                 'prompt' => $prompt,
                 'customFields' => $customFields,
+                'customFields_prompt' => $customFields_prompt,
                 'yoastFields' => $yoastFields,
+                'yoastFields_prompt' => $yoastFields_prompt,
                 'result' => $result,
             ]);
             if ($CONFIG['generate_img']) {
@@ -139,7 +161,9 @@ class DPAI_DUPLICADOS
                     'PROMPT' => $PROMPT,
                     'prompt' => $prompt,
                     'customFields' => $customFields,
+                    'customFields_prompt' => $customFields_prompt,
                     'yoastFields' => $yoastFields,
+                    'yoastFields_prompt' => $yoastFields_prompt,
                     'result' => $result,
                 ]);
             }
@@ -151,7 +175,6 @@ class DPAI_DUPLICADOS
                 'data' => [
                     'line' => $th->getLine(),
                     'file' => $th->getFile(),
-                    'jsonResponse' => $jsonResponse
                 ]
             ];
             return $error;
