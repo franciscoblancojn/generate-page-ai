@@ -12,7 +12,7 @@ $TAGS = [
         'title' => 'Configuracion IA',
     ],
     [
-        'key' => 'post_fileds_promts',
+        'key' => 'post_fileds_prompts',
         'title' => 'Post, Campos y Prompts',
     ],
     [

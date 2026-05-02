@@ -13,11 +13,13 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
         $is_save_post = isset($_POST['is_save_post']) && $_POST['is_save_post'] == "1";
         $is_save_custom_field = isset($_POST['is_save_post']) && $_POST['is_save_post'] == "1";
         $is_save_prompt = isset($_POST['is_save_prompt']) && $_POST['is_save_prompt'] == "1";
-        $is_upgrade_promts = isset($_POST['is_upgrade_promts']) && $_POST['is_upgrade_promts'] == "1";
+        $is_upgrade_prompts = isset($_POST['is_upgrade_prompts']) && $_POST['is_upgrade_prompts'] == "1";
         $is_generate_content = isset($_POST['is_generate_content']) && $_POST['is_generate_content'] == "1";
         if ($is_save_post) {
             if ($CONFIG['post_id'] != $post_id) {
+                $CONFIG['customFields'] = [];
                 $CONFIG['customFields_prompt'] = [];
+                $CONFIG['yoastFields'] = [];
                 $CONFIG['yoastFields_prompt'] = [];
             }
             $CONFIG['post_id'] = $post_id;
@@ -27,7 +29,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                 'data' => [],
             ];
         }
-        if ($is_save_custom_field || $is_upgrade_promts || $is_generate_content) {
+        if ($is_save_custom_field || $is_upgrade_prompts || $is_generate_content) {
             $customFields = $_POST['customFields'] ?? [];
             if (!empty($customFields)) {
                 DPAI_CF::SET($post_id, $customFields);
@@ -51,13 +53,13 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             $CONFIG['yoastFields'] = $_POST['yoastFields'] ?? [];
             $CONFIG['yoastFields_prompt'] = $_POST['yoastFields_prompt'] ?? [];
         }
-        if ($is_save_prompt || $is_upgrade_promts || $is_generate_content) {
+        if ($is_save_prompt || $is_upgrade_prompts || $is_generate_content) {
             $prompt = $_POST['prompt'];
             if (isset($prompt)) {
                 $CONFIG['prompt'] = $prompt;
             }
         }
-        if ($is_upgrade_promts) {
+        if ($is_upgrade_prompts) {
             $PROMPT = DPAI_CONTENT::getPrompt($CONFIG);
             $respond_content = DPAI_PROMPT::getMejoraPrompt([
                 'config' => $CONFIG,
@@ -151,7 +153,7 @@ if (isset($post_id)) {
                     ?>
                         <button
                             type="submit"
-                            name="is_upgrade_promts"
+                            name="is_upgrade_prompts"
                             value="1"
                             class="button button-primary">
                             Guardar y Generar Prompts con IA
@@ -183,7 +185,7 @@ if (isset($post_id)) {
                 name="is_save_custom_field"
                 value="1"
                 class="button delete">
-                Guardar Campos Personalisados
+                Guardar Campos y Prompts Personalisados
             </button>
         </div>
         <h3>Prompt para generar Contenido</h3>

@@ -13,14 +13,16 @@ class DPAI_PROMPT
         ] = $CONFIG;
 
         $PROMPT = "
-            -----PROMPT ACTUAL-----
+            -----PROMPT ACTUAL NO PROCESAR SOLO LEER-----
             " . $prompt . "
-            -----
+            -----FIN DE PROMPT ACTUAL NO PROCESAR SOLO LEER-----
             Necesito mejorar las siguientes partes del prompt
             " . implode(",", $campos) . "
             Necesito que generes un json con el siguente formato:
-            {'parte del prompt':valor mejorado o creado, puede ser string o json}
+            {'parte del prompt (" . implode(",", $campos) . ")':valor mejorado o creado, puede ser string o json}
+            Importante los valore que necesito que generes no son los valores del campo sino prompts para generar esos campos.
             Importante manten las misma claves de los json, si empiesa por _ mantenlo asi, tampoco crees campos nuevos.
+            Importante las url por lo general se mantienen igual.
         ";
         return $PROMPT;
     }
