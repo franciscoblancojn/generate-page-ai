@@ -21,7 +21,7 @@ define("DPAI_KEY", 'DPAI');
 define("DPAI_MODE_DEV", true);
 define("DPAI_KEY_SEPARETE", '____DPAI____');
 define("DPAI_CONFIG", 'DPAI_CONFIG');
-define("DPAI_DUPLICADOS", 'DPAI_DUPLICADOS');
+define("DPAI_CONTENT", 'DPAI_CONTENT');
 define("DPAI_LOG", true);
 define("DPAI_LOG_KEY", "DPAI_LOG");
 define("DPAI_LOG_COUNT", 100);

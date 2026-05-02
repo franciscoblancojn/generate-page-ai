@@ -13,7 +13,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             $CONFIG['yoastFields_prompt'] = [];
         }
         $CONFIG['post_id'] = $post_id;
-        $respond_duplicados = [
+        $respond_content = [
             "status" => "ok",
             "message" => "Post Cargado.",
             'data' => [],
@@ -23,7 +23,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
         $customFields = $_POST['customFields'] ?? [];
         if (!empty($customFields)) {
             DPAI_CF::SET($post_id, $customFields);
-            $respond_duplicados = [
+            $respond_content = [
                 "status" => "ok",
                 "message" => "Campos personalisados Guardados.",
                 'data' => [],
@@ -32,7 +32,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
         $yoastFields = $_POST['yoastFields'] ?? [];
         if (!empty($yoastFields)) {
             DPAI_YOAST::SET($post_id, $yoastFields);
-            $respond_duplicados = [
+            $respond_content = [
                 "status" => "ok",
                 "message" => "Campos personalisados Guardados.",
                 'data' => [],
@@ -50,9 +50,35 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
         }
     }
     if (isset($_POST['upgrade_promts']) && $_POST['upgrade_promts'] == "1" && isset($post_id)) {
-        $prompt = $_POST['prompt'];
-        if (isset($prompt)) {
-            $CONFIG['prompt'] = $prompt;
+        $PROMPT = DPAI_CONTENT::getPrompt($CONFIG);
+        $respond_content = DPAI_PROMPT::getMejoraPrompt([
+            'config' => $CONFIG,
+            "prompt" => $PROMPT,
+            "campos" => [
+                "PROMP BASE",
+                "PROMPTS PARA CAMPOS PERSONALIZADOS",
+                "PROMPTS PARA DATOS DE YOAST SEO"
+            ],
+        ]);
+        if ($respond_content['status'] == 'ok') {
+            $data = $respond_content['data'];
+            if (isset($data["PROMP BASE"])) {
+                $CONFIG['prompt'] = $data["PROMP BASE"];
+            }
+            if (isset($data["PROMPTS PARA CAMPOS PERSONALIZADOS"])) {
+                foreach ($data["PROMPTS PARA CAMPOS PERSONALIZADOS"] as $key => $value) {
+                    if ((isset($value) && !empty($value) && isset($CONFIG['customFields_prompt'][$key]))) {
+                        $CONFIG['customFields_prompt'][$key] = $value;
+                    }
+                }
+            }
+            if (isset($data["PROMPTS PARA DATOS DE YOAST SEO"])) {
+                foreach ($data["PROMPTS PARA DATOS DE YOAST SEO"] as $key => $value) {
+                    if ((isset($value) && !empty($value) && isset($CONFIG['yoastFields_prompt'][$key]))) {
+                        $CONFIG['yoastFields_prompt'][$key] = $value;
+                    }
+                }
+            }
         }
     }
     if (isset($_POST['generate_duplicate']) && $_POST['generate_duplicate'] == "1" && isset($post_id)) {
@@ -61,14 +87,14 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             $CONFIG['prompt'] = $prompt;
             $customFields = DPAI_CF::GET($post_id);
             $yoastFields = DPAI_YOAST::GET($post_id);
-            $respond_duplicados = DPAI_DUPLICADOS::getDuplicados($CONFIG);
-            if ($respond_duplicados['status'] == 'ok') {
+            $respond_content = DPAI_CONTENT::getContent($CONFIG);
+            if ($respond_content['status'] == 'ok') {
                 $POST_DATA = $DUPLICADOS[$post_id] ?? [];
                 $POST_DATA['post_id'] = $post_id;
                 $POST_DATA['customFields'] = $customFields;
                 $POST_DATA['yoastFields'] = $yoastFields;
                 $POST_DATA['variations'] ??= [];
-                $POST_DATA['variations'][$prompt] = $respond_duplicados['data'];
+                $POST_DATA['variations'][$prompt] = $respond_content['data'];
                 $DPAI_USE_DATA_DUPLICADOS->setField($post_id, $POST_DATA);
             }
         }
@@ -86,7 +112,7 @@ if (isset($post_id)) {
 
 ?>
 <form method="post">
-    <?= DPAI_Respond($respond_duplicados) ?>
+    <?= DPAI_Respond($respond_content) ?>
     <input type="hidden" name="save" value="duplication">
     <table class="form-table">
         <tr>
@@ -111,6 +137,17 @@ if (isset($post_id)) {
                         class="button button-primary">
                         Cargar Post
                     </button>
+                    <?php
+                    if (isset($post_id)) {
+                    ?>
+                        <button
+                            type="submit"
+                            name="upgrade_promts"
+                            value="1"
+                            class="button button-primary">
+                            Generar Prompts con IA
+                        </button>
+                    <?php } ?>
                 </div>
             </td>
         </tr>
@@ -156,13 +193,6 @@ if (isset($post_id)) {
                 value="1"
                 class="button">
                 Guardar Prompt
-            </button>
-            <button
-                type="submit"
-                name="upgrade_promts"
-                value="1"
-                class="button button-primary">
-                Mejorar Prompts con IA
             </button>
             <button
                 type="submit"

@@ -2,7 +2,7 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
-class DPAI_DUPLICADOS
+class DPAI_CONTENT
 {
     public static function getPromptImg($post_id, $customFields, $yoastFields)
     {
@@ -86,7 +86,7 @@ class DPAI_DUPLICADOS
         ";
         return $PROMPT;
     }
-    public static function getDuplicadosByPrompt($PROMPT)
+    public static function getContentByPrompt($PROMPT)
     {
         $jsonResponse = [];
         try {
@@ -95,9 +95,9 @@ class DPAI_DUPLICADOS
             if ($result['status'] == 'error') {
                 return $result;
             }
-            $result['message'] = "Duplicados Generados";
+            $result['message'] = "Contenido Generado";
             FWUSystemLog::add(DPAI_KEY, [
-                'type' => "IA Duplicados result text",
+                'type' => "IA Content result text",
                 'result' => $result,
             ]);
             $result['data'] = DPAI_AI::parseJson($result['data']);
@@ -118,37 +118,20 @@ class DPAI_DUPLICADOS
             return $error;
         }
     }
-
-    public static function getDuplicados($CONFIG)
+    public static function getContent($CONFIG)
     {
         try {
-            [
-                "post_id" => $post_id,
-                "prompt" => $prompt,
-                "customFields" => $customFields,
-                "customFields_prompt" => $customFields_prompt,
-                "yoastFields" => $yoastFields,
-                "yoastFields_prompt" => $yoastFields_prompt,
-            ] = $CONFIG;
-
-            $DPAI_USE_DATA_CONFIG = new DPAI_USE_DATA_CONFIG();
-            $CONFIG = $DPAI_USE_DATA_CONFIG->get();
             $PROMPT = self::getPrompt($CONFIG);
-            $result = self::getDuplicadosByPrompt($PROMPT);
+            $result = self::getContentByPrompt($PROMPT);
             FWUSystemLog::add(DPAI_KEY, [
                 'type' => "IA Duplicados result",
-                'post_id' => $post_id,
                 'PROMPT' => $PROMPT,
-                'prompt' => $prompt,
-                'customFields' => $customFields,
-                'customFields_prompt' => $customFields_prompt,
-                'yoastFields' => $yoastFields,
-                'yoastFields_prompt' => $yoastFields_prompt,
+                ...$CONFIG,
                 'result' => $result,
             ]);
             if ($CONFIG['generate_img']) {
                 foreach ($result['data'] as $key => $value) {
-                    $PROMPTBYIMG = self::getPromptImg($post_id, $value['customFields'], $value['yoastFields']);
+                    $PROMPTBYIMG = self::getPromptImg($CONFIG['post_id'], $value['customFields'], $value['yoastFields']);
                     $result_img = DPAI_AI::sendPrompt($PROMPTBYIMG);
                     if ($result_img['status'] == 'ok') {
                         $result_img['data'] = DPAI_AI::parseJson($result_img['data']);
@@ -157,13 +140,8 @@ class DPAI_DUPLICADOS
                 }
                 FWUSystemLog::add(DPAI_KEY, [
                     'type' => "IA Duplicados result with img",
-                    'post_id' => $post_id,
                     'PROMPT' => $PROMPT,
-                    'prompt' => $prompt,
-                    'customFields' => $customFields,
-                    'customFields_prompt' => $customFields_prompt,
-                    'yoastFields' => $yoastFields,
-                    'yoastFields_prompt' => $yoastFields_prompt,
+                    ...$CONFIG,
                     'result' => $result,
                 ]);
             }
