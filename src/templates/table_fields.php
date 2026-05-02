@@ -44,7 +44,7 @@ function DPAI_Table_Fields($KEY, $COLS = [], $fields = [], $valuesPrompt = [])
                     <td>
                         <textarea
                             id="<?= $KEY ?>_prompt_<?= $key ?>"
-                            name="<?= $KEY ?>_prompt[_<?= $key ?>]"
+                            name="<?= $KEY ?>_prompt[<?= $key ?>]"
                             placeholder="Promt personalizado para <?= $key ?>."
                             class="large-text code"
                             style="min-height: 100px;"><?= isset($valuesPrompt[$key]) ? $valuesPrompt[$key] : "" ?></textarea>

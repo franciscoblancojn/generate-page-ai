@@ -36,6 +36,8 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                 'data' => [],
             ];
         }
+        $CONFIG['customFields_prompt'] = $_POST['customFields_prompt'] ?? [];
+        $CONFIG['yoastFields_prompt'] = $_POST['yoastFields_prompt'] ?? [];
     }
     if (isset($_POST['generate_duplicate']) && $_POST['generate_duplicate'] == "1" && isset($post_id)) {
         $prompt = $_POST['prompt'];
@@ -68,16 +70,12 @@ if (isset($post_id)) {
 
 ?>
 <form method="post">
-    <?php
-    if (isset($respond_duplicados)) {
-        getRespond($respond_duplicados);
-    }
-    ?>
+    <?=DPAI_Respond($respond_duplicados)?>
     <input type="hidden" name="save" value="duplication">
     <table class="form-table">
         <tr>
             <th scope="row">
-                <?= DPAI_Tooltip("Post","Selecciona la página a duplicar.") ?>
+                <?= DPAI_Tooltip("Post", "Selecciona la página a duplicar.") ?>
             </th>
             <td>
                 <?php
@@ -101,24 +99,23 @@ if (isset($post_id)) {
     </button>
     <br />
     <br />
-    <?= DPAI_Collapse(
-        "Custom Fields",
-        DPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt'])
-    )
+    <?php
+    if (isset($post_id)) {
+        $post = get_post_meta($post_id);
     ?>
-    <?= function_exists('YoastSEO') ?  DPAI_Collapse(
-        " Yoast Seo",
-        DPAI_Custom_Fields($yoastFields, $CONFIG['yoastFields_prompt'])
-    )
-        : ""
-    ?>
-
-    <div class="content-btn">
-
-        <?php
-        if (isset($post_id)) {
-            $post = get_post_meta($post_id);
+        <?= DPAI_Collapse(
+            "Custom Fields",
+            DPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt']),
+            true
+        )
         ?>
+        <?= function_exists('YoastSEO') ?  DPAI_Collapse(
+            " Yoast Seo",
+            DPAI_Custom_Fields($yoastFields, $CONFIG['yoastFields_prompt'])
+        )
+            : ""
+        ?>
+        <div class="content-btn">
             <button
                 type="submit"
                 name="set_custom_field"
@@ -126,14 +123,7 @@ if (isset($post_id)) {
                 class="button delete">
                 Guardar Campos Personalisados
             </button>
-        <?php
-        }
-        ?>
-    </div>
-    <?php
-    if (isset($post_id)) {
-        $post = get_post_meta($post_id);
-    ?>
+        </div>
         <h3>Prompt para generar Duplicados</h3>
         <textarea
             id="prompt"

@@ -28,11 +28,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
 
 ?>
 <form method="post">
-    <?php
-    if (isset($respond_config)) {
-        getRespond($respond_config);
-    }
-    ?>
+    <?=DPAI_Respond($respond_config)?>
     <input type="hidden" name="save" value="config">
     <table class="form-table">
         <tr>

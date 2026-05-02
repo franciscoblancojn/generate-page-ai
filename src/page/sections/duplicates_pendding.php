@@ -50,16 +50,14 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
 }
 ?>
 <form method="post">
+    <?=DPAI_Respond($respond_duplicates_pendding)?>
     <?php
-    if (isset($respond_duplicates_pendding)) {
-        getRespond($respond_duplicates_pendding);
-    }
     if (isset($respond_duplicates_pendding_all)) {
         if ($respond_duplicates_pendding_all['status'] == 'error') {
-            getRespond($respond_duplicates_pendding_all);
+            echo DPAI_Respond($respond_duplicates_pendding_all);
         } else {
             foreach ($respond_duplicates_pendding_all['data'] as $key => $respond) {
-                getRespond($respond);
+                echo DPAI_Respond($respond);
             }
         }
     }
