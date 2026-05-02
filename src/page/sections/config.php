@@ -44,7 +44,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
             </th>
             <td>
                 <input
-                    type="text"
+                    type="password"
                     id="apikey"
                     name="apikey"
                     placeholder="API KEY"

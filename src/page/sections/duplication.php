@@ -77,10 +77,7 @@ if (isset($post_id)) {
     <table class="form-table">
         <tr>
             <th scope="row">
-                <label for="post_id">
-                    Post
-                    <?= tooltip('Selecciona la página a duplicar.') ?>
-                </label>
+                <?= DPAI_Tooltip("Post","Selecciona la página a duplicar.") ?>
             </th>
             <td>
                 <?php
@@ -102,47 +99,19 @@ if (isset($post_id)) {
         class="button button-primary">
         Cargar Post
     </button>
-    <table class="form-table">
-        <?php
-        if (isset($post_id)) {
-            $post = get_post_meta($post_id);
-        ?>
-            <tr>
-                <th scope="row">
-                    <label for="post_id">
-                        Custom Fields
-                        <?= tooltip('Campos personalizados de la pagina.') ?>
-                    </label>
-                </th>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <?= DPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt']) ?>
-                </td>
-            </tr>
-            <?php
-            if (function_exists('YoastSEO')) {
-            ?>
-                <tr>
-                    <th scope="row">
-                        <label for="post_id">
-                            Yoast Seo
-                            <?= tooltip('Campos que usa el plugin Yoast Seo.') ?>
-                        </label>
-                    </th>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <?= DPAI_Custom_Yoast($yoastFields, $CONFIG['yoastFields_prompt']) ?>
-                    </td>
-                </tr>
-            <?php
-            }
-            ?>
-        <?php
-        }
-        ?>
-    </table>
+    <br />
+    <br />
+    <?= DPAI_Collapse(
+        "Custom Fields",
+        DPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt'])
+    )
+    ?>
+    <?= function_exists('YoastSEO') ?  DPAI_Collapse(
+        " Yoast Seo",
+        DPAI_Custom_Fields($yoastFields, $CONFIG['yoastFields_prompt'])
+    )
+        : ""
+    ?>
 
     <div class="content-btn">
 
