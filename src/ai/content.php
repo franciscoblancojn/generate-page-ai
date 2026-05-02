@@ -124,7 +124,7 @@ class DPAI_CONTENT
             $PROMPT = self::getPrompt($CONFIG);
             $result = self::getContentByPrompt($PROMPT);
             FWUSystemLog::add(DPAI_KEY, [
-                'type' => "IA Duplicados result",
+                'type' => "IA Content result",
                 'PROMPT' => $PROMPT,
                 ...$CONFIG,
                 'result' => $result,
@@ -155,6 +155,11 @@ class DPAI_CONTENT
                     'file' => $th->getFile(),
                 ]
             ];
+            FWUSystemLog::add(DPAI_KEY, [
+                'type' => "IA Error Content result",
+                 ...$CONFIG,
+                'error' => $error,
+            ]);
             return $error;
         }
     }

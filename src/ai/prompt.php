@@ -74,6 +74,11 @@ class DPAI_PROMPT
                     'file' => $th->getFile(),
                 ]
             ];
+            FWUSystemLog::add(DPAI_KEY, [
+                'type' => "IA Error Prompt Mejorado",
+                 ...$CONFIG,
+                'error' => $error,
+            ]);
             return $error;
         }
     }
