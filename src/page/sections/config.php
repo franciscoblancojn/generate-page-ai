@@ -28,15 +28,12 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
 
 ?>
 <form method="post">
-    <?=DPAI_Respond($respond_config)?>
+    <?= DPAI_Respond($respond_config) ?>
     <input type="hidden" name="save" value="config">
     <table class="form-table">
         <tr>
             <th scope="row">
-                <label for="apikey">
-                    API KEY
-                    <?= tooltip('Api key de Gemini para generar contenido con IA.') ?>
-                </label>
+                <?= DPAI_Tooltip("API KEY", "Api key de Gemini para generar contenido con IA.") ?>
             </th>
             <td>
                 <input
@@ -57,10 +54,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
         ?>
             <tr>
                 <th scope="row">
-                    <label for="modelo">
-                        Modelo
-                        <?= tooltip('Modelo de IA que se usa.') ?>
-                    </label>
+                    <?= DPAI_Tooltip("Modelo", "Modelo de IA que se usa.") ?>
                 </th>
                 <td>
                     <select id="modelo" name="modelo" class="regular-text">
@@ -81,10 +75,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
 
         <tr>
             <th scope="row">
-                <label for="generate_img">
-                    Generar images.
-                    <?= tooltip('Permitir que Gemini genere la imagen principal para tus duplicados.') ?>
-                </label>
+                <?= DPAI_Tooltip("Generar images.", "Permitir que Gemini genere la imagen principal para tus duplicados.") ?>
             </th>
             <td>
                 <input

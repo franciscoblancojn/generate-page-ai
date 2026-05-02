@@ -1,21 +1,6 @@
 <?php
 
-function tooltip($text)
-{
-    return '
-    <span class="goshap-tooltip">
-        <span class="dashicons dashicons-info"></span>
-        <span class="goshap-tooltip-text">' . $text . '</span>
-    </span>';
-}
-function parseRespondMessage($text)
-{
-    return preg_replace(
-        '/(https?:\/\/[^\s]+)/',
-        '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
-        $text
-    );
-}
+
 $DPAI_USE_DATA_CONFIG = new DPAI_USE_DATA_CONFIG();
 $DPAI_USE_DATA_DUPLICADOS = new DPAI_USE_DATA_DUPLICADOS();
 

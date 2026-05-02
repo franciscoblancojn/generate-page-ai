@@ -70,7 +70,7 @@ if (isset($post_id)) {
 
 ?>
 <form method="post">
-    <?=DPAI_Respond($respond_duplicados)?>
+    <?= DPAI_Respond($respond_duplicados) ?>
     <input type="hidden" name="save" value="duplication">
     <table class="form-table">
         <tr>

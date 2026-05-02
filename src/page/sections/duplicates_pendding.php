@@ -50,7 +50,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
 }
 ?>
 <form method="post">
-    <?=DPAI_Respond($respond_duplicates_pendding)?>
+    <?= DPAI_Respond($respond_duplicates_pendding) ?>
     <?php
     if (isset($respond_duplicates_pendding_all)) {
         if ($respond_duplicates_pendding_all['status'] == 'error') {
@@ -132,10 +132,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
         ?>
             <tr>
                 <th scope="row">
-                    <label>
-                        Post Name
-                        <?= tooltip('Nombre de la pagina a duplicar.') ?>
-                    </label>
+                    <?= DPAI_Tooltip(" Post Name", "Nombre de la pagina a duplicar.") ?>
                 </th>
                 <td>
                     <?= get_the_title($post_id); ?>
@@ -143,10 +140,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
             </tr>
             <tr>
                 <th scope="row">
-                    <label>
-                        Custom Fields
-                        <?= tooltip('Campos personalizados de la pagina.') ?>
-                    </label>
+                    <?= DPAI_Tooltip("Custom Fields", "Campos personalizados de la pagina.") ?>
                 </th>
             </tr>
             <tr>
@@ -183,10 +177,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
             ?>
                 <tr>
                     <th scope="row">
-                        <label for="post_id">
-                            Yoast Seo
-                            <?= tooltip('Campos que usa el plugin Yoast Seo.') ?>
-                        </label>
+                        <?= DPAI_Tooltip("Yoast Seo", "Campos que usa el plugin Yoast Seo.") ?>
                     </th>
                 </tr>
                 <tr>
@@ -222,10 +213,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
             ?>
             <tr>
                 <th scope="row">
-                    <label>
-                        Variaciones
-                        <?= tooltip('Variacion de pagina a generar.') ?>
-                    </label>
+                    <?= DPAI_Tooltip("Variaciones", "Variacion de pagina a generar.") ?>
                 </th>
             </tr>
             <tr>

@@ -1,8 +1,17 @@
 <?php
 function DPAI_Respond($respond)
 {
-    if(!isset($respond)){
+    if (!isset($respond)) {
         return "";
+    }
+
+    function parseRespondMessage($text)
+    {
+        return preg_replace(
+            '/(https?:\/\/[^\s]+)/',
+            '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
+            $text
+        );
     }
     ob_start();
 ?>
