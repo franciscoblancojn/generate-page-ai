@@ -7,8 +7,18 @@ function DPAI_Table_Fields($KEY, $COLS = [], $fields = [], $valuesPrompt = [])
     <table class="form-table">
         <colgroup>
             <col style="width: 10%;">
-            <col style="width: 40%;">
-            <col style="width: 40%;">
+            <?php
+            if ($valuesPrompt !== false) {
+            ?>
+                <col style="width: 40%;">
+                <col style="width: 40%;">
+            <?php
+            } else {
+            ?>
+                <col style="width: 80%;">
+            <?php
+            }
+            ?>
         </colgroup>
         <thead>
             <tr>
@@ -18,9 +28,15 @@ function DPAI_Table_Fields($KEY, $COLS = [], $fields = [], $valuesPrompt = [])
                 <th>
                     <?= $COLS[1] ?>
                 </th>
-                <th>
-                    <?= $COLS[2] ?>
-                </th>
+                <?php
+                if ($valuesPrompt !== false) {
+                ?>
+                    <th>
+                        <?= $COLS[2] ?>
+                    </th>
+                <?php
+                }
+                ?>
             </tr>
         </thead>
         <tbody>
@@ -41,14 +57,21 @@ function DPAI_Table_Fields($KEY, $COLS = [], $fields = [], $valuesPrompt = [])
                             style="min-height: 100px;"
                             class="large-text code"><?= esc_attr($value) ?></textarea>
                     </td>
-                    <td>
-                        <textarea
-                            id="<?= $KEY ?>_prompt_<?= $key ?>"
-                            name="<?= $KEY ?>_prompt[<?= $key ?>]"
-                            placeholder="Prompt personalizado para <?= $key ?>."
-                            class="large-text code"
-                            style="min-height: 100px;"><?= isset($valuesPrompt[$key]) ? $valuesPrompt[$key] : "" ?></textarea>
-                    </td>
+
+                    <?php
+                    if ($valuesPrompt !== false) {
+                    ?>
+                        <td>
+                            <textarea
+                                id="<?= $KEY ?>_prompt_<?= $key ?>"
+                                name="<?= $KEY ?>_prompt[<?= $key ?>]"
+                                placeholder="Prompt personalizado para <?= $key ?>."
+                                class="large-text code"
+                                style="min-height: 100px;"><?= isset($valuesPrompt[$key]) ? $valuesPrompt[$key] : "" ?></textarea>
+                        </td>
+                    <?php
+                    }
+                    ?>
                 </tr>
             <?php
             }

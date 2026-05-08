@@ -16,8 +16,8 @@ $TAGS = [
         'title' => 'Post, Campos y Prompts',
     ],
     [
-        'key' => 'duplicates_pendding',
-        'title' => 'Duplicados Pendientes',
+        'key' => 'procesar_contenido',
+        'title' => 'Procesar Contenido',
     ],
 ];
 

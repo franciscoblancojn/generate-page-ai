@@ -5,7 +5,7 @@ function DPAI_Collapse($title, $content, $open = false)
 ?>
     <details <?= $open ? "open":"" ?>>
         <summary style="display: flex;">
-            <span><?= $title ?> </span>
+            <?= $title ?>
         </summary>
         <div>
             <?= $content ?>

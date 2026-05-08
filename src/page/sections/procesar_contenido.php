@@ -48,6 +48,45 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
         $DUPLICADOS = $DPAI_USE_DATA_DUPLICADOS->get();
     }
 }
+
+function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
+{
+    ob_start();
+?>
+    <div class="content-btn" style="width: 100%;">
+        <strong>
+            <?= $value['title'] ?>
+        </strong>
+        <div style="margin-left: auto;margin-right:2rem;">
+            <?php
+            $url = add_query_arg($customFields, get_permalink($post_id));
+            ?>
+
+            <a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer" class="button delete">
+                Previsualizar
+            </a>
+            <button
+                type="submit"
+                name="submit_delete"
+                value="<?= $post_id . DPAI_KEY_SEPARETE . $prompt . DPAI_KEY_SEPARETE . $v ?>"
+                class="button button-primary">
+                Eliminar
+            </button>
+
+            <button
+                type="submit"
+                name="submit_generate"
+                value="<?= $post_id . DPAI_KEY_SEPARETE . $prompt . DPAI_KEY_SEPARETE . $v ?>"
+                class="button button-primary">
+                Generar
+            </button>
+        </div>
+    </div>
+    <br>
+<?php
+    return ob_get_clean();
+}
+
 ?>
 <form method="post">
     <?= DPAI_Respond($respond_duplicates_pendding) ?>
@@ -67,7 +106,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
     if (count($DUPLICADOS) == 0) {
     ?>
         <h3>
-            No tienes duplicaciones de paginas pendientes.
+            No tienes contenido generado.
         </h3>
         <?php
         if (DPAI_MODE_DEV) {
@@ -87,7 +126,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
     ?>
         <div class="content-title-btn">
             <h3>
-                Lista de Duplicaciones de paginas.
+                Lista de contendigo generado.
             </h3>
             <div class="content-btn">
                 <?php
@@ -132,85 +171,12 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
         ?>
             <tr>
                 <th scope="row">
-                    <?= DPAI_Tooltip(" Post Name", "Nombre de la pagina a duplicar.") ?>
+                    <?= DPAI_Tooltip(" Post Name", "Nombre de la pagina a generar.") ?>
                 </th>
                 <td>
                     <?= get_the_title($post_id); ?>
                 </td>
             </tr>
-            <tr>
-                <th scope="row">
-                    <?= DPAI_Tooltip("Custom Fields", "Campos personalizados de la pagina.") ?>
-                </th>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <table class="form-table">
-                        <?php
-                        foreach ($customFields as $key => $value) {
-                        ?>
-                            <tr>
-                                <th scope="row">
-                                    <label for="<?= $key ?>">
-                                        <?= $key ?>
-                                    </label>
-                                </th>
-                                <td>
-                                    <input
-                                        type="text"
-                                        id="<?= $key ?>"
-                                        name="duplication[<?= $post_id ?>][customFields][<?= $key ?>]"
-                                        placeholder="<?= $key ?>"
-                                        value="<?= esc_attr($value) ?>"
-                                        class="regular-text" />
-                                </td>
-                            </tr>
-                        <?php
-                        }
-                        ?>
-                    </table>
-                </td>
-            </tr>
-
-            <?php
-            if (function_exists('YoastSEO')) {
-            ?>
-                <tr>
-                    <th scope="row">
-                        <?= DPAI_Tooltip("Yoast Seo", "Campos que usa el plugin Yoast Seo.") ?>
-                    </th>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <table class="form-table">
-                            <?php
-                            foreach ($yoastFields as $key => $value) {
-                            ?>
-                                <tr>
-                                    <th scope="row">
-                                        <label for="<?= $key ?>">
-                                            <?= $key ?>
-                                        </label>
-                                    </th>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            id="<?= $key ?>"
-                                            name="yoastFields[<?= $key ?>]"
-                                            placeholder="<?= $key ?>"
-                                            value="<?= esc_attr($value) ?>"
-                                            class="regular-text" />
-                                    </td>
-                                </tr>
-                            <?php
-                            }
-                            ?>
-                        </table>
-                    </td>
-                </tr>
-            <?php
-            }
-            ?>
             <tr>
                 <th scope="row">
                     <?= DPAI_Tooltip("Variaciones", "Variacion de pagina a generar.") ?>
@@ -234,113 +200,51 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
                                     </i>
                                 </td>
                             </tr>
-                            <tr>
-                                <td colspan="2">
-                                    <table class="form-table">
                                         <?php
                                         foreach ($variation as $v => $value) {
                                             $customFields = $value['customFields'];
                                             $yoastFields = $value['yoastFields'];
                                         ?>
                                             <tr>
-                                                <th scope="row">
-                                                    <label>
-                                                        <?= $value['title'] ?>
-                                                    </label>
-                                                </th>
-                                                <td>
-                                                    <table class="form-table">
-                                                        <?php
-                                                        foreach ($customFields as $key => $value) {
-                                                        ?>
-                                                            <tr>
-                                                                <th scope="row">
-                                                                    <label for="<?= $key ?>">
-                                                                        <?= $key ?>
-                                                                    </label>
-                                                                </th>
-                                                                <td>
-                                                                    <input
-                                                                        type="text"
-                                                                        id="<?= $key ?>"
-                                                                        name="duplication[<?= $post_id ?>][variations][<?= $v ?>][customFields][<?= $key ?>]"
-                                                                        placeholder="<?= $key ?>"
-                                                                        value="<?= esc_attr($value) ?>"
-                                                                        class="regular-text" />
-                                                                </td>
-                                                            </tr>
-                                                        <?php
-                                                        }
-                                                        ?>
-                                                        <?php
-                                                        foreach ($yoastFields as $key => $value) {
-                                                        ?>
-                                                            <tr>
-                                                                <th scope="row">
-                                                                    <label for="<?= $key ?>">
-                                                                        <?= $key ?>
-                                                                    </label>
-                                                                </th>
-                                                                <td>
-                                                                    <input
-                                                                        type="text"
-                                                                        id="<?= $key ?>"
-                                                                        name="duplication[<?= $post_id ?>][variations][<?= $v ?>][yoastFields][<?= $key ?>]"
-                                                                        placeholder="<?= $key ?>"
-                                                                        value="<?= esc_attr($value) ?>"
-                                                                        class="regular-text" />
-                                                                </td>
-                                                            </tr>
-                                                        <?php
-                                                        }
-                                                        ?>
-                                                    </table>
-                                                </td>
-                                                <td>
-                                                    <?php
-                                                    $url = add_query_arg($customFields, get_permalink($post_id));
+                                                <td colspan="2">
+                                                    <?= DPAI_Collapse(
+                                                        getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v),
+                                                        "" .
+                                                            DPAI_Collapse(
+                                                                "Custom Fields",
+                                                                DPAI_Custom_Fields($customFields, false),
+                                                                true
+                                                            ) .
+                                                            (
+                                                                function_exists('YoastSEO') ?  DPAI_Collapse(
+                                                                    "Yoast Seo",
+                                                                    DPAI_Custom_Fields($yoastFields, false),
+                                                                    true
+                                                                )
+                                                                : ""
+                                                            ),
+                                                        true
+                                                    )
                                                     ?>
 
-                                                    <a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer" class="button delete">
-                                                        Previsualizar
-                                                    </a>
-                                                </td>
-                                                <td>
-                                                    <button
-                                                        type="submit"
-                                                        name="submit_delete"
-                                                        value="<?= $post_id . DPAI_KEY_SEPARETE . $prompt . DPAI_KEY_SEPARETE . $v ?>"
-                                                        class="button button-primary">
-                                                        Eliminar
-                                                    </button>
-                                                </td>
-                                                <td>
-
-                                                    <button
-                                                        type="submit"
-                                                        name="submit_generate"
-                                                        value="<?= $post_id . DPAI_KEY_SEPARETE . $prompt . DPAI_KEY_SEPARETE . $v ?>"
-                                                        class="button button-primary">
-                                                        Generar
-                                                    </button>
                                                 </td>
                                             </tr>
-                                        <?php
-                                        }
-                                        ?>
-                                    </table>
-                                </td>
-                            </tr>
                         <?php
-                        }
+                                        }
                         ?>
                     </table>
                 </td>
             </tr>
         <?php
-        }
+                        }
         ?>
-
     </table>
+    </td>
+    </tr>
+<?php
+        }
+?>
+
+</table>
 
 </form>

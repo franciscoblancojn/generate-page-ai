@@ -174,7 +174,7 @@ if (isset($post_id)) {
         )
         ?>
         <?= function_exists('YoastSEO') ?  DPAI_Collapse(
-            " Yoast Seo",
+            "Yoast Seo",
             DPAI_Custom_Fields($yoastFields, $CONFIG['yoastFields_prompt'])
         )
             : ""
