@@ -1,8 +1,8 @@
 <?php
 
-function DPAI_Custom_Fields($values = [], $valuesPrompt = [])
+function GPAI_Custom_Fields($values = [], $valuesPrompt = [])
 {
-    return DPAI_Table_Fields(
+    return GPAI_Table_Fields(
         "customFields",
         [
             "Campo Personalizado",

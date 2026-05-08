@@ -1,6 +1,6 @@
 <?php
 
-function DPAI_Table_Fields($KEY, $COLS = [], $fields = [], $valuesPrompt = [])
+function GPAI_Table_Fields($KEY, $COLS = [], $fields = [], $valuesPrompt = [])
 {
     ob_start();
 ?>

@@ -1,5 +1,5 @@
 <?php
-function DPAI_Tooltip($title, $text)
+function GPAI_Tooltip($title, $text)
 {
     ob_start();
 ?>

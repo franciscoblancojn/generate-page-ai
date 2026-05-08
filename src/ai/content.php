@@ -2,7 +2,7 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
-class DPAI_CONTENT
+class GPAI_CONTENT
 {
     public static function getPromptImg($post_id, $customFields, $yoastFields)
     {
@@ -90,17 +90,17 @@ class DPAI_CONTENT
     {
         $jsonResponse = [];
         try {
-            $result = DPAI_AI::sendPrompt($PROMPT);
+            $result = GPAI_AI::sendPrompt($PROMPT);
 
             if ($result['status'] == 'error') {
                 return $result;
             }
             $result['message'] = "Contenido Generado";
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Content result text",
                 'result' => $result,
             ]);
-            $result['data'] = DPAI_AI::parseJson($result['data']);
+            $result['data'] = GPAI_AI::parseJson($result['data']);
             if (!isset($result['data'][0])) {
                 $result['data'] = [$result['data']];
             }
@@ -123,7 +123,7 @@ class DPAI_CONTENT
         try {
             $PROMPT = self::getPrompt($CONFIG);
             $result = self::getContentByPrompt($PROMPT);
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Content result",
                 'PROMPT' => $PROMPT,
                 ...$CONFIG,
@@ -132,13 +132,13 @@ class DPAI_CONTENT
             if ($CONFIG['generate_img']) {
                 foreach ($result['data'] as $key => $value) {
                     $PROMPTBYIMG = self::getPromptImg($CONFIG['post_id'], $value['customFields'], $value['yoastFields']);
-                    $result_img = DPAI_AI::sendPrompt($PROMPTBYIMG);
+                    $result_img = GPAI_AI::sendPrompt($PROMPTBYIMG);
                     if ($result_img['status'] == 'ok') {
-                        $result_img['data'] = DPAI_AI::parseJson($result_img['data']);
+                        $result_img['data'] = GPAI_AI::parseJson($result_img['data']);
                     }
                     $result['data'][$key]['imagen'] = $result_img;
                 }
-                FWUSystemLog::add(DPAI_KEY, [
+                FWUSystemLog::add(GPAI_KEY, [
                     'type' => "IA Duplicados result with img",
                     'PROMPT' => $PROMPT,
                     ...$CONFIG,
@@ -155,7 +155,7 @@ class DPAI_CONTENT
                     'file' => $th->getFile(),
                 ]
             ];
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Error Content result",
                  ...$CONFIG,
                 'error' => $error,

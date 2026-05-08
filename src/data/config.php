@@ -2,7 +2,7 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
-class DPAI_USE_DATA_CONFIG extends DPAI_USE_DATA_BASE
+class GPAI_USE_DATA_CONFIG extends GPAI_USE_DATA_BASE
 {
-    protected $KEY = DPAI_CONFIG;
+    protected $KEY = GPAI_CONFIG;
 }

@@ -1,8 +1,8 @@
 <?php
 
-function DPAI_Custom_Yoast($values = [], $valuesPrompt = [])
+function GPAI_Custom_Yoast($values = [], $valuesPrompt = [])
 {
-    return DPAI_Table_Fields(
+    return GPAI_Table_Fields(
         "yoastFields",
         [
             "Campo de Yoast",

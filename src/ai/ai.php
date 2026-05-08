@@ -2,12 +2,12 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
-class DPAI_AI
+class GPAI_AI
 {
     private static function getConfig()
     {
-        $DPAI_USE_DATA_CONFIG = new DPAI_USE_DATA_CONFIG();
-        return $DPAI_USE_DATA_CONFIG->get();
+        $GPAI_USE_DATA_CONFIG = new GPAI_USE_DATA_CONFIG();
+        return $GPAI_USE_DATA_CONFIG->get();
     }
     private static function request(
         $url,
@@ -82,7 +82,7 @@ class DPAI_AI
                 ]
             ];
 
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA error",
                 'data' => $error
             ]);
@@ -137,7 +137,7 @@ class DPAI_AI
                     'jsonResponse' => $jsonResponse
                 ]
             ];
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA error",
                 'data' => $error
             ]);
@@ -198,7 +198,7 @@ class DPAI_AI
                 ]
             ];
 
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA modelos error",
                 'data' => $error
             ]);

@@ -4,7 +4,7 @@ use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
 
 if (isset($_POST['save']) && $_POST['save'] == "config") {
-    FWUSystemLog::add(DPAI_KEY, [
+    FWUSystemLog::add(GPAI_KEY, [
         'type' => "save_config",
         'data' => $_POST
     ]);
@@ -17,23 +17,23 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
         $CONFIG['modelo'] = $_POST['modelo'];
     }
     if (isset($CONFIG['apikey']) && $CONFIG['list_modelos'] == null) {
-        $respond_config = DPAI_AI::getModels();
+        $respond_config = GPAI_AI::getModels();
         if ($respond_config['status'] == "ok") {
             $CONFIG['list_modelos'] = $respond_config['data'] ?? [];
         }
     }
-    $DPAI_USE_DATA_CONFIG->set($CONFIG);
+    $GPAI_USE_DATA_CONFIG->set($CONFIG);
 }
 
 
 ?>
 <form method="post">
-    <?= DPAI_Respond($respond_config) ?>
+    <?= GPAI_Respond($respond_config) ?>
     <input type="hidden" name="save" value="config">
     <table class="form-table">
         <tr>
             <th scope="row">
-                <?= DPAI_Tooltip("API KEY", "Api key de Gemini para generar contenido con IA.") ?>
+                <?= GPAI_Tooltip("API KEY", "Api key de Gemini para generar contenido con IA.") ?>
             </th>
             <td>
                 <input
@@ -54,7 +54,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
         ?>
             <tr>
                 <th scope="row">
-                    <?= DPAI_Tooltip("Modelo", "Modelo de IA que se usa.") ?>
+                    <?= GPAI_Tooltip("Modelo", "Modelo de IA que se usa.") ?>
                 </th>
                 <td>
                     <select id="modelo" name="modelo" class="regular-text">
@@ -75,7 +75,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
 
         <tr>
             <th scope="row">
-                <?= DPAI_Tooltip("Generar images.", "Permitir que Gemini genere la imagen principal para tus duplicados.") ?>
+                <?= GPAI_Tooltip("Generar images.", "Permitir que Gemini genere la imagen principal para tus duplicados.") ?>
             </th>
             <td>
                 <input

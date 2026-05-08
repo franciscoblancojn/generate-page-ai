@@ -1,5 +1,5 @@
 <?php
-function DPAI_Respond($respond)
+function GPAI_Respond($respond)
 {
     if (!isset($respond)) {
         return "";

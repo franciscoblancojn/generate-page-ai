@@ -1,5 +1,5 @@
 <?php
-function DPAI_Collapse($title, $content, $open = false)
+function GPAI_Collapse($title, $content, $open = false)
 {
     ob_start();
 ?>

@@ -2,7 +2,7 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
-class DPAI_PROMPT
+class GPAI_PROMPT
 {
 
     public static function getPrompt($CONFIG)
@@ -30,17 +30,17 @@ class DPAI_PROMPT
     {
         $jsonResponse = [];
         try {
-            $result = DPAI_AI::sendPrompt($PROMPT);
+            $result = GPAI_AI::sendPrompt($PROMPT);
 
             if ($result['status'] == 'error') {
                 return $result;
             }
             $result['message'] = "Prompts Mejorados";
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Prompt Mejorado result",
                 'result' => $result,
             ]);
-            $result['data'] = DPAI_AI::parseJson($result['data']);
+            $result['data'] = GPAI_AI::parseJson($result['data']);
             return $result;
         } catch (\Throwable $th) {
             $error = [
@@ -61,7 +61,7 @@ class DPAI_PROMPT
         try {
             $PROMPT = self::getPrompt($CONFIG);
             $result = self::getMejoraPromptByPrompt($PROMPT);
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Prompt Mejorado",
                  ...$CONFIG,
                 'result' => $result,
@@ -76,7 +76,7 @@ class DPAI_PROMPT
                     'file' => $th->getFile(),
                 ]
             ];
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Error Prompt Mejorado",
                  ...$CONFIG,
                 'error' => $error,

@@ -2,7 +2,7 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
-class DPAI_USE_DATA_BASE
+class GPAI_USE_DATA_BASE
 {
     protected $KEY = '';
     protected $DATA = [];

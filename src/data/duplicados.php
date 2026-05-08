@@ -2,9 +2,9 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
-class DPAI_USE_DATA_DUPLICADOS extends DPAI_USE_DATA_BASE
+class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
 {
-    protected $KEY = DPAI_CONTENT;
+    protected $KEY = GPAI_CONTENT;
 
     public function deletePost($post_id)
     {
@@ -86,7 +86,7 @@ class DPAI_USE_DATA_DUPLICADOS extends DPAI_USE_DATA_BASE
         foreach ($yoastFields as $key => $value) {
             update_post_meta($new_post_id, $key, $value);
         }
-        update_post_meta($new_post_id, DPAI_KEY . "_PARENT", $post_id);
+        update_post_meta($new_post_id, GPAI_KEY . "_PARENT", $post_id);
 
         //PENDING: generar img con IA
         $thumbnail_id = get_post_thumbnail_id($post_id);
@@ -133,7 +133,7 @@ class DPAI_USE_DATA_DUPLICADOS extends DPAI_USE_DATA_BASE
                     'file' => $th->getFile(),
                 ]
             ];
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "Duplicados error",
                 'data' => $error
             ]);
@@ -169,7 +169,7 @@ class DPAI_USE_DATA_DUPLICADOS extends DPAI_USE_DATA_BASE
                     'file' => $th->getFile(),
                 ]
             ];
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "Duplicados error",
                 'data' => $error
             ]);
@@ -205,7 +205,7 @@ class DPAI_USE_DATA_DUPLICADOS extends DPAI_USE_DATA_BASE
                     'file' => $th->getFile(),
                 ]
             ];
-            FWUSystemLog::add(DPAI_KEY, [
+            FWUSystemLog::add(GPAI_KEY, [
                 'type' => "Duplicados error",
                 'data' => $error
             ]);

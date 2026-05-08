@@ -7,13 +7,13 @@ add_action('admin_menu', function () {
         'Generate Page AI Configuración', // Título página
         'Generate Page AI',              // Nombre en menú
         'manage_options',        // Permisos
-        DPAI_KEY,      // Slug
-        'DPAI_PAGE_VIEW'  // Callback
+        GPAI_KEY,      // Slug
+        'GPAI_PAGE_VIEW'  // Callback
     );
 });
 
 // 2. Página HTML
-function DPAI_PAGE_VIEW()
+function GPAI_PAGE_VIEW()
 {
-    require_once DPAI_DIR . 'src/page/page.php';
+    require_once GPAI_DIR . 'src/page/page.php';
 }

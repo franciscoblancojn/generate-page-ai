@@ -16,27 +16,27 @@ if (!function_exists('is_plugin_active'))
 
 require_once __DIR__ . '/libs/autoload.php';
 
-//DPAI_
-define("DPAI_KEY", 'DPAI');
-define("DPAI_MODE_DEV", true);
-define("DPAI_KEY_SEPARETE", '____DPAI____');
-define("DPAI_CONFIG", 'DPAI_CONFIG');
-define("DPAI_CONTENT", 'DPAI_CONTENT');
-define("DPAI_LOG", true);
-define("DPAI_LOG_KEY", "DPAI_LOG");
-define("DPAI_LOG_COUNT", 100);
-define("DPAI_BASENAME", plugin_basename(__FILE__));
-define("DPAI_DIR", plugin_dir_path(__FILE__));
-define("DPAI_URL", plugin_dir_url(__FILE__));
+//GPAI_
+define("GPAI_KEY", 'GPAI');
+define("GPAI_MODE_DEV", true);
+define("GPAI_KEY_SEPARETE", '____GPAI____');
+define("GPAI_CONFIG", 'GPAI_CONFIG');
+define("GPAI_CONTENT", 'GPAI_CONTENT');
+define("GPAI_LOG", true);
+define("GPAI_LOG_KEY", "GPAI_LOG");
+define("GPAI_LOG_COUNT", 100);
+define("GPAI_BASENAME", plugin_basename(__FILE__));
+define("GPAI_DIR", plugin_dir_path(__FILE__));
+define("GPAI_URL", plugin_dir_url(__FILE__));
 
 //importar libreria
-// add_system_log("DPAI")
+// add_system_log("GPAI")
 
 
-require_once DPAI_DIR . 'update.php';
+require_once GPAI_DIR . 'update.php';
 github_updater_plugin_wordpress([
-    'basename' => DPAI_BASENAME,
-    'dir' => DPAI_DIR,
+    'basename' => GPAI_BASENAME,
+    'dir' => GPAI_DIR,
     'file' => "index.php",
     'path_repository' => 'franciscoblancojn/generate-page-ai',
     'branch' => 'master',
@@ -87,12 +87,12 @@ github_updater_plugin_wordpress([
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
 if (is_admin()) {
-    FWUSystemLog::init(DPAI_KEY);
+    FWUSystemLog::init(GPAI_KEY);
 }
 
-require_once DPAI_DIR . 'src/_.php';
+require_once GPAI_DIR . 'src/_.php';
 
-// FWUSystemLog::add("DPAI", [
+// FWUSystemLog::add("GPAI", [
 //     "type" => "API",
 //     "message" => "Se envió data a Google Sheets",
 //     "data" => ["id" => 123]

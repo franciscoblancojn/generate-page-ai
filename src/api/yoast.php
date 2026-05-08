@@ -2,16 +2,16 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
-class DPAI_YOAST
+class GPAI_YOAST
 {
     public static function init()
     {
-        register_rest_route(DPAI_KEY, '/yoast/get', [
+        register_rest_route(GPAI_KEY, '/yoast/get', [
             'methods' => 'GET',
             'callback' => [self::class, 'GET_Enpoint'],
         ]);
 
-        register_rest_route(DPAI_KEY, '/yoast/set', [
+        register_rest_route(GPAI_KEY, '/yoast/set', [
             'methods' => 'POST',
             'callback' => [self::class, 'SET_Enpoint'],
         ]);
@@ -100,8 +100,8 @@ class DPAI_YOAST
         //     do_action('save_post', $post_id);
         // }
 
-        FWUSystemLog::add(DPAI_KEY, [
-            'type' => "DPAI_YOAST SET",
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => "GPAI_YOAST SET",
             'post_id' => $post_id,
             'data' => $data,
             'result' => $result,
@@ -129,4 +129,4 @@ class DPAI_YOAST
     }
 }
 
-// add_action('rest_api_init', ['DPAI_YOAST', 'init']);
+// add_action('rest_api_init', ['GPAI_YOAST', 'init']);

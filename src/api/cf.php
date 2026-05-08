@@ -2,15 +2,15 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
-class DPAI_CF
+class GPAI_CF
 {
     public static function init()
     {
-        register_rest_route(DPAI_KEY, '/cf/get', [
+        register_rest_route(GPAI_KEY, '/cf/get', [
             'methods' => 'GET',
             'callback' => [self::class, 'GET_Enpoint'],
         ]);
-        register_rest_route(DPAI_KEY, '/cf/set', [
+        register_rest_route(GPAI_KEY, '/cf/set', [
             'methods' => 'POST',
             'callback' => [self::class, 'SET_Enpoint'],
         ]);
@@ -131,8 +131,8 @@ class DPAI_CF
         }
 
 
-        FWUSystemLog::add(DPAI_KEY, [
-            'type' => "DPAI_CF SET",
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => "GPAI_CF SET",
             'data' => $data,
             'result' => $result,
         ]);
@@ -145,4 +145,4 @@ class DPAI_CF
     }
 }
 
-// add_action('rest_api_init', ['DPAI_CF', 'init']);
+// add_action('rest_api_init', ['GPAI_CF', 'init']);

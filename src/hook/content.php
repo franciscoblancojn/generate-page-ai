@@ -1,5 +1,5 @@
 <?php
-function DPAI_replace_custom_vars($content)
+function GPAI_replace_custom_vars($content)
 {
     preg_match_all('/{{(.*?)}}|__(.*?)__/', $content, $matches);
 
@@ -28,5 +28,5 @@ function DPAI_replace_custom_vars($content)
     return $content;
 }
 
-add_filter('the_content', 'DPAI_replace_custom_vars');
-// add_filter('elementor/widget/render_content', 'DPAI_replace_custom_vars');
+add_filter('the_content', 'GPAI_replace_custom_vars');
+// add_filter('elementor/widget/render_content', 'GPAI_replace_custom_vars');

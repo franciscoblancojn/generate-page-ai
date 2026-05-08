@@ -32,7 +32,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
         if ($is_save_custom_field || $is_upgrade_prompts || $is_generate_content) {
             $customFields = $_POST['customFields'] ?? [];
             if (!empty($customFields)) {
-                DPAI_CF::SET($post_id, $customFields);
+                GPAI_CF::SET($post_id, $customFields);
                 $respond_content = [
                     "status" => "ok",
                     "message" => "Campos personalisados Guardados.",
@@ -41,7 +41,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             }
             $yoastFields = $_POST['yoastFields'] ?? [];
             if (!empty($yoastFields)) {
-                DPAI_YOAST::SET($post_id, $yoastFields);
+                GPAI_YOAST::SET($post_id, $yoastFields);
                 $respond_content = [
                     "status" => "ok",
                     "message" => "Campos personalisados Guardados.",
@@ -60,8 +60,8 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             }
         }
         if ($is_upgrade_prompts) {
-            $PROMPT = DPAI_CONTENT::getPrompt($CONFIG);
-            $respond_content = DPAI_PROMPT::getMejoraPrompt([
+            $PROMPT = GPAI_CONTENT::getPrompt($CONFIG);
+            $respond_content = GPAI_PROMPT::getMejoraPrompt([
                 'config' => $CONFIG,
                 "prompt" => $PROMPT,
                 "campos" => [
@@ -95,9 +95,9 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             $prompt = $_POST['prompt'];
             if (isset($prompt)) {
                 $CONFIG['prompt'] = $prompt;
-                $customFields = DPAI_CF::GET($post_id);
-                $yoastFields = DPAI_YOAST::GET($post_id);
-                $respond_content = DPAI_CONTENT::getContent($CONFIG);
+                $customFields = GPAI_CF::GET($post_id);
+                $yoastFields = GPAI_YOAST::GET($post_id);
+                $respond_content = GPAI_CONTENT::getContent($CONFIG);
                 if ($respond_content['status'] == 'ok') {
                     $POST_DATA = $DUPLICADOS[$post_id] ?? [];
                     $POST_DATA['post_id'] = $post_id;
@@ -105,30 +105,30 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                     $POST_DATA['yoastFields'] = $yoastFields;
                     $POST_DATA['variations'] ??= [];
                     $POST_DATA['variations'][$prompt] = $respond_content['data'];
-                    $DPAI_USE_DATA_DUPLICADOS->setField($post_id, $POST_DATA);
+                    $GPAI_USE_DATA_DUPLICADOS->setField($post_id, $POST_DATA);
                 }
             }
         }
     }
-    FWUSystemLog::add(DPAI_KEY, [
+    FWUSystemLog::add(GPAI_KEY, [
         'type' => "save_duplication",
         'data' => $_POST
     ]);
-    $DPAI_USE_DATA_CONFIG->set($CONFIG);
+    $GPAI_USE_DATA_CONFIG->set($CONFIG);
 }
 if (isset($post_id)) {
-    $customFields = DPAI_CF::GET($post_id);
-    $yoastFields = DPAI_YOAST::GET($post_id);
+    $customFields = GPAI_CF::GET($post_id);
+    $yoastFields = GPAI_YOAST::GET($post_id);
 }
 
 ?>
 <form method="post">
-    <?= DPAI_Respond($respond_content) ?>
+    <?= GPAI_Respond($respond_content) ?>
     <input type="hidden" name="save" value="duplication">
     <table class="form-table">
         <tr>
             <th scope="row">
-                <?= DPAI_Tooltip("Post", "Selecciona la página a duplicar.") ?>
+                <?= GPAI_Tooltip("Post", "Selecciona la página a duplicar.") ?>
             </th>
             <td>
                 <div class="content-btn">
@@ -167,15 +167,15 @@ if (isset($post_id)) {
     if (isset($post_id)) {
         $post = get_post_meta($post_id);
     ?>
-        <?= DPAI_Collapse(
+        <?= GPAI_Collapse(
             "Custom Fields",
-            DPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt']),
+            GPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt']),
             true
         )
         ?>
-        <?= function_exists('YoastSEO') ?  DPAI_Collapse(
+        <?= function_exists('YoastSEO') ?  GPAI_Collapse(
             "Yoast Seo",
-            DPAI_Custom_Fields($yoastFields, $CONFIG['yoastFields_prompt'])
+            GPAI_Custom_Fields($yoastFields, $CONFIG['yoastFields_prompt'])
         )
             : ""
         ?>

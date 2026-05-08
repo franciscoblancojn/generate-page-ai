@@ -1,10 +1,10 @@
 <?php
 
 
-$DPAI_USE_DATA_CONFIG = new DPAI_USE_DATA_CONFIG();
-$DPAI_USE_DATA_DUPLICADOS = new DPAI_USE_DATA_DUPLICADOS();
+$GPAI_USE_DATA_CONFIG = new GPAI_USE_DATA_CONFIG();
+$GPAI_USE_DATA_DUPLICADOS = new GPAI_USE_DATA_DUPLICADOS();
 
-$CONFIG = $DPAI_USE_DATA_CONFIG->get();
+$CONFIG = $GPAI_USE_DATA_CONFIG->get();
 
 $TAGS = [
     [
@@ -24,7 +24,7 @@ $TAGS = [
 $defaultTag =  $TAGS[0]['key'];
 
 ?>
-<div id="page-<?= DPAI_KEY ?>" class="wrap">
+<div id="page-<?= GPAI_KEY ?>" class="wrap">
     <h1>Duplicate Page AI</h1>
     <div class="nav-tab-wrapper woo-nav-tab-wrapper">
         <?php
@@ -45,7 +45,7 @@ $defaultTag =  $TAGS[0]['key'];
     ?>
         <div class="tab-content <?= $value['key'] == $defaultTag ? "nav-tab-active" : "" ?>" id="<?= $value['key'] ?>">
             <?php
-            require_once DPAI_DIR . 'src/page/sections/' . $value['key'] . ".php";
+            require_once GPAI_DIR . 'src/page/sections/' . $value['key'] . ".php";
             ?>
         </div>
     <?php
@@ -260,7 +260,7 @@ $defaultTag =  $TAGS[0]['key'];
                 }
             }
         });
-        const page = document.getElementById("page-<?= DPAI_KEY ?>")
+        const page = document.getElementById("page-<?= GPAI_KEY ?>")
         window.addEventListener('DOMContentLoaded', () => {
             const btns = page.querySelectorAll('[type="submit"]')
             btns.forEach((e, i) => e.addEventListener('click', (ele) => {
