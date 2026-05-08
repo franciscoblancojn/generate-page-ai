@@ -56,29 +56,6 @@ class GPAI_CONTENT
         ] = $CONFIG;
 
         $title = get_the_title($post_id);
-        // $content = get_post_field('post_content', $post_id);
-        // $PROMPT = "
-        //     ----TITULO DE LA PAGINA----
-        //     " . $title . 
-        //     // "----CONTENIDO DE LA PAGINA----
-        //     // " . $content .
-        //     "----CAMPOS PERSONALIZADOS----
-        //     " . json_encode($customFields) . "
-        //     ----PROMPTS PARA CAMPOS PERSONALIZADOS----
-        //     " . json_encode($customFields_prompt) . "
-        //     ----DATOS DE YOAST SEO----
-        //     " . json_encode($yoastFields) . "
-        //     ----PROMPTS PARA DATOS DE YOAST SEO----
-        //     " . json_encode($yoastFields_prompt) . "
-        //     ----PROMP BASE----
-        //     " . $prompt . "
-        //     ----
-        //     Necesito que generes un json basandote en el contenido, campos personalizados y datos de yoast seo como referencia.
-        //     Formato de json : {title:'title',customFields:{key:'value',...},yoastFields:{key:'value',...}}
-        //     En caso que se pidan varias respuesta este es el formato a usar:
-        //     Formato de array : [{title:'title',customFields:{key:'value',...},yoastFields:{key:'value',...}},{title:'title2',customFields:{key:'value',...},yoastFields:{key:'value',...}}]
-        //     Importante, ten en cuenta el prompt base y prompts personalizados por campos o datos de yoast, en caso de que exista prompts personalizados usa tanto el prompt personalizado como el prompt base para generar contenido.
-        // ";
         $PROMPT = "
         ----TITULO DE LA PAGINA----
         " . $title . "
