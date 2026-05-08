@@ -47,6 +47,44 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
         $respond_duplicates_pendding = $GPAI_USE_DATA_DUPLICADOS->generateVariation($post_id, $prompt, $v);
         $DUPLICADOS = $GPAI_USE_DATA_DUPLICADOS->get();
     }
+    // OK: GENERAR UNO
+    if (isset($_POST['submit_save_custom_fields'])) {
+        [$post_id, $prompt, $v] = explode(GPAI_KEY_SEPARETE, $_POST['submit_save_custom_fields']);
+        $post_id = (int)$post_id;
+        $v = (int)$v;
+        $DUPLICADOS = $GPAI_USE_DATA_DUPLICADOS->get();
+        $DATA = $DUPLICADOS[$post_id]['variations'][$prompt][$v];
+        $customFields = $DATA['customFields'] ?? [];
+        if (!empty($customFields)) {
+            GPAI_CF::SET($post_id, $customFields);
+            $respond_duplicates_pendding = [
+                "status" => "ok",
+                "message" => "Campos personalisados Guardados.",
+                'data' => [],
+            ];
+        }
+        $yoastFields = $DATA['yoastFields'] ?? [];
+        if (!empty($yoastFields)) {
+            GPAI_YOAST::SET($post_id, $yoastFields);
+            $respond_duplicates_pendding = [
+                "status" => "ok",
+                "message" => "Campos personalisados Guardados.",
+                'data' => [],
+            ];
+        }
+        if(isset($respond_duplicates_pendding['status']) && $respond_duplicates_pendding['status'] === "ok"){
+            ?>
+            <script>
+                document.querySelector('[data-tab="<?= $TAGS[1]['key'] ?>"]').click()
+                setTimeout(() => {
+                    window.location.reload()
+                }, 500);
+            </script>
+            <?php 
+            exit;
+        }
+        
+    }
 }
 
 function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
@@ -78,7 +116,14 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                 name="submit_generate"
                 value="<?= $post_id . GPAI_KEY_SEPARETE . $prompt . GPAI_KEY_SEPARETE . $v ?>"
                 class="button button-primary">
-                Generar
+                Generar Nueva Pagina
+            </button>
+            <button
+                type="submit"
+                name="submit_save_custom_fields"
+                value="<?= $post_id . GPAI_KEY_SEPARETE . $prompt . GPAI_KEY_SEPARETE . $v ?>"
+                class="button">
+                Guardar Contenido en Pagina Inicial
             </button>
         </div>
     </div>

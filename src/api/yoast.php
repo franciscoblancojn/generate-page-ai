@@ -20,16 +20,40 @@ class GPAI_YOAST
     // ---------------- GET ----------------
     public static function GET($post_id)
     {
-        $all_meta = get_post_meta($post_id);
+        global $wpdb;
+
+        $excluded = [
+            '_yoast_wpseo_content_score',
+            '_yoast_wpseo_estimated-reading-time-minutes',
+        ];
+
+        $results = $wpdb->get_results(
+            $wpdb->prepare(
+                "
+            SELECT meta_key, meta_value
+            FROM {$wpdb->postmeta}
+            WHERE post_id = %d
+            AND meta_key LIKE %s
+            ",
+                $post_id,
+                '_yoast_wpseo_%'
+            ),
+            ARRAY_A
+        );
+
         $yoast = [];
 
-        foreach ($all_meta as $key => $value) {
-            if (strpos($key, '_yoast_wpseo_') === 0) {
-                $yoast[$key] = maybe_unserialize($value[0]);
+        foreach ($results as $row) {
+
+            if (in_array($row['meta_key'], $excluded)) {
+                continue;
             }
+
+            $yoast[$row['meta_key']] =
+                maybe_unserialize($row['meta_value']);
         }
 
-        return $yoast;
+        return  $yoast;
     }
 
     public static function GET_Enpoint($request)

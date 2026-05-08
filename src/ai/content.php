@@ -18,29 +18,24 @@ class GPAI_CONTENT
             " . json_encode($yoastFields) . "
             IMAGEN BASE (URL):
             {$imageUrl}
-
             ----INSTRUCCIONES----
             Necesito que generes UNA imagen optimizada para SEO basada en:
             - El contenido de la página
             - Los datos SEO
             - Y tomando como referencia visual la imagen proporcionada (URL)
-
             La imagen debe:
             - Ser estilo marketing digital / ecommerce
             - Tener apariencia profesional
             - Incluir elementos visuales relacionados con el contenido
             - NO incluir texto incrustado (importante para SEO dinámico)
             - Ser reutilizable como imagen destacada o banner
-
             ----FORMATO DE RESPUESTA----
             Devuelve únicamente un JSON válido con este formato:
-
             {
                 'image_base64': 'data:image/png;base64,....',
                 'alt': 'texto alternativo SEO optimizado',
                 'title': 'titulo de la imagen'
             }
-
             ----REGLAS----
             - NO expliques nada
             - NO agregues texto fuera del JSON
@@ -61,28 +56,98 @@ class GPAI_CONTENT
         ] = $CONFIG;
 
         $title = get_the_title($post_id);
-        $content = get_post_field('post_content', $post_id);
+        // $content = get_post_field('post_content', $post_id);
+        // $PROMPT = "
+        //     ----TITULO DE LA PAGINA----
+        //     " . $title . 
+        //     // "----CONTENIDO DE LA PAGINA----
+        //     // " . $content .
+        //     "----CAMPOS PERSONALIZADOS----
+        //     " . json_encode($customFields) . "
+        //     ----PROMPTS PARA CAMPOS PERSONALIZADOS----
+        //     " . json_encode($customFields_prompt) . "
+        //     ----DATOS DE YOAST SEO----
+        //     " . json_encode($yoastFields) . "
+        //     ----PROMPTS PARA DATOS DE YOAST SEO----
+        //     " . json_encode($yoastFields_prompt) . "
+        //     ----PROMP BASE----
+        //     " . $prompt . "
+        //     ----
+        //     Necesito que generes un json basandote en el contenido, campos personalizados y datos de yoast seo como referencia.
+        //     Formato de json : {title:'title',customFields:{key:'value',...},yoastFields:{key:'value',...}}
+        //     En caso que se pidan varias respuesta este es el formato a usar:
+        //     Formato de array : [{title:'title',customFields:{key:'value',...},yoastFields:{key:'value',...}},{title:'title2',customFields:{key:'value',...},yoastFields:{key:'value',...}}]
+        //     Importante, ten en cuenta el prompt base y prompts personalizados por campos o datos de yoast, en caso de que exista prompts personalizados usa tanto el prompt personalizado como el prompt base para generar contenido.
+        // ";
         $PROMPT = "
-            ----TITULO DE LA PAGINA----
-            " . $title . "
-            ----CONTENIDO DE LA PAGINA----
-            " . $content . "
-            ----CAMPOS PERSONALIZADOS----
-            " . json_encode($customFields) . "
-            ----PROMPTS PARA CAMPOS PERSONALIZADOS----
-            " . json_encode($customFields_prompt) . "
-            ----DATOS DE YOAST SEO----
-            " . json_encode($yoastFields) . "
-            ----PROMPTS PARA DATOS DE YOAST SEO----
-            " . json_encode($yoastFields_prompt) . "
-            ----PROMP BASE----
-            " . $prompt . "
-            ----
-            Necesito que generes un json basandote en el contenido, campos personalizados y datos de yoast seo como referencia.
-            Formato de json : {title:'title',customFields:{key:'value',...},yoastFields:{key:'value',...}}
-            En caso que se pidan varias respuesta este es el formato a usar:
-            Formato de array : [{title:'title',customFields:{key:'value',...},yoastFields:{key:'value',...}},{title:'title2',customFields:{key:'value',...},yoastFields:{key:'value',...}}]
-            Importante, ten en cuenta el prompt base y prompts personalizados por campos o datos de yoast, en caso de que exista prompts personalizados usa tanto el prompt personalizado como el prompt base para generar contenido.
+        ----TITULO DE LA PAGINA----
+        " . $title . "
+
+        ----CAMPOS PERSONALIZADOS----
+        " . json_encode($customFields, JSON_UNESCAPED_UNICODE) . "
+
+        ----PROMPTS PARA CAMPOS PERSONALIZADOS----
+        " . json_encode($customFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "
+
+        ----DATOS DE YOAST SEO----
+        " . json_encode($yoastFields, JSON_UNESCAPED_UNICODE) . "
+
+        ----PROMPTS PARA DATOS DE YOAST SEO----
+        " . json_encode($yoastFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "
+
+        ----PROMPT BASE----
+        " . $prompt . "
+
+        ----
+        INSTRUCCIONES IMPORTANTES:
+
+        - Genera una NUEVA versión del contenido.
+        - NO copies literalmente el contenido actual.
+        - NO reutilices frases exactas.
+        - Reescribe completamente cada texto manteniendo el mismo objetivo comercial.
+        - Usa un tono más persuasivo, moderno y orientado a conversión.
+        - Los valores actuales solo son contexto de referencia.
+        - Los ejemplos incluidos en los prompts NO deben copiarse literalmente.
+        - Cambia estructura, redacción y enfoque manteniendo la intención original.
+        - Mantén únicamente URLs, nombres de marca o datos técnicos cuando sea necesario.
+        - Evita respuestas idénticas o muy similares al contenido original.
+        - Cada campo debe ser significativamente distinto al valor original.
+        - Usa vocabulario diferente y evita sinónimos directos.
+        - Cada texto debe sentirse como una nueva versión de marketing.
+        - Evita reemplazos mínimos de palabras.
+        - Reestructura completamente frases y titulares.
+        - Prioriza nuevas propuestas de valor.
+        - Usa diferentes ángulos comerciales y emocionales.
+        - customFields SOLO puede contener claves presentes en CAMPOS PERSONALIZADOS.
+        - yoastFields SOLO puede contener claves presentes en DATOS DE YOAST SEO.
+        - NO mezcles campos entre ambas estructuras.
+        - NO inventes nuevas claves.
+
+        ----
+        FORMATO DE RESPUESTA:
+
+        Retorna únicamente un JSON válido.
+
+        Formato:
+        {
+            \"title\":\"title\",
+            \"customFields\":{
+                \"key\":\"value\"
+            },
+            \"yoastFields\":{
+                \"key\":\"value\"
+            }
+        }
+
+        Si se generan múltiples opciones:
+
+        [
+            {
+                \"title\":\"title\",
+                \"customFields\":{},
+                \"yoastFields\":{}
+            }
+        ]
         ";
         return $PROMPT;
     }
@@ -98,6 +163,7 @@ class GPAI_CONTENT
             $result['message'] = "Contenido Generado";
             FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Content result text",
+                'PROMPT' => $PROMPT,
                 'result' => $result,
             ]);
             $result['data'] = GPAI_AI::parseJson($result['data']);
@@ -123,6 +189,13 @@ class GPAI_CONTENT
         try {
             $PROMPT = self::getPrompt($CONFIG);
             $result = self::getContentByPrompt($PROMPT);
+            foreach ($result['data'] as $key => $item) {
+                $result['data'][$key] = self::normalizeFields(
+                    $item,
+                    $CONFIG['customFields'],
+                    $CONFIG['yoastFields']
+                );
+            }
             FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Content result",
                 'PROMPT' => $PROMPT,
@@ -157,10 +230,96 @@ class GPAI_CONTENT
             ];
             FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Error Content result",
-                 ...$CONFIG,
+                ...$CONFIG,
                 'error' => $error,
             ]);
             return $error;
         }
+    }
+    public static function normalizeFields($item, $customFields, $yoastFields)
+    {
+        $allowedCustomFields = array_keys($customFields);
+        $allowedYoastFields = array_keys($yoastFields);
+
+        $normalizedCustomFields = [];
+        $normalizedYoastFields = [];
+
+        // =========================
+        // CUSTOM FIELDS
+        // =========================
+        if (!empty($item['customFields']) && is_array($item['customFields'])) {
+
+            foreach ($item['customFields'] as $key => $value) {
+
+                // mover yoast mal ubicado
+                if (strpos($key, '_yoast_wpseo_') === 0) {
+
+                    if (in_array($key, $allowedYoastFields)) {
+                        $normalizedYoastFields[$key] = $value;
+                    }
+
+                    continue;
+                }
+
+                // permitir solo custom válidos
+                if (in_array($key, $allowedCustomFields)) {
+                    $normalizedCustomFields[$key] = $value;
+                }
+            }
+        }
+
+        // =========================
+        // YOAST FIELDS
+        // =========================
+        if (!empty($item['yoastFields']) && is_array($item['yoastFields'])) {
+
+            foreach ($item['yoastFields'] as $key => $value) {
+
+                // mover custom mal ubicado
+                if (strpos($key, '_yoast_wpseo_') !== 0) {
+
+                    if (in_array($key, $allowedCustomFields)) {
+                        $normalizedCustomFields[$key] = $value;
+                    }
+
+                    continue;
+                }
+
+                // permitir solo yoast válidos
+                if (in_array($key, $allowedYoastFields)) {
+                    $normalizedYoastFields[$key] = $value;
+                }
+            }
+        }
+
+        // =========================
+        // REEMPLAZAR
+        // =========================
+        $item['customFields'] = $normalizedCustomFields;
+        $item['yoastFields'] = $normalizedYoastFields;
+
+        return $item;
+    }
+    public static function cleanPromptText($text)
+    {
+        if (!is_string($text)) {
+            return $text;
+        }
+
+        // quitar slashes acumulados
+        $text = stripslashes($text);
+
+        // reemplazar escapes repetidos
+        while (strpos($text, '\\\\') !== false) {
+            $text = str_replace('\\\\', '\\', $text);
+        }
+
+        // quitar escapes de comillas
+        $text = str_replace('\\"', '"', $text);
+
+        // limpiar espacios
+        $text = trim($text);
+
+        return $text;
     }
 }

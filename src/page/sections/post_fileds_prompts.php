@@ -2,6 +2,7 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
+$CONFIG ??= [];
 $post_id = $CONFIG['post_id'];
 $customFields = [];
 $yoastFields = [];
@@ -11,7 +12,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
     $post_id = $_POST['post_id'] ?? $CONFIG['post_id'];
     if (isset($post_id)) {
         $is_save_post = isset($_POST['is_save_post']) && $_POST['is_save_post'] == "1";
-        $is_save_custom_field = isset($_POST['is_save_post']) && $_POST['is_save_post'] == "1";
+        $is_save_custom_field = isset($_POST['is_save_custom_field']) && $_POST['is_save_custom_field'] == "1";
         $is_save_prompt = isset($_POST['is_save_prompt']) && $_POST['is_save_prompt'] == "1";
         $is_upgrade_prompts = isset($_POST['is_upgrade_prompts']) && $_POST['is_upgrade_prompts'] == "1";
         $is_generate_content = isset($_POST['is_generate_content']) && $_POST['is_generate_content'] == "1";
@@ -49,12 +50,19 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                 ];
             }
             $CONFIG['customFields'] = $_POST['customFields'] ?? [];
-            $CONFIG['customFields_prompt'] = $_POST['customFields_prompt'] ?? [];
             $CONFIG['yoastFields'] = $_POST['yoastFields'] ?? [];
-            $CONFIG['yoastFields_prompt'] = $_POST['yoastFields_prompt'] ?? [];
+            $CONFIG['customFields_prompt'] = array_map(function ($v) {
+                return GPAI_CONTENT::cleanPromptText($v);
+            }, $_POST['customFields_prompt'] ?? []);
+
+            $CONFIG['yoastFields_prompt'] = array_map(function ($v) {
+                return GPAI_CONTENT::cleanPromptText($v);
+            }, $_POST['yoastFields_prompt'] ?? []);
         }
         if ($is_save_prompt || $is_upgrade_prompts || $is_generate_content) {
-            $prompt = $_POST['prompt'];
+            $prompt = isset($_POST['prompt'])
+                ? wp_unslash(trim($_POST['prompt']))
+                : "";
             if (isset($prompt)) {
                 $CONFIG['prompt'] = $prompt;
             }
@@ -97,6 +105,8 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                 $CONFIG['prompt'] = $prompt;
                 $customFields = GPAI_CF::GET($post_id);
                 $yoastFields = GPAI_YOAST::GET($post_id);
+                $CONFIG['customFields'] = $customFields;
+                $CONFIG['yoastFields'] = $yoastFields;
                 $respond_content = GPAI_CONTENT::getContent($CONFIG);
                 if ($respond_content['status'] == 'ok') {
                     $POST_DATA = $DUPLICADOS[$post_id] ?? [];
@@ -209,7 +219,7 @@ if (isset($post_id)) {
                 type="submit"
                 name="is_generate_content"
                 value="1"
-               class="button button-primary">
+                class="button button-primary">
                 Guardar y Generar Contenido
             </button>
         </div>

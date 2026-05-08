@@ -25,7 +25,7 @@ $defaultTag =  $TAGS[0]['key'];
 
 ?>
 <div id="page-<?= GPAI_KEY ?>" class="wrap">
-    <h1>Duplicate Page AI</h1>
+    <h1>Generate Page AI</h1>
     <div class="nav-tab-wrapper woo-nav-tab-wrapper">
         <?php
         foreach ($TAGS  as $key => $value) {

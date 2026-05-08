@@ -18,7 +18,7 @@ require_once __DIR__ . '/libs/autoload.php';
 
 //GPAI_
 define("GPAI_KEY", 'GPAI');
-define("GPAI_MODE_DEV", true);
+define("GPAI_MODE_DEV", false);
 define("GPAI_KEY_SEPARETE", '____GPAI____');
 define("GPAI_CONFIG", 'GPAI_CONFIG');
 define("GPAI_CONTENT", 'GPAI_CONTENT');
