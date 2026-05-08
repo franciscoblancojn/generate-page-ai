@@ -4,8 +4,8 @@
 // 1. Crear menú en el admin
 add_action('admin_menu', function () {
     add_menu_page(
-        'Duplicate Page AI Configuración', // Título página
-        'Duplicate Page AI',              // Nombre en menú
+        'Generate Page AI Configuración', // Título página
+        'Generate Page AI',              // Nombre en menú
         'manage_options',        // Permisos
         DPAI_KEY,      // Slug
         'DPAI_PAGE_VIEW'  // Callback
