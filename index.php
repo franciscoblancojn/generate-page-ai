@@ -1,14 +1,14 @@
 <?php
 /*
-Plugin Name: Duplicate Page AI
-Plugin URI: https://github.com/franciscoblancojn/duplicate-page-ai
+Plugin Name: Generate Page AI
+Plugin URI: https://github.com/franciscoblancojn/generate-page-ai
 Description: It is an plugin of wordpress, for create custom field and duplicate page.
 Version: 1.0.0
 Author: franciscoblancojn
 Author URI: https://franciscoblanco.vercel.app/
 License: GPL2+
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Text Domain: wc-duplicate-page-ai
+Text Domain: wc-generate-page-ai
 */
 
 if (!function_exists('is_plugin_active'))
@@ -38,7 +38,7 @@ github_updater_plugin_wordpress([
     'basename' => DPAI_BASENAME,
     'dir' => DPAI_DIR,
     'file' => "index.php",
-    'path_repository' => 'franciscoblancojn/duplicate-page-ai',
+    'path_repository' => 'franciscoblancojn/generate-page-ai',
     'branch' => 'master',
     'token_array_split' => [
         "g",
