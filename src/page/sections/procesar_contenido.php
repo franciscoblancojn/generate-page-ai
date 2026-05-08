@@ -200,38 +200,38 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                                     </i>
                                 </td>
                             </tr>
-                                        <?php
-                                        foreach ($variation as $v => $value) {
-                                            $customFields = $value['customFields'];
-                                            $yoastFields = $value['yoastFields'];
-                                        ?>
-                                            <tr>
-                                                <td colspan="2">
-                                                    <?= DPAI_Collapse(
-                                                        getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v),
-                                                        "" .
-                                                            DPAI_Collapse(
-                                                                "Custom Fields",
-                                                                DPAI_Custom_Fields($customFields, false),
-                                                                true
-                                                            ) .
-                                                            (
-                                                                function_exists('YoastSEO') ?  DPAI_Collapse(
-                                                                    "Yoast Seo",
-                                                                    DPAI_Custom_Fields($yoastFields, false),
-                                                                    true
-                                                                )
-                                                                : ""
-                                                            ),
+                            <tr>
+                                <td colspan="2">
+                                    <?php
+                                    foreach ($variation as $v => $value) {
+                                        $customFields = $value['customFields'];
+                                        $yoastFields = $value['yoastFields'];
+                                    ?>
+                                        <?= DPAI_Collapse(
+                                            getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v),
+                                            "" .
+                                                DPAI_Collapse(
+                                                    "Custom Fields",
+                                                    DPAI_Custom_Fields($customFields, false),
+                                                    true
+                                                ) .
+                                                (
+                                                    function_exists('YoastSEO') ?  DPAI_Collapse(
+                                                        "Yoast Seo",
+                                                        DPAI_Custom_Fields($yoastFields, false),
                                                         true
                                                     )
-                                                    ?>
+                                                    : ""
+                                                ),
+                                            true
+                                        )
+                                        ?>
+                                    <?php
+                                    }
+                                    ?>
 
-                                                </td>
-                                            </tr>
-                        <?php
-                                        }
-                        ?>
+                                </td>
+                            </tr>
                     </table>
                 </td>
             </tr>
