@@ -12,7 +12,7 @@ class GPAI_AI
     private static function request(
         $url,
         $method = "GET",
-        $data = null,
+        $data = null
     ) {
         $jsonResponse = [];
 
