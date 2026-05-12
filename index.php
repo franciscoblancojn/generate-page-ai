@@ -34,7 +34,7 @@ define("GPAI_URL", plugin_dir_url(__FILE__));
 
 
 require_once GPAI_DIR . 'update.php';
-github_updater_plugin_wordpress([
+github_updater_plugin_wordpress_v1([
     'basename' => GPAI_BASENAME,
     'dir' => GPAI_DIR,
     'file' => "index.php",
