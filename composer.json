@@ -3,9 +3,6 @@
         "franciscoblancojn/wordpress_utils": "^1"
     },
     "config": {
-        "autoloader-suffix": "GPAI",
-        "platform": {
-            "php": "7.4.33"
-        }
+        "autoloader-suffix": "GPAI"
     }
 }

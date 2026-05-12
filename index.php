@@ -91,9 +91,3 @@ if (is_admin()) {
 }
 
 require_once GPAI_DIR . 'src/_.php';
-
-// FWUSystemLog::add("GPAI", [
-//     "type" => "API",
-//     "message" => "Se envió data a Google Sheets",
-//     "data" => ["id" => 123]
-// ]);
