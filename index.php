@@ -87,8 +87,7 @@ if (is_admin()) {
 }
 
 if (
-    !is_plugin_active('duplicate-post/duplicate-post.php') ||
-    !function_exists('duplicate_post_create_duplicate')
+    !is_plugin_active('duplicate-post/duplicate-post.php')
 ) {
     function GPAI_Error_Install_o_Active()
     {

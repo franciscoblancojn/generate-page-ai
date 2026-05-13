@@ -51,3 +51,5 @@ function GPAI_replace_custom_vars($content)
 }
 
 add_filter('the_content', 'GPAI_replace_custom_vars');
+// add_filter('elementor/frontend/the_content', 'GPAI_replace_custom_vars');
+// add_filter('elementor/widget/the_content', 'GPAI_replace_custom_vars');

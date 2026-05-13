@@ -242,6 +242,12 @@ if (isset($post_id)) {
                             class="button button-primary">
                             Guardar y Generar Prompts con IA
                         </button>
+                        <a
+                            href="<?= get_permalink($post_id) ?>"
+                            target="_blank"
+                            class="button ">
+                            Ver Post
+                        </a>
                     <?php } ?>
                 </div>
             </td>
