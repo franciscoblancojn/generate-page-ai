@@ -39,65 +39,123 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
             }
         }
     }
-    private function generateDuplicado($post_id, $title, $custom_fields = [],$yoastFields = [])
-    {
+    private function generateDuplicado(
+        $post_id,
+        $title,
+        $custom_fields = [],
+        $yoastFields = []
+    ) {
+
         $post = get_post($post_id);
 
         if (!$post) {
-            throw new \RuntimeException('Post no encontrado.');
+            throw new \RuntimeException(
+                'Post no encontrado.'
+            );
         }
 
-        // 1. Crear nuevo post basado en el original
-        $new_post_id = wp_insert_post([
-            'post_title'   => $title,
-            'post_content' => $post->post_content,
-            'post_status'  => 'publish', // o publish si quieres
-            'post_type'    => $post->post_type,
-            'post_author'  => get_current_user_id(),
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDAR PLUGIN
+        |--------------------------------------------------------------------------
+        */
+        if (!function_exists('duplicate_post_create_duplicate')) {
+            throw new \RuntimeException('Yoast Duplicate Post no está instalado.');
+        }
+        /*
+        |--------------------------------------------------------------------------
+        | DUPLICAR POST
+        |--------------------------------------------------------------------------
+        */
+
+
+        $new_post_id = duplicate_post_create_duplicate(
+            $post,
+            'draft',
+            null
+        );
 
         if (!$new_post_id) {
-            throw new \RuntimeException('Error al crear Post Duplicado.');
+            throw new \RuntimeException(
+                'Error al duplicar el post.'
+            );
         }
 
-        // 2. Copiar TODOS los metadatos del original
-        $metas = get_post_meta($post_id);
+        /*
+        |--------------------------------------------------------------------------
+        | ACTUALIZAR TÍTULO
+        |--------------------------------------------------------------------------
+        */
 
-        foreach ($metas as $key => $values) {
-            // Evitar basura interna opcional
-            if (in_array($key, ['_edit_lock', '_edit_last'])) {
-                continue;
-            }
+        wp_update_post([
+            'ID'         => $new_post_id,
+            'post_title' => $title,
+            'post_status' => 'draft',
+        ]);
 
-            foreach ($values as $value) {
-                update_post_meta(
-                    $new_post_id,
-                    $key,
-                    maybe_unserialize($value)
-                );
-            }
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOM FIELDS
+        |--------------------------------------------------------------------------
+        */
 
-        // 3. Sobrescribir SOLO los custom fields que envías
         foreach ($custom_fields as $key => $value) {
-            update_post_meta($new_post_id, $key, $value);
-        }
-        // 4. Sobrescribir SOLO los yoast fields que envías
-        foreach ($yoastFields as $key => $value) {
-            update_post_meta($new_post_id, $key, $value);
-        }
-        update_post_meta($new_post_id, GPAI_KEY . "_PARENT", $post_id);
 
-        //PENDING: generar img con IA
-        $thumbnail_id = get_post_thumbnail_id($post_id);
-        if ($thumbnail_id) {
-            set_post_thumbnail($new_post_id, $thumbnail_id);
+            update_post_meta(
+                $new_post_id,
+                $key,
+                $value
+            );
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | YOAST FIELDS
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($yoastFields as $key => $value) {
+
+            update_post_meta(
+                $new_post_id,
+                $key,
+                $value
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | RELACIÓN PADRE
+        |--------------------------------------------------------------------------
+        */
+
+        update_post_meta(
+            $new_post_id,
+            GPAI_KEY . '_PARENT',
+            $post_id
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMPIAR CACHE ELEMENTOR
+        |--------------------------------------------------------------------------
+        */
+
+        delete_post_meta(
+            $new_post_id,
+            '_elementor_css'
+        );
+
         if (class_exists('\Elementor\Plugin')) {
-            \Elementor\Plugin::instance()->files_manager->clear_cache();
+
+            \Elementor\Plugin::instance()
+                ->files_manager
+                ->clear_cache();
         }
+
         return $new_post_id;
     }
+
     public function generateVariation($post_id, $prompt, $v)
     {
         try {
