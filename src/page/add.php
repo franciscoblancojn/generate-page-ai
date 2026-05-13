@@ -8,12 +8,13 @@ add_action('admin_menu', function () {
         'Generate Page AI',              // Nombre en menú
         'manage_options',        // Permisos
         GPAI_KEY,      // Slug
-        'GPAI_PAGE_VIEW'  // Callback
+        'GPAI_REDIRECT_FIRST_SUBMENU',
+        'dashicons-admin-site'
     );
 });
-
-// 2. Página HTML
-function GPAI_PAGE_VIEW()
+function GPAI_REDIRECT_FIRST_SUBMENU()
 {
-    require_once GPAI_DIR . 'src/page/page.php';
+    wp_redirect(admin_url('admin.php?page=' . GPAI_KEY . '_config'));
+    exit;
 }
+// ELIMINAR SUBMENU DUPLICADO AUTOMÁTICO 

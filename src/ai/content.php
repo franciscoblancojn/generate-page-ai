@@ -277,6 +277,103 @@ class GPAI_CONTENT
 
         return $item;
     }
+    public static function getContentTemplate($CONFIG)
+    {
+        try {
+            [
+                "template_id" => $template_id,
+                "prompt" => $prompt,
+                "globalFields" => $globalFields,
+                "globalFields_prompt" => $globalFields_prompt,
+            ] = $CONFIG;
+
+            $title = get_the_title($template_id);
+
+            $PROMPT = "
+            ----TITULO DE LA PLANTILLA----
+            " . $title . "
+
+            ----VARIABLES GLOBALES {g{...}}----
+            " . json_encode($globalFields, JSON_UNESCAPED_UNICODE) . "
+
+            ----PROMPTS PARA VARIABLES GLOBALES----
+            " . json_encode($globalFields_prompt ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "
+
+            ----PROMPT BASE----
+            " . $prompt . "
+
+            ----
+            INSTRUCCIONES IMPORTANTES:
+
+            - Genera una NUEVA versión del contenido para cada variable global.
+            - NO copies literalmente el contenido actual.
+            - Reescribe completamente cada texto manteniendo el mismo objetivo.
+            - Usa un tono persuasivo, moderno y orientado a conversión.
+            - Los valores actuales solo son contexto de referencia.
+            - Cada variable debe ser significativamente distinta al valor original.
+            - NO inventes nuevas variables.
+            - Solo puedes usar las claves listadas en VARIABLES GLOBALES.
+
+            ----
+            FORMATO DE RESPUESTA:
+
+            Retorna únicamente un JSON válido.
+
+            Formato para una variacion:
+            {
+                \"title\": \"Titulo para la pagina\",
+                \"variable_key\": \"valor\",
+                \"otra_variable\": \"otro valor\"
+            }
+
+            Si se generan múltiples opciones, retorna un array:
+            [
+                { ... },
+                { ... }
+            ]
+            ";
+
+            $result = self::getContentByPrompt($PROMPT);
+
+            foreach ($result['data'] as $key => $item) {
+                $allowed = array_keys($globalFields);
+                $normalized = [];
+                if (is_array($item)) {
+                    foreach ($item as $k => $v) {
+                        if (in_array($k, $allowed) || $k === 'title') {
+                            $normalized[$k] = $v;
+                        }
+                    }
+                }
+                $result['data'][$key] = $normalized;
+            }
+
+            FWUSystemLog::add(GPAI_KEY, [
+                'type' => "IA Template Content result",
+                'PROMPT' => $PROMPT,
+                'config' => $CONFIG,
+                'result' => $result,
+            ]);
+
+            return $result;
+        } catch (\Throwable $th) {
+            $error = [
+                "status" => "error",
+                "message" => $th->getMessage(),
+                'data' => [
+                    'line' => $th->getLine(),
+                    'file' => $th->getFile(),
+                ]
+            ];
+            FWUSystemLog::add(GPAI_KEY, [
+                'type' => "IA Error Template Content result",
+                'config' => $CONFIG,
+                'error' => $error,
+            ]);
+            return $error;
+        }
+    }
+
     public static function cleanPromptText($text)
     {
         if (!is_string($text)) {
