@@ -105,6 +105,8 @@ if (isset($template_id)) {
                         foreach ($templates as $id => $title) {
                         ?>
                             <option value="<?= $id ?>" <?= $id == $template_id ? 'selected' : '' ?>>
+                                <?= "#".$id ?>
+                                -
                                 <?= esc_html($title) ?>
                             </option>
                         <?php

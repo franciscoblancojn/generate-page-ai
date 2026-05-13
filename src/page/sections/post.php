@@ -183,6 +183,9 @@ if (isset($post_id)) {
             <td>
                 <div class="content-btn">
                     <?php
+
+                    ob_start();
+
                     wp_dropdown_pages([
                         'name'              => 'post_id',
                         'id'                => 'post_id',
@@ -190,7 +193,38 @@ if (isset($post_id)) {
                         'option_none_value' => '',
                         'selected'          => $post_id,
                     ]);
+
+                    $data = ob_get_clean();
+
+                    $data = preg_replace_callback(
+                        '/<option([^>]*)value="([^"]*)"([^>]*)>(.*?)<\/option>/si',
+                        function ($m) {
+
+                            $before = $m[1];
+                            $value  = $m[2];
+                            $after  = $m[3];
+                            $label  = trim(strip_tags($m[4]));
+
+                            // Mantener opción vacía igual
+                            if ($value === '') {
+                                return $m[0];
+                            }
+
+                            return sprintf(
+                                '<option%svalue="%s"%s>#%s - %s</option>',
+                                $before,
+                                esc_attr($value),
+                                $after,
+                                esc_html($value),
+                                esc_html($label)
+                            );
+                        },
+                        $data
+                    );
+
+                    echo $data;
                     ?>
+
                     <button
                         type="submit"
                         name="is_save_post"
