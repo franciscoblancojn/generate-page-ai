@@ -58,6 +58,21 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             $CONFIG['yoastFields_prompt'] = array_map(function ($v) {
                 return GPAI_CONTENT::cleanPromptText($v);
             }, $_POST['yoastFields_prompt'] ?? []);
+
+            $globalFieldsPost = $_POST['globalFields'] ?? [];
+            if (!empty($globalFieldsPost)) {
+                $template_id_detected = GPAI_CF_TEMPLATE::getPostTemplate($post_id);
+                if ($template_id_detected) {
+                    foreach ($globalFieldsPost as $key => $value) {
+                        $override = isset($_POST['globalFields_override'][$key]) && $_POST['globalFields_override'][$key] == '1';
+                        if ($override) {
+                            update_post_meta($post_id, 'global_' . $key, sanitize_text_field($value));
+                        } else {
+                            delete_post_meta($post_id, 'global_' . $key);
+                        }
+                    }
+                }
+            }
         }
         if ($is_save_prompt || $is_upgrade_prompts || $is_generate_content) {
             $prompt = isset($_POST['prompt'])
@@ -131,6 +146,31 @@ if (isset($post_id)) {
     $yoastFields = GPAI_YOAST::GET($post_id);
 }
 
+$template_id_detected = null;
+$globalFields = [];
+$globalOverrides = [];
+$globalPrompts = [];
+if (isset($post_id)) {
+    $template_id_detected = GPAI_CF_TEMPLATE::getPostTemplate($post_id);
+    if ($template_id_detected) {
+        $templateVars = GPAI_CF_TEMPLATE::GET($template_id_detected);
+        foreach ($templateVars as $key => $defaultVal) {
+            $postVal = get_post_meta($post_id, 'global_' . $key, true);
+            if ($postVal !== '') {
+                $globalFields[$key] = $postVal;
+                $globalOverrides[$key] = '1';
+            } else {
+                $globalFields[$key] = $defaultVal;
+                $globalOverrides[$key] = '0';
+            }
+        }
+        $TEMPLATE_CONFIG_DATA = get_option(GPAI_TEMPLATES_CONFIG, []);
+        if (isset($TEMPLATE_CONFIG_DATA[$template_id_detected]['globalFields_prompt'])) {
+            $globalPrompts = $TEMPLATE_CONFIG_DATA[$template_id_detected]['globalFields_prompt'];
+        }
+    }
+}
+
 ?>
 <form method="post">
     <?= GPAI_Respond($respond_content) ?>
@@ -178,11 +218,19 @@ if (isset($post_id)) {
         $post = get_post_meta($post_id);
     ?>
         <?= GPAI_Collapse(
-            "Custom Fields",
+            "Custom Fields <code>{{...}}</code>",
             GPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt']),
             true
         )
         ?>
+        <?php if ($template_id_detected && !empty($globalFields)) { ?>
+            <?= GPAI_Collapse(
+                "Campos Globales <code>{g{...}}</code> (" . get_the_title($template_id_detected) . ")",
+                GPAI_Global_Fields($globalFields, $globalPrompts, $globalOverrides),
+                true
+            )
+            ?>
+        <?php } ?>
         <?= function_exists('YoastSEO') ?  GPAI_Collapse(
             "Yoast Seo",
             GPAI_Custom_Fields($yoastFields, $CONFIG['yoastFields_prompt'])

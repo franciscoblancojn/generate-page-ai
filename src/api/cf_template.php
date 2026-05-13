@@ -43,6 +43,43 @@ class GPAI_CF_TEMPLATE
         }
     }
 
+    public static function getPostTemplate($post_id)
+    {
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        if (!$elementor_data) return null;
+
+        $data = json_decode($elementor_data, true);
+        if (!is_array($data)) return null;
+
+        $template_ids = [];
+        self::extractTemplateIds($data, $template_ids);
+
+        foreach (array_unique($template_ids) as $id) {
+            if (get_post_type($id) === 'elementor_library') {
+                return (int)$id;
+            }
+        }
+
+        return null;
+    }
+
+    private static function extractTemplateIds($data, &$ids)
+    {
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                if ($key === 'template_id' && (is_numeric($value) || is_string($value))) {
+                    $id = (int)$value;
+                    if ($id > 0) $ids[] = $id;
+                }
+                self::extractTemplateIds($value, $ids);
+            }
+        } elseif (is_object($data)) {
+            foreach ((array)$data as $value) {
+                self::extractTemplateIds($value, $ids);
+            }
+        }
+    }
+
     public static function GET($template_id)
     {
         if (!get_post($template_id)) {
