@@ -86,4 +86,21 @@ if (is_admin()) {
     FWUSystemLog::init(GPAI_KEY);
 }
 
-require_once GPAI_DIR . 'src/_.php';
+if (
+    !is_plugin_active('duplicate-post/duplicate-post.php') ||
+    !function_exists('duplicate_post_create_duplicate')
+) {
+    function GPAI_Error_Install_o_Active()
+    {
+?>
+        <div class="notice notice-error is-dismissible">
+            <p>
+                Generate Page AI requiere el plugin "Yoast Duplicate Post" para funcionar correctamente.
+            </p>
+        </div>
+<?php
+    }
+    add_action('admin_notices', 'GPAI_Error_Install_o_Active');
+} else {
+    require_once GPAI_DIR . 'src/_.php';
+}
