@@ -61,10 +61,12 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
 
             $globalFieldsPost = $_POST['globalFields'] ?? [];
             if (!empty($globalFieldsPost)) {
-                $template_id_detected = GPAI_CF_TEMPLATE::getPostTemplate($post_id);
-                if ($template_id_detected) {
-                    foreach ($globalFieldsPost as $key => $value) {
-                        $override = isset($_POST['globalFields_override'][$key]) && $_POST['globalFields_override'][$key] == '1';
+                foreach ($globalFieldsPost as $tpl_key => $fields) {
+                    $template_id = (int)str_replace('tpl_', '', $tpl_key);
+                    if (!get_post($template_id)) continue;
+
+                    foreach ((array)$fields as $key => $value) {
+                        $override = isset($_POST['globalFields_override'][$tpl_key][$key]) && $_POST['globalFields_override'][$tpl_key][$key] == '1';
                         if ($override) {
                             update_post_meta($post_id, 'global_' . $key, sanitize_text_field($value));
                         } else {
@@ -146,28 +148,33 @@ if (isset($post_id)) {
     $yoastFields = GPAI_YOAST::GET($post_id);
 }
 
-$template_id_detected = null;
-$globalFields = [];
-$globalOverrides = [];
-$globalPrompts = [];
+$template_ids_detected = [];
+$globalFieldsByTemplate = [];
+$globalOverridesByTemplate = [];
+$globalPromptsByTemplate = [];
 if (isset($post_id)) {
-    $template_id_detected = GPAI_CF_TEMPLATE::getPostTemplate($post_id);
-    if ($template_id_detected) {
-        $templateVars = GPAI_CF_TEMPLATE::GET($template_id_detected);
+    $template_ids_detected = GPAI_CF_TEMPLATE::getPostTemplates($post_id);
+    $TEMPLATE_CONFIG_DATA = get_option(GPAI_TEMPLATES_CONFIG, []);
+
+    foreach ($template_ids_detected as $template_id) {
+        $templateVars = GPAI_CF_TEMPLATE::GET($template_id);
+        $fields = [];
+        $overrides = [];
+
         foreach ($templateVars as $key => $defaultVal) {
             $postVal = get_post_meta($post_id, 'global_' . $key, true);
             if ($postVal !== '') {
-                $globalFields[$key] = $postVal;
-                $globalOverrides[$key] = '1';
+                $fields[$key] = $postVal;
+                $overrides[$key] = '1';
             } else {
-                $globalFields[$key] = $defaultVal;
-                $globalOverrides[$key] = '0';
+                $fields[$key] = $defaultVal;
+                $overrides[$key] = '0';
             }
         }
-        $TEMPLATE_CONFIG_DATA = get_option(GPAI_TEMPLATES_CONFIG, []);
-        if (isset($TEMPLATE_CONFIG_DATA[$template_id_detected]['globalFields_prompt'])) {
-            $globalPrompts = $TEMPLATE_CONFIG_DATA[$template_id_detected]['globalFields_prompt'];
-        }
+
+        $globalFieldsByTemplate[$template_id] = $fields;
+        $globalOverridesByTemplate[$template_id] = $overrides;
+        $globalPromptsByTemplate[$template_id] = $TEMPLATE_CONFIG_DATA[$template_id]['globalFields_prompt'] ?? [];
     }
 }
 
@@ -263,10 +270,13 @@ if (isset($post_id)) {
             true
         )
         ?>
-        <?php if ($template_id_detected && !empty($globalFields)) { ?>
+        <?php foreach ($template_ids_detected as $tpl_id) {
+            $fields = $globalFieldsByTemplate[$tpl_id] ?? [];
+            if (empty($fields)) continue;
+        ?>
             <?= GPAI_Collapse(
-                "Campos Globales <code>{g{...}}</code> (" . get_the_title($template_id_detected) . ")",
-                GPAI_Global_Fields($globalFields, $globalPrompts, $globalOverrides),
+                "Campos Globales <code>{g{...}}</code> (" . get_the_title($tpl_id) . ")",
+                GPAI_Global_Fields($fields, $globalPromptsByTemplate[$tpl_id], $globalOverridesByTemplate[$tpl_id], 'tpl_' . $tpl_id),
                 true
             )
             ?>

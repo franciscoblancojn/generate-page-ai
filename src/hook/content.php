@@ -36,9 +36,10 @@ function GPAI_replace_custom_vars($content)
         }
 
         if (empty($value)) {
-            $template_id = GPAI_CF_TEMPLATE::getPostTemplate(get_the_ID());
-            if ($template_id) {
+            $template_ids = GPAI_CF_TEMPLATE::getPostTemplates(get_the_ID());
+            foreach ($template_ids as $template_id) {
                 $value = get_post_meta($template_id, '_g_' . $key, true);
+                if (!empty($value)) break;
             }
         }
 

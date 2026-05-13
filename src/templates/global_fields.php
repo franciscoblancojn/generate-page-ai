@@ -1,7 +1,8 @@
 <?php
 
-function GPAI_Global_Fields($values = [], $valuesPrompt = [], $overrides = [])
+function GPAI_Global_Fields($values = [], $valuesPrompt = [], $overrides = [], $tpl_key = '')
 {
+    $ns = $tpl_key ? "{$tpl_key}][" : '';
     ob_start();
 ?>
     <table class="form-table">
@@ -33,7 +34,7 @@ function GPAI_Global_Fields($values = [], $valuesPrompt = [], $overrides = [])
                     <td>
                         <textarea
                             id="globalFields_<?= $key ?>"
-                            name="globalFields[<?= $key ?>]"
+                            name="globalFields[<?= $ns . $key ?>]"
                             placeholder="<?= esc_attr($key) ?>"
                             style="min-height: 100px;"
                             class="large-text code"><?= esc_attr($value) ?></textarea>
@@ -41,7 +42,7 @@ function GPAI_Global_Fields($values = [], $valuesPrompt = [], $overrides = [])
                     <td>
                         <textarea
                             id="globalFields_prompt_<?= $key ?>"
-                            name="globalFields_prompt[<?= $key ?>]"
+                            name="globalFields_prompt[<?= $ns . $key ?>]"
                             placeholder="Prompt personalizado para <?= esc_attr($key) ?>."
                             class="large-text code"
                             style="min-height: 100px;"><?= isset($valuesPrompt[$key]) ? $valuesPrompt[$key] : "" ?></textarea>
@@ -50,7 +51,7 @@ function GPAI_Global_Fields($values = [], $valuesPrompt = [], $overrides = [])
                         <label>
                             <input
                                 type="checkbox"
-                                name="globalFields_override[<?= $key ?>]"
+                                name="globalFields_override[<?= $ns . $key ?>]"
                                 value="1"
                                 <?= $checked ?>>
                             Sobreescribir
