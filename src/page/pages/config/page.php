@@ -11,8 +11,13 @@ $TAGS = [
         'key' => 'config',
         'title' => 'Configuracion IA',
     ],
+    ...(GPAI_MODE_DEV ? [
+        [
+            'key' => 'test',
+            'title' => 'Pruebas',
+        ]
+    ] : [])
 ];
-
 $defaultTag =  $TAGS[0]['key'];
 
 ?>

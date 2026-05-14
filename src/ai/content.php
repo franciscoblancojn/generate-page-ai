@@ -166,6 +166,9 @@ class GPAI_CONTENT
         try {
             $PROMPT = self::getPrompt($CONFIG);
             $result = self::getContentByPrompt($PROMPT);
+            if($result['status'] == "error"){
+                return $result;
+            }
             foreach ($result['data'] as $key => $item) {
                 $result['data'][$key] = self::normalizeFields(
                     $item,
