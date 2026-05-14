@@ -120,10 +120,9 @@ class GPAI_CF
         // Recorrer campos
         foreach ($data as $key => $value) {
 
-            // Sanitizar (puedes mejorar según tipo)
             $sanitized = is_array($value)
-                ? array_map('sanitize_text_field', $value)
-                : sanitize_text_field($value);
+                ? array_map('wp_kses_post', $value)
+                : wp_kses_post($value);
 
             update_post_meta($post_id, $key, $sanitized);
 

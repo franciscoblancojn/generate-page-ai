@@ -67,7 +67,7 @@ if (isset($_POST['save']) && $_POST['save'] == "template_pendding") {
 
             if ($new_post_id) {
                 foreach ($DATA as $key => $value) {
-                    update_post_meta($new_post_id, '_g_' . $key, sanitize_text_field($value));
+                    update_post_meta($new_post_id, '_g_' . $key, wp_kses_post($value));
                 }
                 update_post_meta($new_post_id, GPAI_KEY . '_TEMPLATE_PARENT', $template_id);
 

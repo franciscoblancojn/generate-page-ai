@@ -90,7 +90,7 @@ class GPAI_EXPORT_IMPORT
         if (!empty($import['camposPersonalisados'])) {
             $cf = [];
             foreach ($import['camposPersonalisados'] as $campo) {
-                $cf[sanitize_text_field($campo['key'])] = sanitize_text_field($campo['valor']);
+                $cf[sanitize_text_field($campo['key'])] = wp_kses_post($campo['valor']);
             }
             GPAI_CF::SET($post_id, $cf);
         }
@@ -98,7 +98,7 @@ class GPAI_EXPORT_IMPORT
         if (!empty($import['camposYoast'])) {
             $yf = [];
             foreach ($import['camposYoast'] as $campo) {
-                $yf[sanitize_text_field($campo['key'])] = sanitize_text_field($campo['valor']);
+                $yf[sanitize_text_field($campo['key'])] = wp_kses_post($campo['valor']);
             }
             GPAI_YOAST::SET($post_id, $yf);
         }
@@ -110,14 +110,14 @@ class GPAI_EXPORT_IMPORT
 
                 $tpl_values = [];
                 foreach ($tplData['campos'] as $campo) {
-                    $tpl_values[sanitize_text_field($campo['key'])] = sanitize_text_field($campo['valor']);
+                    $tpl_values[sanitize_text_field($campo['key'])] = wp_kses_post($campo['valor']);
                 }
                 GPAI_CF_TEMPLATE::SET($tpl_id, $tpl_values);
 
                 foreach ($tplData['campos'] as $campo) {
                     $key = sanitize_text_field($campo['key']);
                     if (!empty($campo['sobreescribir'])) {
-                        update_post_meta($post_id, 'global_' . $key, sanitize_text_field($campo['valor']));
+                        update_post_meta($post_id, 'global_' . $key, wp_kses_post($campo['valor']));
                     } else {
                         delete_post_meta($post_id, 'global_' . $key);
                     }
@@ -167,7 +167,7 @@ class GPAI_EXPORT_IMPORT
         if (!empty($import['camposPersonalizados'])) {
             $values = [];
             foreach ($import['camposPersonalizados'] as $campo) {
-                $values[sanitize_text_field($campo['key'])] = sanitize_text_field($campo['valor']);
+                $values[sanitize_text_field($campo['key'])] = wp_kses_post($campo['valor']);
             }
             GPAI_CF_TEMPLATE::SET($template_id, $values);
         }

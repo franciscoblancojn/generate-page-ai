@@ -68,7 +68,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                     foreach ((array)$fields as $key => $value) {
                         $override = isset($_POST['globalFields_override'][$tpl_key][$key]) && $_POST['globalFields_override'][$tpl_key][$key] == '1';
                         if ($override) {
-                            update_post_meta($post_id, 'global_' . $key, sanitize_text_field($value));
+                            update_post_meta($post_id, 'global_' . $key, wp_kses_post($value));
                         } else {
                             delete_post_meta($post_id, 'global_' . $key);
                         }

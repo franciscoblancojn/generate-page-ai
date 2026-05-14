@@ -108,11 +108,10 @@ class GPAI_YOAST
                 continue;
             }
 
-            // Sanitizar según tipo
             if (is_array($value)) {
                 $value = wp_json_encode($value);
             } else {
-                $value = sanitize_text_field($value);
+                $value = wp_kses_post($value);
             }
 
             update_post_meta($post_id, $key, $value);

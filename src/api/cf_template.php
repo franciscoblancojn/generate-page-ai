@@ -139,8 +139,8 @@ class GPAI_CF_TEMPLATE
 
         foreach ($data as $key => $value) {
             $sanitized = is_array($value)
-                ? array_map('sanitize_text_field', $value)
-                : sanitize_text_field($value);
+                ? array_map('wp_kses_post', $value)
+                : wp_kses_post($value);
 
             update_post_meta($template_id, '_g_' . $key, $sanitized);
             $result[$key] = $sanitized;
