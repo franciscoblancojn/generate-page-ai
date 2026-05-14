@@ -171,7 +171,7 @@ class GPAI_CONTENT
         try {
             $PROMPT = self::getPrompt($CONFIG);
             $result = self::getContentByPrompt($PROMPT);
-            if($result['status'] == "error"){
+            if ($result['status'] == "error") {
                 return $result;
             }
             foreach ($result['data'] as $key => $item) {
@@ -184,7 +184,7 @@ class GPAI_CONTENT
             FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Content result",
                 'PROMPT' => $PROMPT,
-                ...$CONFIG,
+                'CONFIG' => $CONFIG,
                 'result' => $result,
             ]);
             if ($CONFIG['generate_img']) {
@@ -199,7 +199,7 @@ class GPAI_CONTENT
                 FWUSystemLog::add(GPAI_KEY, [
                     'type' => "IA Duplicados result with img",
                     'PROMPT' => $PROMPT,
-                    ...$CONFIG,
+                    'CONFIG' => $CONFIG,
                     'result' => $result,
                 ]);
             }
@@ -215,7 +215,7 @@ class GPAI_CONTENT
             ];
             FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Error Content result",
-                ...$CONFIG,
+                'CONFIG' => $CONFIG,
                 'error' => $error,
             ]);
             return $error;

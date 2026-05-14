@@ -39,10 +39,10 @@ class GPAI_USE_DATA_BASE
     }
     public function add($DATA)
     {
-        $this->DATA = [
-            ...$this->DATA,
-            ...$DATA,
-        ];
+        $this->DATA = array_merge(
+            $this->DATA,
+            $DATA
+        );
         $this->onSave();
     }
 }

@@ -63,7 +63,7 @@ class GPAI_PROMPT
             $result = self::getMejoraPromptByPrompt($PROMPT);
             FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Prompt Mejorado",
-                 ...$CONFIG,
+                 'CONFIG' => $CONFIG,
                 'result' => $result,
             ]);
             return $result;
@@ -78,7 +78,7 @@ class GPAI_PROMPT
             ];
             FWUSystemLog::add(GPAI_KEY, [
                 'type' => "IA Error Prompt Mejorado",
-                 ...$CONFIG,
+                 'CONFIG' => $CONFIG,
                 'error' => $error,
             ]);
             return $error;
