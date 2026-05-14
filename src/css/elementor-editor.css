@@ -1,0 +1,348 @@
+.gpai-cf-toggle-btn {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 99999;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #495157;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+    line-height: 1;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.gpai-cf-toggle-btn:hover {
+    background: #343b42;
+}
+
+.gpai-cf-toggle-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.gpai-cf-toggle-btn span {
+    white-space: nowrap;
+}
+
+.gpai-cf-panel {
+    display: none;
+    position: fixed;
+    z-index: 99999;
+    width: 340px;
+    max-height: 480px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    animation: gpaiPanelIn 0.2s ease;
+}
+
+@keyframes gpaiPanelIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.gpai-cf-panel-open {
+    display: flex !important;
+    flex-direction: column;
+    top: 60px;
+    right: 20px;
+}
+
+.gpai-cf-panel-dragging {
+    user-select: none;
+    opacity: 0.95;
+    transition: none !important;
+    animation: none !important;
+}
+
+.gpai-cf-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    background: #495157;
+    color: #fff;
+    border-radius: 8px 8px 0 0;
+    flex-shrink: 0;
+}
+
+.gpai-cf-panel-header-drag {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: move;
+    user-select: none;
+}
+
+.gpai-cf-panel-close {
+    background: none;
+    border: none;
+    color: #a4afb7;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px 14px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.gpai-cf-panel-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.gpai-cf-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 100px;
+}
+
+.gpai-cf-panel-toolbar {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e1e3;
+}
+
+.gpai-cf-btn-create {
+    width: 100%;
+    text-align: center;
+}
+
+.gpai-cf-panel-items {
+    padding: 4px 0;
+}
+
+.gpai-cf-panel-loading,
+.gpai-cf-panel-error {
+    padding: 24px 16px;
+    text-align: center;
+    color: #a4afb7;
+    font-size: 12px;
+}
+
+.gpai-cf-panel-error {
+    color: #d72b3f;
+}
+
+.gpai-cf-panel-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: #a4afb7;
+    font-size: 12px;
+}
+
+.gpai-cf-field-row {
+    display: flex;
+    align-items: stretch;
+    padding: 8px 16px;
+    border-bottom: 1px solid #f1f3f5;
+    transition: background 0.15s ease;
+}
+
+.gpai-cf-field-row:hover {
+    background: #f8f9fa;
+}
+
+.gpai-cf-field-row:last-child {
+    border-bottom: none;
+}
+
+.gpai-cf-field-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+}
+
+.gpai-cf-field-key {
+    font-size: 12px;
+    font-weight: 600;
+    color: #495157;
+    background: #f1f3f5;
+    padding: 1px 6px;
+    border-radius: 3px;
+    display: inline-block;
+    align-self: flex-start;
+    font-family: monospace;
+}
+
+.gpai-cf-field-value {
+    font-size: 11px;
+    color: #6d7882;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.gpai-cf-field-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.gpai-cf-field-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    font-size: 13px;
+    color: #a4afb7;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    line-height: 1;
+}
+
+.gpai-cf-field-edit:hover {
+    color: #93003c;
+    background: #fce8f0;
+}
+
+.gpai-cf-field-delete:hover {
+    color: #d72b3f;
+    background: #fde8e8;
+}
+
+.gpai-cf-panel-form-view {
+    padding: 16px;
+}
+
+.gpai-cf-form-group {
+    margin-bottom: 14px;
+}
+
+.gpai-cf-form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6d7882;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gpai-cf-key-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid #d5dadf;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.gpai-cf-key-input-wrapper:focus-within {
+    border-color: #a4afb7;
+    box-shadow: 0 0 0 1px #a4afb7;
+}
+
+.gpai-cf-key-input-wrapper .gpai-cf-brace {
+    padding: 6px 7px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #6d7882;
+    background: #f1f3f5;
+    font-family: monospace;
+    user-select: none;
+    line-height: 1;
+}
+
+.gpai-cf-key-input-wrapper input {
+    flex: 1;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    font-family: monospace !important;
+    box-shadow: none !important;
+    outline: none !important;
+    min-height: auto !important;
+    background: transparent !important;
+}
+
+.gpai-cf-key-input-wrapper input:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.gpai-cf-form-group textarea {
+    width: 100%;
+    border: 1px solid #d5dadf;
+    border-radius: 4px;
+    padding: 7px 9px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    resize: vertical;
+    box-shadow: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+    background: #fff;
+    min-height: 60px;
+}
+
+.gpai-cf-form-group textarea:focus {
+    border-color: #a4afb7;
+    box-shadow: 0 0 0 1px #a4afb7;
+    outline: none;
+}
+
+.gpai-cf-form-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.gpai-cf-form-actions .elementor-button {
+    padding: 6px 16px;
+    font-size: 11px;
+    line-height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.gpai-cf-form-actions .elementor-button-primary {
+    background: #93003c;
+    color: #fff;
+}
+
+.gpai-cf-form-actions .elementor-button-primary:hover {
+    background: #7a0030;
+}
+
+.gpai-cf-form-actions .elementor-button-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.gpai-cf-form-actions .elementor-button-default {
+    background: #f1f3f5;
+    color: #6d7882;
+}
+
+.gpai-cf-form-actions .elementor-button-default:hover {
+    background: #e8e8e8;
+}

@@ -142,6 +142,90 @@ class GPAI_CF
         $data = $request->get_json_params();
         return self::SET($data['post_id'], $data);
     }
+    public static function save_from_elementor_ajax()
+    {
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $key = isset($_POST['key']) ? sanitize_key($_POST['key']) : '';
+        $value = isset($_POST['value']) ? wp_kses_post($_POST['value']) : '';
+
+        if (!$post_id || !$key) {
+            wp_send_json_error('Datos inválidos. post_id y key son requeridos.');
+        }
+
+        if (!get_post($post_id)) {
+            wp_send_json_error('El post no existe.');
+        }
+
+        update_post_meta($post_id, $key, $value);
+
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_CF_ELEMENTOR',
+            'post_id' => $post_id,
+            'key' => $key,
+            'value' => $value,
+        ]);
+
+        wp_send_json_success([
+            'key' => $key,
+            'value' => $value,
+            'message' => 'Campo personalizado guardado correctamente.'
+        ]);
+    }
+
+    public static function list_custom_fields_ajax()
+    {
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+
+        if (!$post_id) {
+            wp_send_json_error('post_id es requerido.');
+        }
+
+        if (!get_post($post_id)) {
+            wp_send_json_error('El post no existe.');
+        }
+
+        $meta = get_post_meta($post_id);
+        $result = [];
+
+        foreach ($meta as $key => $values) {
+            if (strpos($key, '_') === 0) continue;
+            $result[$key] = [
+                'key' => $key,
+                'value' => $values[0],
+            ];
+        }
+
+        wp_send_json_success(array_values($result));
+    }
+
+    public static function delete_custom_field_ajax()
+    {
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $key = isset($_POST['key']) ? sanitize_key($_POST['key']) : '';
+
+        if (!$post_id || !$key) {
+            wp_send_json_error('post_id y key son requeridos.');
+        }
+
+        if (!get_post($post_id)) {
+            wp_send_json_error('El post no existe.');
+        }
+
+        delete_post_meta($post_id, $key);
+
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_CF_DELETE',
+            'post_id' => $post_id,
+            'key' => $key,
+        ]);
+
+        wp_send_json_success([
+            'message' => 'Campo personalizado eliminado correctamente.'
+        ]);
+    }
 }
 
+add_action('wp_ajax_gpai_save_custom_field', ['GPAI_CF', 'save_from_elementor_ajax']);
+add_action('wp_ajax_gpai_list_custom_fields', ['GPAI_CF', 'list_custom_fields_ajax']);
+add_action('wp_ajax_gpai_delete_custom_field', ['GPAI_CF', 'delete_custom_field_ajax']);
 // add_action('rest_api_init', ['GPAI_CF', 'init']);
