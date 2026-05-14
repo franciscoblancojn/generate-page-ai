@@ -251,6 +251,10 @@
     overflow: hidden;
     background: #fff;
 }
+.gpai-cf-form-group textarea,
+.gpai-cf-form-group input{
+    color: #343b42;
+}
 
 .gpai-cf-key-input-wrapper:focus-within {
     border-color: #a4afb7;

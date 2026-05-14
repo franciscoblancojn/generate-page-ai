@@ -8,7 +8,7 @@ function GPAI_Elementor_Editor_Assets()
         'gpai-elementor-editor',
         GPAI_URL . 'src/css/elementor-editor.css',
         [],
-        '1.0.0.1'
+        '1.0.0.3'
     );
 
     wp_enqueue_script(
