@@ -158,6 +158,11 @@ class GPAI_CONTENT
                     'jsonResponse' => $jsonResponse
                 ]
             ];
+            FWUSystemLog::add(GPAI_KEY, [
+                'type' => "IA Error Content result text",
+                'PROMPT' => $PROMPT,
+                'error' => $error,
+            ]);
             return $error;
         }
     }
