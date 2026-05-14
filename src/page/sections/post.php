@@ -295,6 +295,14 @@ if (isset($post_id)) {
                 class="button delete">
                 Guardar Campos y Prompts Personalisados
             </button>
+            <?php if ($post_id) { ?>
+                <button type="button" class="button" onclick="gpaiExport('gpai_export_post',{post_id:'<?= $post_id ?>'},'post-<?= $post_id ?>-campos.json')">
+                    Exportar JSON
+                </button>
+                <button type="button" class="button" onclick="gpaiOpenModal('gpai-modal-post')">
+                    Importar JSON
+                </button>
+            <?php } ?>
         </div>
         <h3>Prompt para generar Contenido</h3>
         <textarea
@@ -327,4 +335,19 @@ if (isset($post_id)) {
     ?>
 
 </form>
+
+<div id="gpai-modal-post" class="gpai-modal">
+    <div class="gpai-modal-content">
+        <span class="gpai-modal-close" onclick="gpaiCloseModal('gpai-modal-post')">&times;</span>
+        <h3>Importar JSON &mdash; Post</h3>
+        <p>
+            <input type="file" class="gpai-import-file" accept=".json">
+        </p>
+        <textarea class="gpai-import-data" rows="12" placeholder="Pega el JSON aquí o selecciona un archivo..."></textarea>
+        <div class="gpai-modal-actions">
+            <button type="button" class="button button-primary gpai-import-btn" onclick="gpaiImport('gpai_import_post',{post_id:'<?= $post_id ?? '' ?>'},'gpai-modal-post',true)">Importar</button>
+            <button type="button" class="button" onclick="gpaiCloseModal('gpai-modal-post')">Cancelar</button>
+        </div>
+    </div>
+</div>
 <?php

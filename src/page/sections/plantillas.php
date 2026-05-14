@@ -147,6 +147,12 @@ if (isset($template_id)) {
                 class="button">
                 Guardar Variables y Prompts
             </button>
+            <button type="button" class="button" onclick="gpaiExport('gpai_export_template',{template_id:'<?= $template_id ?>'},'plantilla-<?= $template_id ?>-campos.json')">
+                Exportar JSON
+            </button>
+            <button type="button" class="button" onclick="gpaiOpenModal('gpai-modal-template')">
+                Importar JSON
+            </button>
         </div>
 
         <h3>Prompt para generar contenido global</h3>
@@ -175,4 +181,19 @@ if (isset($template_id)) {
     }
     ?>
 </form>
+
+<div id="gpai-modal-template" class="gpai-modal">
+    <div class="gpai-modal-content">
+        <span class="gpai-modal-close" onclick="gpaiCloseModal('gpai-modal-template')">&times;</span>
+        <h3>Importar JSON &mdash; Plantilla</h3>
+        <p>
+            <input type="file" class="gpai-import-file" accept=".json">
+        </p>
+        <textarea class="gpai-import-data" rows="12" placeholder="Pega el JSON aquí o selecciona un archivo..."></textarea>
+        <div class="gpai-modal-actions">
+            <button type="button" class="button button-primary gpai-import-btn" onclick="gpaiImport('gpai_import_template',{template_id:'<?= $template_id ?? '' ?>'},'gpai-modal-template',true)">Importar</button>
+            <button type="button" class="button" onclick="gpaiCloseModal('gpai-modal-template')">Cancelar</button>
+        </div>
+    </div>
+</div>
 <?php

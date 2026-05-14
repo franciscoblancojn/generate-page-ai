@@ -185,4 +185,59 @@
     .btn-to-right.btn-to-right {
         margin-left: auto;
     }
+
+    .gpai-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .gpai-modal.open {
+        display: flex;
+    }
+
+    .gpai-modal-content {
+        background: #fff;
+        border-radius: 8px;
+        padding: 24px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .gpai-modal-content h3 {
+        margin-top: 0;
+    }
+
+    .gpai-modal-close {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .gpai-modal-close:hover {
+        color: #000;
+    }
+
+    .gpai-modal-content textarea {
+        width: 100%;
+        min-height: 200px;
+        font-family: monospace;
+    }
+
+    .gpai-modal-content .gpai-modal-actions {
+        margin-top: 16px;
+        display: flex;
+        gap: 8px;
+    }
 </style>
