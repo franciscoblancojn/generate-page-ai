@@ -29,6 +29,12 @@ define("GPAI_BASENAME", plugin_basename(__FILE__));
 define("GPAI_DIR", plugin_dir_path(__FILE__));
 define("GPAI_URL", plugin_dir_url(__FILE__));
 
+function GPAI_get_version()
+{
+    $plugin_data = get_plugin_data(__FILE__);
+    $plugin_version = $plugin_data['Version'];
+    return $plugin_version;
+}
 require_once GPAI_DIR . 'update.php';
 github_updater_plugin_wordpress_v1([
     'basename' => GPAI_BASENAME,

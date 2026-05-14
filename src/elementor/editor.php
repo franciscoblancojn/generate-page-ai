@@ -8,14 +8,14 @@ function GPAI_Elementor_Editor_Assets()
         'gpai-elementor-editor',
         GPAI_URL . 'src/css/elementor-editor.css',
         [],
-        '1.0.0.3'
+        GPAI_get_version() . ".0"
     );
 
     wp_enqueue_script(
         'gpai-elementor-editor',
         GPAI_URL . 'src/js/elementor-editor.js',
         ['jquery'],
-        '1.0.0.7',
+        GPAI_get_version() . ".0",
         true
     );
 
