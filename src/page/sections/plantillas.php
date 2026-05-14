@@ -12,6 +12,7 @@ if (isset($_POST['save']) && $_POST['save'] == "template_fields") {
     if (isset($template_id)) {
         $is_save_template = isset($_POST['is_save_template']) && $_POST['is_save_template'] == "1";
         $is_save_fields = isset($_POST['is_save_fields']) && $_POST['is_save_fields'] == "1";
+        $is_save_prompt = isset($_POST['is_save_prompt']) && $_POST['is_save_prompt'] == "1";
         $is_generate_content = isset($_POST['is_generate_content']) && $_POST['is_generate_content'] == "1";
 
         if ($is_save_template) {
@@ -20,18 +21,18 @@ if (isset($_POST['save']) && $_POST['save'] == "template_fields") {
                 $TEMPLATE_CONFIG['globalFields_prompt'] = [];
             }
             $TEMPLATE_CONFIG['template_id'] = $template_id;
-            $respond = [
+            $respond_plantilla = [
                 "status" => "ok",
                 "message" => "Plantilla cargada.",
                 'data' => [],
             ];
         }
 
-        if ($is_save_fields || $is_generate_content) {
+        if ($is_save_prompt || $is_save_fields || $is_generate_content) {
             $globalFields = $_POST['globalFields'] ?? [];
             if (!empty($globalFields)) {
                 GPAI_CF_TEMPLATE::SET($template_id, $globalFields);
-                $respond = [
+                $respond_plantilla = [
                     "status" => "ok",
                     "message" => "Variables globales guardadas.",
                     'data' => [],
@@ -42,6 +43,20 @@ if (isset($_POST['save']) && $_POST['save'] == "template_fields") {
             $TEMPLATE_CONFIG['globalFields_prompt'] = array_map(function ($v) {
                 return GPAI_CONTENT::cleanPromptText($v);
             }, $_POST['globalFields_prompt'] ?? []);
+        }
+
+        if ($is_save_prompt) {
+            $prompt = isset($_POST['prompt'])
+                ? wp_unslash(trim($_POST['prompt']))
+                : "";
+            if (!empty($prompt)) {
+                $TEMPLATE_CONFIG['prompt'] = $prompt;
+                $respond_plantilla = [
+                    "status" => "ok",
+                    "message" => "Prompt guardado.",
+                    'data' => [],
+                ];
+            }
         }
 
         if ($is_generate_content) {
@@ -55,19 +70,19 @@ if (isset($_POST['save']) && $_POST['save'] == "template_fields") {
                 $globalFields = GPAI_CF_TEMPLATE::GET($template_id);
                 $TEMPLATE_CONFIG['globalFields'] = $globalFields;
 
-                $respond = GPAI_CONTENT::getContentTemplate($TEMPLATE_CONFIG);
+                $respond_plantilla = GPAI_CONTENT::getContentTemplate($TEMPLATE_CONFIG);
 
-                if ($respond['status'] == 'ok') {
+                if ($respond_plantilla['status'] == 'ok') {
                     $DATA = $GPAI_USE_DATA_TEMPLATES_CONTENT->get();
                     $T_DATA = $DATA[$template_id] ?? [];
                     $T_DATA['template_id'] = $template_id;
                     $T_DATA['globalFields'] = $globalFields;
                     $T_DATA['variations'] ??= [];
-                    $T_DATA['variations'][$prompt] = $respond['data'];
+                    $T_DATA['variations'][$prompt] = $respond_plantilla['data'];
                     $GPAI_USE_DATA_TEMPLATES_CONTENT->setField($template_id, $T_DATA);
                 }
             } else {
-                $respond = [
+                $respond_plantilla = [
                     "status" => "error",
                     "message" => "El prompt base es requerido para generar contenido.",
                     'data' => [],
@@ -89,7 +104,7 @@ if (isset($template_id)) {
 
 ?>
 <form method="post">
-    <?= GPAI_Respond($respond ?? null) ?>
+    <?= GPAI_Respond($respond_plantilla ?? null) ?>
     <input type="hidden" name="save" value="template_fields">
     <table class="form-table">
         <tr>
@@ -120,6 +135,14 @@ if (isset($template_id)) {
                         class="button button-primary">
                         Cargar Plantilla
                     </button>
+                    <?php if (isset($template_id)) { ?>
+                        <a
+                            href="<?= esc_url(admin_url('post.php?post=' . $template_id . '&action=elementor')) ?>"
+                            target="_blank"
+                            class="button">
+                            Ver Plantilla
+                        </a>
+                    <?php } ?>
                 </div>
             </td>
         </tr>
@@ -165,6 +188,13 @@ if (isset($template_id)) {
             rows="8"><?= $TEMPLATE_CONFIG['prompt'] ?? '' ?></textarea>
 
         <div class="content-btn">
+            <button
+                type="submit"
+                name="is_save_prompt"
+                value="1"
+                class="button">
+                Guardar Prompt
+            </button>
             <button
                 type="submit"
                 name="is_generate_content"

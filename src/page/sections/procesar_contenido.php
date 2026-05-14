@@ -3,6 +3,7 @@
 //     "is_user_admin" => current_user_can( 'manage_options' )
 // ]);
 $DUPLICADOS = $GPAI_USE_DATA_DUPLICADOS->get();
+$respond_duplicates_pendding = null;
 
 if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
     //PRUEBAS:

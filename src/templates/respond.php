@@ -1,18 +1,19 @@
 <?php
+function parseRespondMessage($text)
+{
+    return preg_replace(
+        '/(https?:\/\/[^\s]+)/',
+        '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
+        $text
+    );
+}
+
 function GPAI_Respond($respond)
 {
     if (!isset($respond)) {
         return "";
     }
 
-    function parseRespondMessage($text)
-    {
-        return preg_replace(
-            '/(https?:\/\/[^\s]+)/',
-            '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
-            $text
-        );
-    }
     ob_start();
 ?>
     <p class="message <?= $respond['status'] ?>" data="<?= json_encode($respond['data']) ?>">
@@ -22,9 +23,10 @@ function GPAI_Respond($respond)
         <?php
         if ($respond['status'] == "ok") {
             if (isset($respond['data']['url'])) {
+                $btn_label = strpos($respond['data']['url'], 'action=elementor') !== false ? 'Ver Plantilla' : 'Ver Pagina';
         ?>
                 <a href="<?php echo esc_url($respond['data']['url']); ?>" target="_blank" rel="noopener noreferrer" class="button button-primary btn-to-right">
-                    Ver Pagina
+                    <?= $btn_label ?>
                 </a>
         <?php
             }

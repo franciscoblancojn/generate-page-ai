@@ -6,6 +6,7 @@ $CONFIG ??= [];
 $post_id = $CONFIG['post_id'];
 $customFields = [];
 $yoastFields = [];
+$respond_content = null;
 
 
 if (isset($_POST['save']) && $_POST['save'] == "duplication") {
