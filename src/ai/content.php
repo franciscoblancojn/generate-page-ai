@@ -4,46 +4,181 @@ use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
 class GPAI_CONTENT
 {
+    public static function getBasePromptTemplate($type = 'content')
+    {
+        $config = new GPAI_USE_DATA_CONFIG();
+        $data = $config->get();
+        $promptsBase = $data['prompts_base'] ?? [];
+
+        return $promptsBase[$type] ?? self::getBasePromptDefault($type);
+    }
+
+    public static function getBasePromptDefault($type = 'content')
+    {
+        $defaults = [
+            'content' => '----TITULO DE LA PAGINA----
+{{title}}
+
+----CAMPOS PERSONALIZADOS----
+{{customFields}}
+
+----PROMPTS PARA CAMPOS PERSONALIZADOS----
+{{customFields_prompt}}
+
+----DATOS DE YOAST SEO----
+{{yoastFields}}
+
+----PROMPTS PARA DATOS DE YOAST SEO----
+{{yoastFields_prompt}}
+
+----PROMPT BASE----
+{{prompt}}
+
+----
+INSTRUCCIONES IMPORTANTES:
+
+- Genera una NUEVA versi\u00f3n del contenido.
+- NO copies literalmente el contenido actual.
+- NO reutilices frases exactas.
+- Reescribe completamente cada texto manteniendo el mismo objetivo comercial.
+- Usa un tono m\u00e1s persuasivo, moderno y orientado a conversi\u00f3n.
+- Los valores actuales solo son contexto de referencia.
+- Los ejemplos incluidos en los prompts NO deben copiarse literalmente.
+- Cambia estructura, redacci\u00f3n y enfoque manteniendo la intenci\u00f3n original.
+- Mant\u00e9n \u00fanicamente URLs, nombres de marca o datos t\u00e9cnicos cuando sea necesario.
+- Evita respuestas id\u00e9nticas o muy similares al contenido original.
+- Cada campo debe ser significativamente distinto al valor original.
+- Usa vocabulario diferente y evita sin\u00f3nimos directos.
+- Cada texto debe sentirse como una nueva versi\u00f3n de marketing.
+- Evita reemplazos m\u00ednimos de palabras.
+- Reestructura completamente frases y titulares.
+- Prioriza nuevas propuestas de valor.
+- Usa diferentes \u00e1ngulos comerciales y emocionales.
+- customFields SOLO puede contener claves presentes en CAMPOS PERSONALIZADOS.
+- yoastFields SOLO puede contener claves presentes en DATOS DE YOAST SEO.
+- NO mezcles campos entre ambas estructuras.
+- NO inventes nuevas claves.
+
+----
+FORMATO DE RESPUESTA:
+
+Retorna \u00fanicamente un JSON v\u00e1lido.
+
+Formato:
+{
+    \"title\":\"title\",
+    \"customFields\":{
+        \"key\":\"value\"
+    },
+    \"yoastFields\":{
+        \"key\":\"value\"
+    }
+}
+
+Si se generan m\u00faltiples opciones:
+
+[
+    {
+        \"title\":\"title\",
+        \"customFields\":{},
+        \"yoastFields\":{}
+    }
+]',
+
+            'content_img' => '----TITULO DE LA PAGINA----
+{{title}}
+----CAMPOS PERSONALIZADOS----
+{{customFields}}
+----DATOS DE YOAST SEO----
+{{yoastFields}}
+IMAGEN BASE (URL):
+{{imageUrl}}
+----INSTRUCCIONES----
+Necesito que generes UNA imagen optimizada para SEO basada en:
+- El contenido de la p\u00e1gina
+- Los datos SEO
+- Y tomando como referencia visual la imagen proporcionada (URL)
+La imagen debe:
+- Ser estilo marketing digital / ecommerce
+- Tener apariencia profesional
+- Incluir elementos visuales relacionados con el contenido
+- NO incluir texto incrustado (importante para SEO din\u00e1mico)
+- Ser reutilizable como imagen destacada o banner
+----FORMATO DE RESPUESTA----
+Devuelve \u00fanicamente un JSON v\u00e1lido con este formato:
+{
+    \'image_base64\': \'data:image/png;base64,....\',
+    \'alt\': \'texto alternativo SEO optimizado\',
+    \'title\': \'titulo de la imagen\'
+}
+----REGLAS----
+- NO expliques nada
+- NO agregues texto fuera del JSON
+- SOLO devuelve el JSON',
+
+            'template' => '----TITULO DE LA PLANTILLA----
+{{title}}
+
+----VARIABLES GLOBALES {g{...}}----
+{{globalFields}}
+
+----PROMPTS PARA VARIABLES GLOBALES----
+{{globalFields_prompt}}
+
+----PROMPT BASE----
+{{prompt}}
+
+----
+INSTRUCCIONES IMPORTANTES:
+
+- Genera una NUEVA versi\u00f3n del contenido para cada variable global.
+- NO copies literalmente el contenido actual.
+- Reescribe completamente cada texto manteniendo el mismo objetivo.
+- Usa un tono persuasivo, moderno y orientado a conversi\u00f3n.
+- Los valores actuales solo son contexto de referencia.
+- Cada variable debe ser significativamente distinta al valor original.
+- NO inventes nuevas variables.
+- Solo puedes usar las claves listadas en VARIABLES GLOBALES.
+
+----
+FORMATO DE RESPUESTA:
+
+Retorna \u00fanicamente un JSON v\u00e1lido.
+
+Formato para una variacion:
+{
+    \"title\": \"Titulo para la pagina\",
+    \"variable_key\": \"valor\",
+    \"otra_variable\": \"otro valor\"
+}
+
+Si se generan m\u00faltiples opciones, retorna un array:
+[
+    { ... },
+    { ... }
+]',
+        ];
+
+        return $defaults[$type] ?? $defaults['content'];
+    }
+
     public static function getPromptImg($post_id, $customFields, $yoastFields)
     {
         $title = get_the_title($post_id);
         $imageUrl = get_the_post_thumbnail_url($post_id, 'full') ?? "no tiene";
 
-        $PROMPT = "
-            ----TITULO DE LA PAGINA----
-            " . $title . "
-            ----CAMPOS PERSONALIZADOS----
-            " . json_encode($customFields) . "
-            ----DATOS DE YOAST SEO----
-            " . json_encode($yoastFields) . "
-            IMAGEN BASE (URL):
-            {$imageUrl}
-            ----INSTRUCCIONES----
-            Necesito que generes UNA imagen optimizada para SEO basada en:
-            - El contenido de la página
-            - Los datos SEO
-            - Y tomando como referencia visual la imagen proporcionada (URL)
-            La imagen debe:
-            - Ser estilo marketing digital / ecommerce
-            - Tener apariencia profesional
-            - Incluir elementos visuales relacionados con el contenido
-            - NO incluir texto incrustado (importante para SEO dinámico)
-            - Ser reutilizable como imagen destacada o banner
-            ----FORMATO DE RESPUESTA----
-            Devuelve únicamente un JSON válido con este formato:
-            {
-                'image_base64': 'data:image/png;base64,....',
-                'alt': 'texto alternativo SEO optimizado',
-                'title': 'titulo de la imagen'
-            }
-            ----REGLAS----
-            - NO expliques nada
-            - NO agregues texto fuera del JSON
-            - SOLO devuelve el JSON
-        ";
+        $template = self::getBasePromptTemplate('content_img');
 
-        return $PROMPT;
+        $replacements = [
+            '{{title}}' => $title,
+            '{{customFields}}' => json_encode($customFields),
+            '{{yoastFields}}' => json_encode($yoastFields),
+            '{{imageUrl}}' => $imageUrl,
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
     }
+
     public static function getPrompt($CONFIG)
     {
         [
@@ -56,78 +191,21 @@ class GPAI_CONTENT
         ] = $CONFIG;
 
         $title = get_the_title($post_id);
-        $PROMPT = "
-        ----TITULO DE LA PAGINA----
-        " . $title . "
 
-        ----CAMPOS PERSONALIZADOS----
-        " . json_encode($customFields, JSON_UNESCAPED_UNICODE) . "
+        $template = self::getBasePromptTemplate('content');
 
-        ----PROMPTS PARA CAMPOS PERSONALIZADOS----
-        " . json_encode($customFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "
+        $replacements = [
+            '{{title}}' => $title,
+            '{{customFields}}' => json_encode($customFields, JSON_UNESCAPED_UNICODE),
+            '{{customFields_prompt}}' => json_encode($customFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            '{{yoastFields}}' => json_encode($yoastFields, JSON_UNESCAPED_UNICODE),
+            '{{yoastFields_prompt}}' => json_encode($yoastFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            '{{prompt}}' => $prompt,
+        ];
 
-        ----DATOS DE YOAST SEO----
-        " . json_encode($yoastFields, JSON_UNESCAPED_UNICODE) . "
-
-        ----PROMPTS PARA DATOS DE YOAST SEO----
-        " . json_encode($yoastFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "
-
-        ----PROMPT BASE----
-        " . $prompt . "
-
-        ----
-        INSTRUCCIONES IMPORTANTES:
-
-        - Genera una NUEVA versión del contenido.
-        - NO copies literalmente el contenido actual.
-        - NO reutilices frases exactas.
-        - Reescribe completamente cada texto manteniendo el mismo objetivo comercial.
-        - Usa un tono más persuasivo, moderno y orientado a conversión.
-        - Los valores actuales solo son contexto de referencia.
-        - Los ejemplos incluidos en los prompts NO deben copiarse literalmente.
-        - Cambia estructura, redacción y enfoque manteniendo la intención original.
-        - Mantén únicamente URLs, nombres de marca o datos técnicos cuando sea necesario.
-        - Evita respuestas idénticas o muy similares al contenido original.
-        - Cada campo debe ser significativamente distinto al valor original.
-        - Usa vocabulario diferente y evita sinónimos directos.
-        - Cada texto debe sentirse como una nueva versión de marketing.
-        - Evita reemplazos mínimos de palabras.
-        - Reestructura completamente frases y titulares.
-        - Prioriza nuevas propuestas de valor.
-        - Usa diferentes ángulos comerciales y emocionales.
-        - customFields SOLO puede contener claves presentes en CAMPOS PERSONALIZADOS.
-        - yoastFields SOLO puede contener claves presentes en DATOS DE YOAST SEO.
-        - NO mezcles campos entre ambas estructuras.
-        - NO inventes nuevas claves.
-
-        ----
-        FORMATO DE RESPUESTA:
-
-        Retorna únicamente un JSON válido.
-
-        Formato:
-        {
-            \"title\":\"title\",
-            \"customFields\":{
-                \"key\":\"value\"
-            },
-            \"yoastFields\":{
-                \"key\":\"value\"
-            }
-        }
-
-        Si se generan múltiples opciones:
-
-        [
-            {
-                \"title\":\"title\",
-                \"customFields\":{},
-                \"yoastFields\":{}
-            }
-        ]
-        ";
-        return $PROMPT;
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
     }
+
     public static function getContentByPrompt($PROMPT)
     {
         $jsonResponse = [];
@@ -166,6 +244,7 @@ class GPAI_CONTENT
             return $error;
         }
     }
+
     public static function getContent($CONFIG)
     {
         try {
@@ -221,6 +300,7 @@ class GPAI_CONTENT
             return $error;
         }
     }
+
     public static function normalizeFields($item, $customFields, $yoastFields)
     {
         $allowedCustomFields = array_keys($customFields);
@@ -229,62 +309,40 @@ class GPAI_CONTENT
         $normalizedCustomFields = [];
         $normalizedYoastFields = [];
 
-        // =========================
-        // CUSTOM FIELDS
-        // =========================
         if (!empty($item['customFields']) && is_array($item['customFields'])) {
-
             foreach ($item['customFields'] as $key => $value) {
-
-                // mover yoast mal ubicado
                 if (strpos($key, '_yoast_wpseo_') === 0) {
-
                     if (in_array($key, $allowedYoastFields)) {
                         $normalizedYoastFields[$key] = $value;
                     }
-
                     continue;
                 }
-
-                // permitir solo custom válidos
                 if (in_array($key, $allowedCustomFields)) {
                     $normalizedCustomFields[$key] = $value;
                 }
             }
         }
 
-        // =========================
-        // YOAST FIELDS
-        // =========================
         if (!empty($item['yoastFields']) && is_array($item['yoastFields'])) {
-
             foreach ($item['yoastFields'] as $key => $value) {
-
-                // mover custom mal ubicado
                 if (strpos($key, '_yoast_wpseo_') !== 0) {
-
                     if (in_array($key, $allowedCustomFields)) {
                         $normalizedCustomFields[$key] = $value;
                     }
-
                     continue;
                 }
-
-                // permitir solo yoast válidos
                 if (in_array($key, $allowedYoastFields)) {
                     $normalizedYoastFields[$key] = $value;
                 }
             }
         }
 
-        // =========================
-        // REEMPLAZAR
-        // =========================
         $item['customFields'] = $normalizedCustomFields;
         $item['yoastFields'] = $normalizedYoastFields;
 
         return $item;
     }
+
     public static function getContentTemplate($CONFIG)
     {
         try {
@@ -297,49 +355,16 @@ class GPAI_CONTENT
 
             $title = get_the_title($template_id);
 
-            $PROMPT = "
-            ----TITULO DE LA PLANTILLA----
-            " . $title . "
+            $template = self::getBasePromptTemplate('template');
 
-            ----VARIABLES GLOBALES {g{...}}----
-            " . json_encode($globalFields, JSON_UNESCAPED_UNICODE) . "
+            $replacements = [
+                '{{title}}' => $title,
+                '{{globalFields}}' => json_encode($globalFields, JSON_UNESCAPED_UNICODE),
+                '{{globalFields_prompt}}' => json_encode($globalFields_prompt ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                '{{prompt}}' => $prompt,
+            ];
 
-            ----PROMPTS PARA VARIABLES GLOBALES----
-            " . json_encode($globalFields_prompt ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "
-
-            ----PROMPT BASE----
-            " . $prompt . "
-
-            ----
-            INSTRUCCIONES IMPORTANTES:
-
-            - Genera una NUEVA versión del contenido para cada variable global.
-            - NO copies literalmente el contenido actual.
-            - Reescribe completamente cada texto manteniendo el mismo objetivo.
-            - Usa un tono persuasivo, moderno y orientado a conversión.
-            - Los valores actuales solo son contexto de referencia.
-            - Cada variable debe ser significativamente distinta al valor original.
-            - NO inventes nuevas variables.
-            - Solo puedes usar las claves listadas en VARIABLES GLOBALES.
-
-            ----
-            FORMATO DE RESPUESTA:
-
-            Retorna únicamente un JSON válido.
-
-            Formato para una variacion:
-            {
-                \"title\": \"Titulo para la pagina\",
-                \"variable_key\": \"valor\",
-                \"otra_variable\": \"otro valor\"
-            }
-
-            Si se generan múltiples opciones, retorna un array:
-            [
-                { ... },
-                { ... }
-            ]
-            ";
+            $PROMPT = str_replace(array_keys($replacements), array_values($replacements), $template);
 
             $result = self::getContentByPrompt($PROMPT);
 
@@ -388,18 +413,14 @@ class GPAI_CONTENT
             return $text;
         }
 
-        // quitar slashes acumulados
         $text = stripslashes($text);
 
-        // reemplazar escapes repetidos
         while (strpos($text, '\\\\') !== false) {
             $text = str_replace('\\\\', '\\', $text);
         }
 
-        // quitar escapes de comillas
         $text = str_replace('\\"', '"', $text);
 
-        // limpiar espacios
         $text = trim($text);
 
         return $text;

@@ -11,6 +11,10 @@ $TAGS = [
         'key' => 'config',
         'title' => 'Configuracion IA',
     ],
+    [
+        'key' => 'prompts_base',
+        'title' => 'Prompts Base',
+    ],
     ...(GPAI_MODE_DEV ? [
         [
             'key' => 'test',
