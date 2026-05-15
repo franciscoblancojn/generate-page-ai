@@ -43,7 +43,8 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
         $post_id,
         $title,
         $custom_fields = [],
-        $yoastFields = []
+        $yoastFields = [],
+        $gpaiSeoFields = []
     ) {
 
         $post = get_post($post_id);
@@ -125,6 +126,21 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
 
         /*
         |--------------------------------------------------------------------------
+        | GPAI SEO FIELDS
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($gpaiSeoFields as $key => $value) {
+
+            update_post_meta(
+                $new_post_id,
+                $key,
+                $value
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | RELACIÓN PADRE
         |--------------------------------------------------------------------------
         */
@@ -167,6 +183,7 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
                     $DATA['title'],
                     $DATA['customFields'],
                     $DATA['yoastFields'],
+                    $DATA['gpaiSeoFields'] ?? [],
                 );
                 $this->deleteVariation($post_id, $prompt, $v);
                 return [
@@ -206,6 +223,7 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
                 $DATA['title'],
                 $DATA['customFields'],
                 $DATA['yoastFields'],
+                $DATA['gpaiSeoFields'] ?? [],
             );
             return [
                 "status" => "ok",

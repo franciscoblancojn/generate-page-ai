@@ -73,6 +73,15 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
                 'data' => [],
             ];
         }
+        $gpaiSeoFields = $DATA['gpaiSeoFields'] ?? [];
+        if (!empty($gpaiSeoFields)) {
+            GPAI_SEO::SET($post_id, $gpaiSeoFields);
+            $respond_duplicates_pendding = [
+                "status" => "ok",
+                "message" => "Campos personalisados Guardados.",
+                'data' => [],
+            ];
+        }
         if(isset($respond_duplicates_pendding['status']) && $respond_duplicates_pendding['status'] === "ok"){
             ?>
             <script>
@@ -252,6 +261,7 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                                     foreach ($variation as $v => $value) {
                                         $customFields = $value['customFields'];
                                         $yoastFields = $value['yoastFields'];
+                                        $gpaiSeoFields = $value['gpaiSeoFields'] ?? [];
                                     ?>
                                         <?= GPAI_Collapse(
                                             getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v),
@@ -259,6 +269,11 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                                                 GPAI_Collapse(
                                                     "Custom Fields",
                                                     GPAI_Custom_Fields($customFields, false),
+                                                    true
+                                                ) .
+                                                GPAI_Collapse(
+                                                    "Custom SEO",
+                                                    GPAI_Custom_Gpai_Seo($gpaiSeoFields, false),
                                                     true
                                                 ) .
                                                 (

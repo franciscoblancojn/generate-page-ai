@@ -4,6 +4,8 @@
 {{customFields}}
 ----DATOS DE YOAST SEO----
 {{yoastFields}}
+----DATOS DE GPAI SEO----
+{{gpaiSeoFields}}
 IMAGEN BASE (URL):
 {{imageUrl}}
 ----INSTRUCCIONES----

@@ -13,6 +13,12 @@
 ----PROMPTS PARA DATOS DE YOAST SEO----
 {{yoastFields_prompt}}
 
+----DATOS DE GPAI SEO----
+{{gpaiSeoFields}}
+
+----PROMPTS PARA DATOS DE GPAI SEO----
+{{gpaiSeoFields_prompt}}
+
 ----PROMPT BASE----
 {{prompt}}
 
@@ -35,6 +41,7 @@
     * Cada campo en el JSON de salida debe ser significativamente distinto y aportar un ángulo de marketing fresco alineado con la región.
     * customFields SOLO puede contener claves presentes en CAMPOS PERSONALIZADOS.
     * yoastFields SOLO puede contener claves presentes en DATOS DE YOAST SEO.
+    * gpaiSeoFields SOLO puede contener claves presentes en DATOS DE GPAI SEO.
     * NO mezcles campos entre ambas estructuras ni inventes nuevas claves.
 
 ----
@@ -50,6 +57,9 @@ Formato:
     },
     \"yoastFields\":{
         \"key\":\"value\"
+    },
+    \"gpaiSeoFields\":{
+        \"key\":\"value\"
     }
 }
 
@@ -59,6 +69,7 @@ Si se generan m\u00faltiples opciones:
     {
         \"title\":\"title\",
         \"customFields\":{},
-        \"yoastFields\":{}
+        \"yoastFields\":{},
+        \"gpaiSeoFields\":{}
     }
 ]

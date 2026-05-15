@@ -13,12 +13,15 @@ $placeholders = [
         '{{customFields_prompt}}' => 'JSON con prompts por campo personalizado',
         '{{yoastFields}}' => 'JSON con datos de Yoast SEO',
         '{{yoastFields_prompt}}' => 'JSON con prompts por campo Yoast',
+        '{{gpaiSeoFields}}' => 'JSON con campos de GPAI SEO',
+        '{{gpaiSeoFields_prompt}}' => 'JSON con prompts por campo GPAI SEO',
         '{{prompt}}' => 'Prompt base del usuario',
     ],
     'content_img' => [
         '{{title}}' => 'Titulo de la pagina',
         '{{customFields}}' => 'JSON con campos personalizados',
         '{{yoastFields}}' => 'JSON con datos de Yoast SEO',
+        '{{gpaiSeoFields}}' => 'JSON con campos de GPAI SEO',
         '{{imageUrl}}' => 'URL de la imagen destacada',
     ],
     'template' => [
@@ -113,7 +116,7 @@ function getContentCollapsePromptBase($type, $currentValue, $placeholders)
                             'content' => GPAI_CONTENT::getBasePromptDefault('content'),
                             'content_img' => GPAI_CONTENT::getBasePromptDefault('content_img'),
                             'template' => GPAI_CONTENT::getBasePromptDefault('template'),
-                        ]) ?>;
+                        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('gpai-restore-prompt')) {

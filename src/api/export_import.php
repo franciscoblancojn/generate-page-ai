@@ -23,6 +23,7 @@ class GPAI_EXPORT_IMPORT
             'post_name'   => $post->post_title,
             'camposPersonalisados' => [],
             'camposYoast'          => [],
+            'camposGpaiSeo'        => [],
             'camposPlantillas'     => [],
         ];
 
@@ -41,6 +42,17 @@ class GPAI_EXPORT_IMPORT
         if (is_array($yoastFields)) {
             foreach ($yoastFields as $key => $value) {
                 $data['camposYoast'][] = [
+                    'key'      => $key,
+                    'key_html' => '{{' . $key . '}}',
+                    'valor'    => is_string($value) ? $value : '',
+                ];
+            }
+        }
+
+        $gpaiSeoFields = GPAI_SEO::GET($post_id);
+        if (is_array($gpaiSeoFields)) {
+            foreach ($gpaiSeoFields as $key => $value) {
+                $data['camposGpaiSeo'][] = [
                     'key'      => $key,
                     'key_html' => '{{' . $key . '}}',
                     'valor'    => is_string($value) ? $value : '',
@@ -101,6 +113,14 @@ class GPAI_EXPORT_IMPORT
                 $yf[sanitize_text_field($campo['key'])] = wp_kses_post($campo['valor']);
             }
             GPAI_YOAST::SET($post_id, $yf);
+        }
+
+        if (!empty($import['camposGpaiSeo'])) {
+            $gf = [];
+            foreach ($import['camposGpaiSeo'] as $campo) {
+                $gf[sanitize_text_field($campo['key'])] = wp_kses_post($campo['valor']);
+            }
+            GPAI_SEO::SET($post_id, $gf);
         }
 
         if (!empty($import['camposPlantillas'])) {
