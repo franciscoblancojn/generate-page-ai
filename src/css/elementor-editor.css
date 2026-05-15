@@ -420,3 +420,65 @@
     width: 100%;
     text-align: center;
 }
+
+.gpai-cf-template-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.gpai-cf-template-default {
+    font-size: 11px;
+    color: #a4afb7;
+    line-height: 1.4;
+    margin-top: 2px;
+}
+
+.gpai-cf-template-default-label {
+    font-weight: 500;
+}
+
+.gpai-cf-template-default-value {
+    color: #6d7882;
+    word-break: break-word;
+}
+
+.gpai-cf-template-override-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.gpai-cf-template-override-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: #a4afb7;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.gpai-cf-template-override {
+    width: 100%;
+    border: 1px solid #d5dadf;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    resize: vertical;
+    box-sizing: border-box;
+    background: #fff;
+    color: #343b42;
+    transition: border-color 0.2s ease;
+    min-height: 36px;
+}
+
+.gpai-cf-template-override:focus {
+    border-color: #a4afb7;
+    box-shadow: 0 0 0 1px #a4afb7;
+    outline: none;
+}
+
+.gpai-cf-template-override::placeholder {
+    color: #c2cbd2;
+    font-style: italic;
+}

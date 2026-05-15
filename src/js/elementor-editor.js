@@ -8,6 +8,8 @@
   var currentElementKeys = [];
   var currentTab = "all";
   var searchQuery = "";
+  var templateFieldsData = [];
+  var templateFieldsLoaded = false;
 
   function getPostId() {
     try {
@@ -58,6 +60,7 @@
       '        <div class="gpai-cf-tabs">' +
       '          <button class="gpai-cf-tab gpai-cf-tab-active" data-tab="all">Todos</button>' +
       '          <button class="gpai-cf-tab" data-tab="section">Secci\u00f3n actual</button>' +
+      '          <button class="gpai-cf-tab" data-tab="templates">Plantillas</button>' +
       "        </div>" +
       '        <button class="gpai-cf-btn-create elementor-button elementor-button-primary elementor-size-xs">+ Nuevo</button>' +
       "      </div>" +
@@ -133,6 +136,7 @@
     createPanelHTML();
     $("#gpai-cf-panel").addClass("gpai-cf-panel-open");
     setupPreviewClickHandler();
+    templateFieldsLoaded = false;
     showList();
   }
 
@@ -185,6 +189,15 @@
   function renderList() {
     var $items = $("#gpai-cf-panel .gpai-cf-panel-items");
     var $empty = $("#gpai-cf-panel .gpai-cf-panel-empty");
+
+    if (currentTab === "templates") {
+      if (!templateFieldsLoaded) {
+        loadTemplateFields();
+      } else {
+        renderTemplateList();
+      }
+      return;
+    }
 
     var filtered = fieldsData;
 
@@ -379,6 +392,129 @@
       },
       error: function () {
         alert("Error de conexi\u00f3n. Intenta de nuevo.");
+      },
+    });
+  }
+
+  function loadTemplateFields() {
+    var $items = $("#gpai-cf-panel .gpai-cf-panel-items");
+    var $empty = $("#gpai-cf-panel .gpai-cf-panel-empty");
+    $empty.hide();
+    $items.html(
+      '<div class="gpai-cf-panel-loading">Cargando campos de plantilla...</div>',
+    );
+
+    $.ajax({
+      url: gpaiEditor.ajaxurl,
+      type: "POST",
+      data: {
+        action: "gpai_list_template_fields",
+        post_id: postId,
+      },
+      success: function (response) {
+        if (response.success) {
+          templateFieldsData = response.data || [];
+          templateFieldsLoaded = true;
+          renderTemplateList();
+        } else {
+          $items.html(
+            '<div class="gpai-cf-panel-error">Error: ' +
+              (response.data || "desconocido") +
+              "</div>",
+          );
+        }
+      },
+      error: function () {
+        $items.html(
+          '<div class="gpai-cf-panel-error">Error de conexi\u00f3n.</div>',
+        );
+      },
+    });
+  }
+
+  function renderTemplateList() {
+    var $items = $("#gpai-cf-panel .gpai-cf-panel-items");
+    var $empty = $("#gpai-cf-panel .gpai-cf-panel-empty");
+
+    var filtered = templateFieldsData;
+    if (searchQuery) {
+      filtered = filtered.filter(function (f) {
+        return f.key.toLowerCase().indexOf(searchQuery) !== -1;
+      });
+    }
+
+    if (!filtered.length) {
+      $items.empty();
+      if (searchQuery) {
+        $empty
+          .show()
+          .text(
+            'No se encontraron campos con "' + searchQuery + '".',
+          );
+      } else {
+        $empty
+          .show()
+          .text(
+            "No hay campos de plantilla disponibles.",
+          );
+      }
+      return;
+    }
+
+    $empty.hide();
+    $items.empty();
+
+    filtered.forEach(function (field) {
+      var key = field.key;
+      var defaultVal = field.default_value || "";
+      var currentVal = field.current_value || "";
+
+      var $row = $(
+        '<div class="gpai-cf-field-row gpai-cf-template-row">' +
+          '  <div class="gpai-cf-field-info">' +
+          '    <code class="gpai-cf-field-key gpai-cf-field-key-global">{g{' +
+          escapeHtml(key) +
+          "}}</code>" +
+          '    <div class="gpai-cf-template-default"><span class="gpai-cf-template-default-label">Valor plantilla:</span> <span class="gpai-cf-template-default-value">' +
+          escapeHtml(defaultVal) +
+          "</span></div>" +
+          "  </div>" +
+          '  <div class="gpai-cf-template-override-wrap">' +
+          '    <label class="gpai-cf-template-override-label">Valor actual (sobrescribe la plantilla):</label>' +
+          '    <textarea class="gpai-cf-template-override" data-key="' +
+          key +
+          '" placeholder="' +
+          escapeHtml(defaultVal) +
+          '" rows="2">' +
+          escapeHtml(currentVal) +
+          "</textarea>" +
+          "  </div>" +
+          "</div>",
+      );
+
+      var $textarea = $row.find(".gpai-cf-template-override");
+      var saveTimer = null;
+
+      $textarea.on("input", function () {
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(function () {
+          saveGlobalField(key, $textarea.val());
+        }, 800);
+      });
+
+      $items.append($row);
+    });
+  }
+
+  function saveGlobalField(key, value) {
+    $.ajax({
+      url: gpaiEditor.ajaxurl,
+      type: "POST",
+      data: {
+        action: "gpai_save_global_field",
+        post_id: postId,
+        key: key,
+        value: value,
       },
     });
   }
