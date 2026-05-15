@@ -421,12 +421,6 @@
     text-align: center;
 }
 
-.gpai-cf-template-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-}
-
 .gpai-cf-template-default {
     font-size: 11px;
     color: #a4afb7;
