@@ -5,6 +5,9 @@
   var currentView = "list";
   var editingKey = null;
   var fieldsData = [];
+  var currentElementKeys = [];
+  var currentTab = "all";
+  var searchQuery = "";
 
   function getPostId() {
     try {
@@ -16,10 +19,8 @@
 
   function addToggleButton() {
     var $wrapper = $("#elementor-editor-wrapper-v2");
-    console.log($wrapper);
 
     if (!$wrapper.length) return;
-
     if ($wrapper.find(".gpai-cf-toggle-btn").length) return;
 
     var $btn = $(
@@ -53,10 +54,15 @@
       '  <div class="gpai-cf-panel-body">' +
       '    <div class="gpai-cf-panel-list-view">' +
       '      <div class="gpai-cf-panel-toolbar">' +
-      '        <button class="gpai-cf-btn-create elementor-button elementor-button-primary elementor-size-xs">+ Nuevo campo</button>' +
+      '        <input type="text" class="gpai-cf-search" placeholder="Buscar campo..." />' +
+      '        <div class="gpai-cf-tabs">' +
+      '          <button class="gpai-cf-tab gpai-cf-tab-active" data-tab="all">Todos</button>' +
+      '          <button class="gpai-cf-tab" data-tab="section">Secci\u00f3n actual</button>' +
+      "        </div>" +
+      '        <button class="gpai-cf-btn-create elementor-button elementor-button-primary elementor-size-xs">+ Nuevo</button>' +
       "      </div>" +
       '      <div class="gpai-cf-panel-items"></div>' +
-      '      <div class="gpai-cf-panel-empty">No hay campos personalizados. Crea uno nuevo.</div>' +
+      '      <div class="gpai-cf-panel-empty">No hay campos personalizados.</div>' +
       "    </div>" +
       '    <div class="gpai-cf-panel-form-view" style="display:none">' +
       '      <div class="gpai-cf-form-group">' +
@@ -69,7 +75,7 @@
       "      </div>" +
       '      <div class="gpai-cf-form-group">' +
       "        <label>Valor</label>" +
-      '        <textarea id="gpai-cf-form-value" placeholder="Valor que se mostrar&aacute; en el frontend" rows="4"></textarea>' +
+      '        <textarea id="gpai-cf-form-value" placeholder="Valor que se mostrar\u00e1 en el frontend" rows="4"></textarea>' +
       "      </div>" +
       '      <div class="gpai-cf-form-actions">' +
       '        <button class="gpai-cf-form-cancel elementor-button elementor-button-default elementor-size-xs">Cancelar</button>' +
@@ -87,6 +93,18 @@
     });
     $("#gpai-cf-panel .gpai-cf-form-cancel").on("click", showList);
     $("#gpai-cf-panel .gpai-cf-form-save").on("click", handleSave);
+
+    $("#gpai-cf-panel .gpai-cf-search").on("input", function () {
+      searchQuery = $(this).val().toLowerCase().trim();
+      renderList();
+    });
+
+    $("#gpai-cf-panel .gpai-cf-tab").on("click", function () {
+      $(".gpai-cf-tab").removeClass("gpai-cf-tab-active");
+      $(this).addClass("gpai-cf-tab-active");
+      currentTab = $(this).data("tab");
+      renderList();
+    });
 
     makeDraggable($("#gpai-cf-panel"));
 
@@ -109,11 +127,12 @@
   function openPanel() {
     postId = getPostId();
     if (!postId) {
-      alert("No se pudo obtener el ID de la página.");
+      alert("No se pudo obtener el ID de la p\u00e1gina.");
       return;
     }
     createPanelHTML();
     $("#gpai-cf-panel").addClass("gpai-cf-panel-open");
+    initElementListener();
     showList();
   }
 
@@ -158,7 +177,7 @@
       error: function () {
         $panel
           .find(".gpai-cf-panel-items")
-          .html('<div class="gpai-cf-panel-error">Error de conexión.</div>');
+          .html('<div class="gpai-cf-panel-error">Error de conexi\u00f3n.</div>');
       },
     });
   }
@@ -167,16 +186,42 @@
     var $items = $("#gpai-cf-panel .gpai-cf-panel-items");
     var $empty = $("#gpai-cf-panel .gpai-cf-panel-empty");
 
-    if (!fieldsData.length) {
+    var filtered = fieldsData;
+
+    if (currentTab === "section") {
+      if (currentElementKeys.length > 0) {
+        filtered = filtered.filter(function (f) {
+          return currentElementKeys.indexOf(f.key) !== -1;
+        });
+      } else {
+        $items.empty();
+        $empty.show().text("Selecciona un elemento en el editor para ver sus campos.");
+        return;
+      }
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter(function (f) {
+        return f.key.toLowerCase().indexOf(searchQuery) !== -1;
+      });
+    }
+
+    if (!filtered.length) {
       $items.empty();
-      $empty.show();
+      if (currentTab === "section") {
+        $empty.show().text("No hay campos personalizados en esta secci\u00f3n.");
+      } else if (searchQuery) {
+        $empty.show().text("No se encontraron campos con \"" + searchQuery + "\".");
+      } else {
+        $empty.show().text("No hay campos personalizados.");
+      }
       return;
     }
 
     $empty.hide();
     $items.empty();
 
-    fieldsData.forEach(function (field) {
+    filtered.forEach(function (field) {
       var key = field.key;
       var value = field.value || "";
       var displayValue =
@@ -195,10 +240,10 @@
           '  <div class="gpai-cf-field-actions">' +
           '    <button class="gpai-cf-field-edit" data-key="' +
           key +
-          '" title="Editar">✎</button>' +
+          '" title="Editar">\u270E</button>' +
           '    <button class="gpai-cf-field-delete" data-key="' +
           key +
-          '" title="Eliminar">✕</button>' +
+          '" title="Eliminar">\u2715</button>' +
           "  </div>" +
           "</div>",
       );
@@ -214,7 +259,7 @@
 
       $row.find(".gpai-cf-field-delete").on("click", function () {
         var k = $(this).data("key");
-        if (confirm("¿Eliminar el campo {{" + k + "}}?")) {
+        if (confirm("\u00BFEliminar el campo {{" + k + "}}?")) {
           deleteField(k);
         }
       });
@@ -285,7 +330,7 @@
         $saveBtn
           .prop("disabled", false)
           .text(editingKey ? "Actualizar" : "Crear");
-        alert("Error de conexión. Intenta de nuevo.");
+        alert("Error de conexi\u00f3n. Intenta de nuevo.");
       },
     });
   }
@@ -307,9 +352,63 @@
         }
       },
       error: function () {
-        alert("Error de conexión. Intenta de nuevo.");
+        alert("Error de conexi\u00f3n. Intenta de nuevo.");
       },
     });
+  }
+
+  function getKeysFromModel(model) {
+    var keys = {};
+    if (!model) return keys;
+
+    try {
+      var settings = typeof model.get === "function" ? model.get("settings") : null;
+      if (settings) {
+        var raw = typeof settings.toJSON === "function" ? settings.toJSON() : settings;
+        var str = JSON.stringify(raw);
+        var regex = /\{\{(.*?)\}\}/g;
+        var match;
+        while ((match = regex.exec(str)) !== null) {
+          var k = match[1].trim();
+          if (k) keys[k] = true;
+        }
+      }
+
+      var children = typeof model.get === "function" ? model.get("elements") : null;
+      if (children && typeof children.forEach === "function") {
+        children.forEach(function (child) {
+          var childKeys = getKeysFromModel(child);
+          for (var ck in childKeys) keys[ck] = true;
+        });
+      }
+    } catch (e) {}
+
+    return keys;
+  }
+
+  function updateCurrentElementKeys(model) {
+    currentElementKeys = [];
+    if (model) {
+      var keys = getKeysFromModel(model);
+      currentElementKeys = Object.keys(keys);
+    }
+    if (currentTab === "section") {
+      renderList();
+    }
+  }
+
+  function initElementListener() {
+    try {
+      if (
+        typeof elementor !== "undefined" &&
+        elementor.channels &&
+        elementor.channels.editor
+      ) {
+        elementor.channels.editor.on("element:select", function (model) {
+          updateCurrentElementKeys(model);
+        });
+      }
+    } catch (e) {}
   }
 
   function makeDraggable($el) {
