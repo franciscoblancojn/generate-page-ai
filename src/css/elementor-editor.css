@@ -178,6 +178,11 @@
     box-sizing: border-box;
 }
 
+.gpai-cf-field-key-global {
+    background: #e8f0fe;
+    color: #1a73e8;
+}
+
 .gpai-cf-field-value {
     font-size: 11px;
     color: #6d7882;

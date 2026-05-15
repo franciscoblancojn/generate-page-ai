@@ -132,7 +132,7 @@
     }
     createPanelHTML();
     $("#gpai-cf-panel").addClass("gpai-cf-panel-open");
-    initElementListener();
+    setupPreviewClickHandler();
     showList();
   }
 
@@ -195,7 +195,11 @@
         });
       } else {
         $items.empty();
-        $empty.show().text("Selecciona un elemento en el editor para ver sus campos.");
+        $empty
+          .show()
+          .text(
+            "Selecciona un elemento en el editor para ver sus campos.",
+          );
         return;
       }
     }
@@ -209,9 +213,17 @@
     if (!filtered.length) {
       $items.empty();
       if (currentTab === "section") {
-        $empty.show().text("No hay campos personalizados en esta secci\u00f3n.");
+        $empty
+          .show()
+          .text(
+            "No hay campos personalizados en esta secci\u00f3n.",
+          );
       } else if (searchQuery) {
-        $empty.show().text("No se encontraron campos con \"" + searchQuery + "\".");
+        $empty
+          .show()
+          .text(
+            "No se encontraron campos con \"" + searchQuery + "\".",
+          );
       } else {
         $empty.show().text("No hay campos personalizados.");
       }
@@ -224,15 +236,27 @@
     filtered.forEach(function (field) {
       var key = field.key;
       var value = field.value || "";
+      var fieldType = field.type || "custom";
       var displayValue =
         value.length > 80 ? value.substring(0, 80) + "..." : value;
+
+      var displayKey, keyClass;
+      if (fieldType === "global") {
+        displayKey = "{g{" + key + "}}";
+        keyClass = "gpai-cf-field-key gpai-cf-field-key-global";
+      } else {
+        displayKey = "{{" + key + "}}";
+        keyClass = "gpai-cf-field-key";
+      }
 
       var $row = $(
         '<div class="gpai-cf-field-row">' +
           '  <div class="gpai-cf-field-info">' +
-          '    <code class="gpai-cf-field-key">{{' +
-          key +
-          "}}</code>" +
+          '    <code class="' +
+          keyClass +
+          '">' +
+          escapeHtml(displayKey) +
+          "</code>" +
           '    <span class="gpai-cf-field-value">' +
           escapeHtml(displayValue) +
           "</span>" +
@@ -240,6 +264,8 @@
           '  <div class="gpai-cf-field-actions">' +
           '    <button class="gpai-cf-field-edit" data-key="' +
           key +
+          '" data-type="' +
+          fieldType +
           '" title="Editar">\u270E</button>' +
           '    <button class="gpai-cf-field-delete" data-key="' +
           key +
@@ -357,56 +383,92 @@
     });
   }
 
-  function getKeysFromModel(model) {
+  function findKeysInHtml(html) {
     var keys = {};
-    if (!model) return keys;
+    if (!html) return keys;
 
-    try {
-      var settings = typeof model.get === "function" ? model.get("settings") : null;
-      if (settings) {
-        var raw = typeof settings.toJSON === "function" ? settings.toJSON() : settings;
-        var str = JSON.stringify(raw);
-        var regex = /\{\{(.*?)\}\}/g;
-        var match;
-        while ((match = regex.exec(str)) !== null) {
-          var k = match[1].trim();
-          if (k) keys[k] = true;
-        }
-      }
+    var match;
+    var regex = /\{\{(.*?)\}\}/g;
+    while ((match = regex.exec(html)) !== null) {
+      var k = match[1].trim();
+      if (k) keys[k] = true;
+    }
 
-      var children = typeof model.get === "function" ? model.get("elements") : null;
-      if (children && typeof children.forEach === "function") {
-        children.forEach(function (child) {
-          var childKeys = getKeysFromModel(child);
-          for (var ck in childKeys) keys[ck] = true;
-        });
-      }
-    } catch (e) {}
+    regex = /\{g\{(.*?)\}\}/g;
+    while ((match = regex.exec(html)) !== null) {
+      var gk = match[1].trim();
+      if (gk) keys[gk] = true;
+    }
 
     return keys;
   }
 
-  function updateCurrentElementKeys(model) {
-    currentElementKeys = [];
-    if (model) {
-      var keys = getKeysFromModel(model);
-      currentElementKeys = Object.keys(keys);
+  function setupPreviewClickHandler() {
+    function attachListener() {
+      try {
+        var iframe = document.getElementById("elementor-preview-iframe");
+        if (!iframe) return false;
+
+        var doc =
+          iframe.contentDocument || iframe.contentWindow.document;
+        if (!doc || !doc.body) return false;
+
+        doc.removeEventListener("click", handlePreviewClick, true);
+        doc.addEventListener("click", handlePreviewClick, true);
+        return true;
+      } catch (e) {
+        return false;
+      }
     }
-    if (currentTab === "section") {
-      renderList();
+
+    if (!attachListener()) {
+      var retries = 0;
+      var maxRetries = 20;
+      var interval = setInterval(function () {
+        retries++;
+        if (attachListener() || retries >= maxRetries) {
+          clearInterval(interval);
+        }
+      }, 500);
     }
   }
 
-  function initElementListener() {
+  function handlePreviewClick(e) {
     try {
-      if (
-        typeof elementor !== "undefined" &&
-        elementor.channels &&
-        elementor.channels.editor
-      ) {
-        elementor.channels.editor.on("element:select", function (model) {
-          updateCurrentElementKeys(model);
-        });
+      var target = e.target;
+      var el = target;
+      var elementId = null;
+
+      while (el && el.nodeType === 1) {
+        var id = el.getAttribute
+          ? el.getAttribute("data-id")
+          : null;
+        if (id) {
+          elementId = id;
+          break;
+        }
+        el = el.parentElement;
+      }
+
+      if (!elementId) return;
+
+      var iframe = document.getElementById("elementor-preview-iframe");
+      if (!iframe) return;
+
+      var doc =
+        iframe.contentDocument || iframe.contentWindow.document;
+      var targetEl = doc.querySelector(
+        '[data-id="' + elementId + '"]',
+      );
+      if (!targetEl) return;
+
+      var html = targetEl.innerHTML;
+
+      var foundKeys = findKeysInHtml(html);
+      currentElementKeys = Object.keys(foundKeys);
+
+      if (currentTab === "section") {
+        renderList();
       }
     } catch (e) {}
   }

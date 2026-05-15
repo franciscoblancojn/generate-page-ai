@@ -188,11 +188,33 @@ class GPAI_CF
         $result = [];
 
         foreach ($meta as $key => $values) {
-            if (strpos($key, '_') === 0) continue;
-            $result[$key] = [
-                'key' => $key,
-                'value' => $values[0],
-            ];
+            if (strpos($key, '_g_') === 0) {
+                $clean = substr($key, 3);
+                if (!isset($result[$clean])) {
+                    $result[$clean] = [
+                        'key' => $clean,
+                        'value' => $values[0],
+                        'type' => 'global',
+                        'prefix' => '_g_',
+                    ];
+                }
+            } elseif (strpos($key, 'global_') === 0) {
+                $clean = substr($key, 7);
+                if (!isset($result[$clean])) {
+                    $result[$clean] = [
+                        'key' => $clean,
+                        'value' => $values[0],
+                        'type' => 'global',
+                        'prefix' => 'global_',
+                    ];
+                }
+            } elseif (strpos($key, '_') !== 0) {
+                $result[$key] = [
+                    'key' => $key,
+                    'value' => $values[0],
+                    'type' => 'custom',
+                ];
+            }
         }
 
         wp_send_json_success(array_values($result));
