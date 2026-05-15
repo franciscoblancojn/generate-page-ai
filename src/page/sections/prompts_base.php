@@ -33,7 +33,7 @@ if ($_POST['save'] === 'prompts_base') {
     $promptsBase = [];
     foreach ($types as $type => $label) {
         $promptsBase[$type] = isset($_POST['prompts_base'][$type])
-            ? wp_kses_post($_POST['prompts_base'][$type])
+            ? wp_kses_post(wp_unslash($_POST['prompts_base'][$type]))
             : GPAI_CONTENT::getBasePromptDefault($type);
     }
     $GPAI_USE_DATA_CONFIG->setField('prompts_base', $promptsBase);

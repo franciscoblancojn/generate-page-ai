@@ -1,0 +1,72 @@
+----TITULO DE LA PAGINA----
+{{title}}
+----CAMPOS PERSONALIZADOS----
+{{customFields}}
+----DATOS DE YOAST SEO----
+{{yoastFields}}
+IMAGEN BASE (URL):
+{{imageUrl}}
+----INSTRUCCIONES----
+Necesito que generes UNA imagen optimizada para SEO basada en:
+- El contenido de la p\u00e1gina
+- Los datos SEO
+- Y tomando como referencia visual la imagen proporcionada (URL)
+La imagen debe:
+- Ser estilo marketing digital / ecommerce
+- Tener apariencia profesional
+- Incluir elementos visuales relacionados con el contenido
+- NO incluir texto incrustado (importante para SEO din\u00e1mico)
+- Ser reutilizable como imagen destacada o banner
+----FORMATO DE RESPUESTA----
+Devuelve \u00fanicamente un JSON v\u00e1lido con este formato:
+{
+    \'image_base64\': \'data:image/png;base64,....\',
+    \'alt\': \'texto alternativo SEO optimizado\',
+    \'title\': \'titulo de la imagen\'
+}
+----REGLAS----
+- NO expliques nada
+- NO agregues texto fuera del JSON
+- SOLO devuelve el JSON',
+
+            'template' => '----TITULO DE LA PLANTILLA----
+{{title}}
+
+----VARIABLES GLOBALES {g{...}}----
+{{globalFields}}
+
+----PROMPTS PARA VARIABLES GLOBALES----
+{{globalFields_prompt}}
+
+----PROMPT BASE----
+{{prompt}}
+
+----
+INSTRUCCIONES IMPORTANTES:
+
+- Genera una NUEVA versi\u00f3n del contenido para cada variable global.
+- NO copies literalmente el contenido actual.
+- Reescribe completamente cada texto manteniendo el mismo objetivo.
+- Usa un tono persuasivo, moderno y orientado a conversi\u00f3n.
+- Los valores actuales solo son contexto de referencia.
+- Cada variable debe ser significativamente distinta al valor original.
+- NO inventes nuevas variables.
+- Solo puedes usar las claves listadas en VARIABLES GLOBALES.
+
+----
+FORMATO DE RESPUESTA:
+
+Retorna \u00fanicamente un JSON v\u00e1lido.
+
+Formato para una variacion:
+{
+    \"title\": \"Titulo para la pagina\",
+    \"variable_key\": \"valor\",
+    \"otra_variable\": \"otro valor\"
+}
+
+Si se generan m\u00faltiples opciones, retorna un array:
+[
+    { ... },
+    { ... }
+]

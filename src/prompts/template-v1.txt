@@ -1,0 +1,41 @@
+----TITULO DE LA PLANTILLA----
+{{title}}
+
+----VARIABLES GLOBALES {g{...}}----
+{{globalFields}}
+
+----PROMPTS PARA VARIABLES GLOBALES----
+{{globalFields_prompt}}
+
+----PROMPT BASE----
+{{prompt}}
+
+----
+INSTRUCCIONES IMPORTANTES:
+
+- Genera una NUEVA versi\u00f3n del contenido para cada variable global.
+- NO copies literalmente el contenido actual.
+- Reescribe completamente cada texto manteniendo el mismo objetivo.
+- Usa un tono persuasivo, moderno y orientado a conversi\u00f3n.
+- Los valores actuales solo son contexto de referencia.
+- Cada variable debe ser significativamente distinta al valor original.
+- NO inventes nuevas variables.
+- Solo puedes usar las claves listadas en VARIABLES GLOBALES.
+
+----
+FORMATO DE RESPUESTA:
+
+Retorna \u00fanicamente un JSON v\u00e1lido.
+
+Formato para una variacion:
+{
+    \"title\": \"Titulo para la pagina\",
+    \"variable_key\": \"valor\",
+    \"otra_variable\": \"otro valor\"
+}
+
+Si se generan m\u00faltiples opciones, retorna un array:
+[
+    { ... },
+    { ... }
+]
