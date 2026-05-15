@@ -48,6 +48,15 @@ if ($_POST['save'] === 'prompts_base') {
     ];
 }
 
+if ($_POST['save'] === 'reset_prompts_base') {
+    $GPAI_USE_DATA_CONFIG->setField('prompts_base', []);
+    $respond_prompts_base = [
+        "status" => "ok",
+        "message" => "Prompts base restaurados a valores predeterminados.",
+        'data' => [],
+    ];
+}
+
 $storedPrompts = $CONFIG['prompts_base'] ?? [];
 
 
@@ -72,12 +81,6 @@ function getContentCollapsePromptBase($type, $currentValue, $placeholders)
         <textarea
             name="prompts_base[<?= $type ?>]"
             style="width:100%;min-height:300px;font-family:monospace;font-size:12px;padding:10px"><?= esc_textarea($currentValue) ?></textarea>
-        <div style="margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button
-                type="button"
-                class="button gpai-restore-prompt"
-                data-type="<?= $type ?>">Restaurar predeterminado</button>
-        </div>
     </div>
 <?php
     return ob_get_clean();
@@ -108,23 +111,6 @@ function getContentCollapsePromptBase($type, $currentValue, $placeholders)
 
     <div class="content-btn" style="margin-top:16px">
         <button type="submit" class="button button-primary">Guardar Prompts Base</button>
+        <button type="submit" name="save" value="reset_prompts_base" class="button">Restaurar predeterminados</button>
     </div>
 </form>
-
-<script>
-    var gpaiDefaults = <?= json_encode([
-                            'content' => GPAI_CONTENT::getBasePromptDefault('content'),
-                            'content_img' => GPAI_CONTENT::getBasePromptDefault('content_img'),
-                            'template' => GPAI_CONTENT::getBasePromptDefault('template'),
-                        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
-
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('gpai-restore-prompt')) {
-            var type = e.target.getAttribute('data-type');
-            var textarea = e.target.closest('details').querySelector('textarea');
-            if (textarea && gpaiDefaults[type] !== undefined) {
-                textarea.value = gpaiDefaults[type];
-            }
-        }
-    });
-</script>
