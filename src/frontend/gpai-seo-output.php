@@ -71,37 +71,92 @@ add_action('wp_head', 'GPAI_SEO_output', 20);
 
 function GPAI_SEO_output_jsonld($post_id, $post, $values, $title, $desc, $canonical, $ogImage)
 {
-    $schemaType = 'WebPage';
+    $pageType = 'WebPage';
     if (!empty($values['gpai_wpseo_schema_page_type'])) {
-        $schemaType = $values['gpai_wpseo_schema_page_type'];
+        $pageType = $values['gpai_wpseo_schema_page_type'];
     }
     if (!empty($values['gpai_wpseo_schema_article_type'])) {
-        $schemaType = $values['gpai_wpseo_schema_article_type'];
+        $pageType = $values['gpai_wpseo_schema_article_type'];
     }
+
+    $siteName  = get_bloginfo('name');
+    $siteUrl   = home_url('/');
+    $siteDesc  = get_bloginfo('description');
+    $lang      = get_bloginfo('language');
+    $logoId    = get_option('site_icon');
+    $logoUrl   = $logoId ? wp_get_attachment_url($logoId) : '';
+
+    $graph = [];
+
+    // --- WebPage ---
+    $webPage = [
+        '@type'        => $pageType,
+        '@id'          => $canonical . '#webpage',
+        'url'          => $canonical,
+        'name'         => $title,
+        'inLanguage'   => $lang,
+        'isPartOf'     => ['@id' => $siteUrl . '#website'],
+        'publisher'    => ['@id' => $siteUrl . '#organization'],
+    ];
+    if ($desc) {
+        $webPage['description'] = $desc;
+    }
+    if ($ogImage) {
+        $webPage['image'] = $ogImage;
+    }
+    if (!empty($values['gpai_wpseo_focuskw'])) {
+        $webPage['keywords'] = $values['gpai_wpseo_focuskw'];
+    }
+    if ($post) {
+        $webPage['datePublished'] = get_the_date('c', $post_id);
+        $webPage['dateModified']  = get_the_modified_date('c', $post_id);
+    }
+    $graph[] = $webPage;
+
+    // --- WebSite ---
+    $webSite = [
+        '@type'    => 'WebSite',
+        '@id'      => $siteUrl . '#website',
+        'url'      => $siteUrl,
+        'name'     => $siteName,
+        'publisher' => ['@id' => $siteUrl . '#organization'],
+    ];
+    if ($siteDesc) {
+        $webSite['description'] = $siteDesc;
+    }
+    $webSite['potentialAction'] = [[
+        '@type'         => 'SearchAction',
+        'target'        => [
+            '@type'       => 'EntryPoint',
+            'urlTemplate' => $siteUrl . '?s={search_term_string}',
+        ],
+        'query-input'   => 'required name=search_term_string',
+    ]];
+    $graph[] = $webSite;
+
+    // --- Organization ---
+    $org = [
+        '@type' => 'Organization',
+        '@id'   => $siteUrl . '#organization',
+        'name'  => $siteName,
+        'url'   => $siteUrl,
+    ];
+    if ($logoUrl) {
+        $org['logo'] = [
+            '@type'      => 'ImageObject',
+            '@id'        => $siteUrl . '#/schema/logo/image/',
+            'url'        => $logoUrl,
+            'contentUrl' => $logoUrl,
+            'caption'    => $siteName,
+        ];
+        $org['image'] = ['@id' => $siteUrl . '#/schema/logo/image/'];
+    }
+    $graph[] = $org;
 
     $schema = [
         '@context' => 'https://schema.org',
-        '@type' => $schemaType,
-        'name' => $title,
-        'url' => $canonical,
+        '@graph'   => $graph,
     ];
-
-    if ($desc) {
-        $schema['description'] = $desc;
-    }
-
-    if (!empty($values['gpai_wpseo_focuskw'])) {
-        $schema['keywords'] = $values['gpai_wpseo_focuskw'];
-    }
-
-    if ($ogImage) {
-        $schema['image'] = $ogImage;
-    }
-
-    if ($post) {
-        $schema['datePublished'] = get_the_date('c', $post_id);
-        $schema['dateModified'] = get_the_modified_date('c', $post_id);
-    }
 
     $schema = apply_filters('gpai_seo_schema', $schema, $post_id);
 
