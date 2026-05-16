@@ -186,6 +186,7 @@ class GPAI_CF
 
         $meta = get_post_meta($post_id);
         $result = [];
+        $seo_used = [];
 
         foreach ($meta as $key => $values) {
             if (strpos($key, '_g_') === 0) {
@@ -212,6 +213,20 @@ class GPAI_CF
                 $result[$key] = [
                     'key' => $key,
                     'value' => $values[0],
+                    'type' => 'custom',
+                ];
+                if (strpos($key, 'gpai_wpseo_') === 0) {
+                    $seo_used[$key] = true;
+                }
+            }
+        }
+
+        $seo_fields = GPAI_SEO::getFields();
+        foreach ($seo_fields as $key => $label) {
+            if (!isset($seo_used[$key])) {
+                $result[$key] = [
+                    'key' => $key,
+                    'value' => '',
                     'type' => 'custom',
                 ];
             }

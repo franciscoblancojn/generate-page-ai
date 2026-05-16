@@ -525,7 +525,6 @@
 
     var $form = $(
       '<div class="gpai-cf-panel-template-form-view">' +
-        '  <div class="gpai-cf-panel-body">' +
         '    <div class="gpai-cf-form-group">' +
         "      <label>Clave</label>" +
         '      <div class="gpai-cf-key-input-wrapper">' +
@@ -554,11 +553,10 @@
         '      <button class="gpai-cf-template-form-cancel elementor-button elementor-button-default elementor-size-xs">Cancelar</button>' +
         '      <button class="gpai-cf-template-form-save elementor-button elementor-button-primary elementor-size-xs">Guardar</button>' +
         "    </div>" +
-        "  </div>" +
         "</div>",
     );
 
-    $panel.append($form);
+    $panel.find(".gpai-cf-panel-body").append($form);
 
     $form.find(".gpai-cf-template-form-cancel").on("click", cancelTemplateForm);
     $form.find(".gpai-cf-template-form-save").on("click", handleTemplateSave);
