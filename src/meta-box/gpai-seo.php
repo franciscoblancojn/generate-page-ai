@@ -88,6 +88,10 @@ function GPAI_SEO_MetaBox_render($post)
 
 function GPAI_SEO_MetaBox_save($post_id)
 {
+    if (wp_is_post_revision($post_id)) {
+        return;
+    }
+
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
         FWUSystemLog::add(GPAI_KEY, [
             'type' => 'GPAI_SEO_MetaBox_save',
@@ -98,12 +102,16 @@ function GPAI_SEO_MetaBox_save($post_id)
     }
 
     if (!isset($_POST['gpai_seo_nonce'])) {
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => 'GPAI_SEO_MetaBox_save',
-            'post_id' => $post_id,
-            'step' => 'exit_no_nonce',
-            'post_keys' => array_keys($_POST),
-        ]);
+        $is_rest = defined('REST_REQUEST') && REST_REQUEST;
+        if (!$is_rest) {
+            FWUSystemLog::add(GPAI_KEY, [
+                'type' => 'GPAI_SEO_MetaBox_save',
+                'post_id' => $post_id,
+                'step' => 'exit_no_nonce',
+                'is_rest' => false,
+                'post_keys' => array_keys($_POST),
+            ]);
+        }
         return;
     }
 
