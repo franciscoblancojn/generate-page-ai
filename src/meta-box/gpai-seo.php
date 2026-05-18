@@ -11,7 +11,7 @@ function GPAI_SEO_MetaBox_register()
             'Gpai SEO',
             'GPAI_SEO_MetaBox_render',
             $pt,
-            'advanced',
+            'normal',
             'high'
         );
     }
@@ -23,10 +23,11 @@ function GPAI_SEO_MetaBox_render($post)
     wp_nonce_field('gpai_seo_save', 'gpai_seo_nonce');
 
     $allFields = GPAI_SEO::getFields();
-    $groups = GPAI_SEO::getGroups();
-    $values = GPAI_SEO::GET($post->ID);
+    $groups    = GPAI_SEO::getGroups();
+    $values    = GPAI_SEO::GET($post->ID);
+    $ajax_nonce = wp_create_nonce('gpai_seo_ajax_' . $post->ID);
 
-    echo '<div style="display:flex;flex-direction:column;gap:12px;">';
+    echo '<div id="gpai-seo-box" style="display:flex;flex-direction:column;gap:12px;" data-post-id="' . esc_attr($post->ID) . '" data-nonce="' . esc_attr($ajax_nonce) . '">';
 
     foreach ($groups as $groupName => $fieldKeys) {
         $hasAny = false;
@@ -45,7 +46,7 @@ function GPAI_SEO_MetaBox_render($post)
             if (!isset($allFields[$key])) continue;
             $label = $allFields[$key];
             $value = $values[$key] ?? '';
-            $type = GPAI_SEO_MetaBox_getFieldType($key);
+            $type  = GPAI_SEO_MetaBox_getFieldType($key);
 
             echo '<tr>';
             echo '<th scope="row" style="width:180px;padding:6px 10px 6px 0;">';
@@ -83,8 +84,113 @@ function GPAI_SEO_MetaBox_render($post)
         echo '</details>';
     }
 
+    echo '<div style="padding:4px 0;display:flex;align-items:center;gap:12px;">';
+    echo '<button type="button" id="gpai-seo-save-btn" class="button button-primary">Guardar SEO</button>';
+    echo '<span id="gpai-seo-save-status" style="font-style:italic;font-size:13px;"></span>';
     echo '</div>';
+
+    echo '</div>';
+
+    static $script_registered = false;
+    if (!$script_registered) {
+        $script_registered = true;
+        add_action('admin_footer', 'GPAI_SEO_MetaBox_script');
+    }
 }
+
+function GPAI_SEO_MetaBox_script()
+{
+?>
+<script>
+(function () {
+    var box = document.getElementById('gpai-seo-box');
+    var btn = document.getElementById('gpai-seo-save-btn');
+    if (!box || !btn) return;
+
+    btn.addEventListener('click', function () {
+        var postId = box.dataset.postId;
+        var nonce  = box.dataset.nonce;
+        var status = document.getElementById('gpai-seo-save-status');
+        var fields = {};
+
+        box.querySelectorAll('[name^="gpai_seo_fields["]').forEach(function (input) {
+            var match = input.name.match(/gpai_seo_fields\[(.+)\]/);
+            if (!match) return;
+            var key = match[1];
+            if (input.type === 'checkbox') {
+                fields[key] = input.checked ? '1' : '0';
+            } else {
+                fields[key] = input.value;
+            }
+        });
+
+        btn.disabled = true;
+        status.style.color = '';
+        status.textContent = 'Guardando...';
+
+        var formData = new FormData();
+        formData.append('action', 'gpai_seo_save');
+        formData.append('nonce', nonce);
+        formData.append('post_id', postId);
+        Object.keys(fields).forEach(function (k) {
+            formData.append('fields[' + k + ']', fields[k]);
+        });
+
+        fetch(ajaxurl, { method: 'POST', body: formData })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                btn.disabled = false;
+                if (data.success) {
+                    status.style.color = '#00a32a';
+                    status.textContent = '✓ Guardado correctamente';
+                } else {
+                    status.style.color = '#d63638';
+                    status.textContent = '✗ ' + (data.data || 'Error al guardar');
+                }
+                setTimeout(function () { status.textContent = ''; }, 3000);
+            })
+            .catch(function () {
+                btn.disabled = false;
+                status.style.color = '#d63638';
+                status.textContent = '✗ Error de conexión';
+            });
+    });
+})();
+</script>
+<?php
+}
+
+function GPAI_SEO_save_ajax()
+{
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+    $nonce   = $_POST['nonce'] ?? '';
+    $fields  = isset($_POST['fields']) && is_array($_POST['fields']) ? $_POST['fields'] : [];
+
+    if (!$post_id || !wp_verify_nonce($nonce, 'gpai_seo_ajax_' . $post_id)) {
+        wp_send_json_error('Nonce inválido.');
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        wp_send_json_error('Sin permisos.');
+        return;
+    }
+
+    if (empty($fields)) {
+        wp_send_json_error('No se recibieron campos.');
+        return;
+    }
+
+    FWUSystemLog::add(GPAI_KEY, [
+        'type'    => 'gpai_seo_save_ajax',
+        'post_id' => $post_id,
+        'fields'  => $fields,
+    ]);
+
+    GPAI_SEO::SET($post_id, $fields);
+    wp_send_json_success(['message' => 'Guardado correctamente.']);
+}
+add_action('wp_ajax_gpai_seo_save', 'GPAI_SEO_save_ajax');
 
 function GPAI_SEO_MetaBox_save($post_id)
 {
@@ -93,68 +199,23 @@ function GPAI_SEO_MetaBox_save($post_id)
     }
 
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => 'GPAI_SEO_MetaBox_save',
-            'post_id' => $post_id,
-            'step' => 'exit_autosave',
-        ]);
         return;
     }
 
     if (!isset($_POST['gpai_seo_nonce'])) {
-        $is_rest = defined('REST_REQUEST') && REST_REQUEST;
-        if (!$is_rest) {
-            FWUSystemLog::add(GPAI_KEY, [
-                'type' => 'GPAI_SEO_MetaBox_save',
-                'post_id' => $post_id,
-                'step' => 'exit_no_nonce',
-                'is_rest' => false,
-                'post_keys' => array_keys($_POST),
-            ]);
-        }
         return;
     }
 
     if (!wp_verify_nonce($_POST['gpai_seo_nonce'], 'gpai_seo_save')) {
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => 'GPAI_SEO_MetaBox_save',
-            'post_id' => $post_id,
-            'step' => 'exit_nonce_invalid',
-            'nonce' => $_POST['gpai_seo_nonce'],
-        ]);
         return;
     }
 
     if (!current_user_can('edit_post', $post_id)) {
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => 'GPAI_SEO_MetaBox_save',
-            'post_id' => $post_id,
-            'step' => 'exit_no_cap',
-        ]);
         return;
     }
 
     if (isset($_POST['gpai_seo_fields']) && is_array($_POST['gpai_seo_fields'])) {
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => 'GPAI_SEO_MetaBox_save',
-            'post_id' => $post_id,
-            'step' => 'calling_SET',
-            'fields' => $_POST['gpai_seo_fields'],
-        ]);
         GPAI_SEO::SET($post_id, $_POST['gpai_seo_fields']);
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => 'GPAI_SEO_MetaBox_save',
-            'post_id' => $post_id,
-            'step' => 'SET_complete',
-        ]);
-    } else {
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => 'GPAI_SEO_MetaBox_save',
-            'post_id' => $post_id,
-            'step' => 'exit_no_fields',
-            'gpai_seo_fields_raw' => $_POST['gpai_seo_fields'] ?? 'NOT_SET',
-            'post_keys' => array_keys($_POST),
-        ]);
     }
 }
 add_action('save_post', 'GPAI_SEO_MetaBox_save');
