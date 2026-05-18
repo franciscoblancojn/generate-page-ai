@@ -153,6 +153,8 @@
     currentView = "list";
     editingKey = null;
 
+    console.log("[GPAI CF] showList", { postId: postId, ajaxurl: gpaiEditor.ajaxurl });
+
     var $panel = $("#gpai-cf-panel");
     $panel.find(".gpai-cf-panel-list-view").show();
     $panel.find(".gpai-cf-panel-form-view").hide();
@@ -583,7 +585,12 @@
     var value = $("#gpai-cf-panel .gpai-cf-template-form-value").val().trim();
     var key = editingTemplateKey;
 
-    if (!key) return;
+    console.log("[GPAI Template Save] start", { key: key, value: value, postId: postId, ajaxurl: gpaiEditor.ajaxurl });
+
+    if (!key) {
+      console.warn("[GPAI Template Save] no key");
+      return;
+    }
 
     var $saveBtn = $("#gpai-cf-panel .gpai-cf-template-form-save");
     $saveBtn.prop("disabled", true).text("Guardando...");
@@ -598,8 +605,10 @@
         value: value,
       },
       success: function (response) {
+        console.log("[GPAI Template Save] response", response);
         $saveBtn.prop("disabled", false).text("Guardar");
         if (response.success) {
+          console.log("[GPAI Template Save] success, updating frontend cache");
           templateFieldsData.forEach(function (f) {
             if (f.key === key) {
               f.current_value = value;
@@ -607,12 +616,14 @@
           });
           cancelTemplateForm();
         } else {
+          console.warn("[GPAI Template Save] error response", response.data);
           alert(
             "Error: " + (response.data || "No se pudo guardar."),
           );
         }
       },
-      error: function () {
+      error: function (jqXHR, textStatus, errorThrown) {
+        console.error("[GPAI Template Save] ajax error", { textStatus: textStatus, errorThrown: errorThrown, response: jqXHR.responseText });
         $saveBtn.prop("disabled", false).text("Guardar");
         alert("Error de conexi\u00f3n. Intenta de nuevo.");
       },

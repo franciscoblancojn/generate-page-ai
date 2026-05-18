@@ -295,7 +295,14 @@ class GPAI_CF
     {
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         $key = isset($_POST['key']) ? sanitize_key($_POST['key']) : '';
-        $value = isset($_POST['value']) ? wp_kses_post($_POST['value']) : '';
+        $value = isset($_POST['value']) ? $_POST['value'] : '';
+
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'save_global_field_ajax_start',
+            'post_id' => $post_id,
+            'key' => $key,
+            'value' => $value,
+        ]);
 
         if (!$post_id || !$key) {
             wp_send_json_error('post_id y key son requeridos.');
@@ -306,16 +313,28 @@ class GPAI_CF
         }
 
         $meta_key = 'global_' . $key;
+        $sanitized = wp_kses_post($value);
 
-        if ($value !== '') {
-            update_post_meta($post_id, $meta_key, $value);
+        if ($sanitized !== '') {
+            update_post_meta($post_id, $meta_key, $sanitized);
         } else {
             delete_post_meta($post_id, $meta_key);
         }
 
+        $after = get_post_meta($post_id, $meta_key, true);
+
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'save_global_field_ajax_end',
+            'post_id' => $post_id,
+            'meta_key' => $meta_key,
+            'value_sent' => $value,
+            'value_sanitized' => $sanitized,
+            'value_after_readback' => $after,
+        ]);
+
         wp_send_json_success([
             'key' => $key,
-            'value' => $value,
+            'value' => $sanitized,
             'message' => 'Campo global guardado correctamente.'
         ]);
     }

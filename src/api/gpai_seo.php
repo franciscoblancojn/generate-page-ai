@@ -52,8 +52,14 @@ class GPAI_SEO
     public static function SET($post_id, $data)
     {
         $allowed = array_keys(self::getFields());
+        $saved = [];
+        $skipped = [];
         foreach ($data as $key => $value) {
-            if (!in_array($key, $allowed)) continue;
+            if (!in_array($key, $allowed)) {
+                $skipped[] = $key;
+                continue;
+            }
+            $original = $value;
             if (is_array($value)) {
                 $value = wp_json_encode($value);
             } else {
@@ -61,10 +67,18 @@ class GPAI_SEO
             }
             if ($value !== '') {
                 update_post_meta($post_id, $key, $value);
+                $saved[$key] = $value;
             } else {
                 delete_post_meta($post_id, $key);
+                $saved[$key] = '(deleted)';
             }
         }
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_SEO_SET',
+            'post_id' => $post_id,
+            'saved' => $saved,
+            'skipped' => $skipped,
+        ]);
     }
 
     public static function getGroups()

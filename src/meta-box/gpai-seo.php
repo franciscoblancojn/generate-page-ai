@@ -1,5 +1,7 @@
 <?php
 
+use franciscoblancojn\wordpress_utils\FWUSystemLog;
+
 function GPAI_SEO_MetaBox_register()
 {
     $post_types = get_post_types(['public' => true], 'names');
@@ -86,12 +88,65 @@ function GPAI_SEO_MetaBox_render($post)
 
 function GPAI_SEO_MetaBox_save($post_id)
 {
-    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
-    if (!isset($_POST['gpai_seo_nonce']) || !wp_verify_nonce($_POST['gpai_seo_nonce'], 'gpai_seo_save')) return;
-    if (!current_user_can('edit_post', $post_id)) return;
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_SEO_MetaBox_save',
+            'post_id' => $post_id,
+            'step' => 'exit_autosave',
+        ]);
+        return;
+    }
+
+    if (!isset($_POST['gpai_seo_nonce'])) {
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_SEO_MetaBox_save',
+            'post_id' => $post_id,
+            'step' => 'exit_no_nonce',
+            'post_keys' => array_keys($_POST),
+        ]);
+        return;
+    }
+
+    if (!wp_verify_nonce($_POST['gpai_seo_nonce'], 'gpai_seo_save')) {
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_SEO_MetaBox_save',
+            'post_id' => $post_id,
+            'step' => 'exit_nonce_invalid',
+            'nonce' => $_POST['gpai_seo_nonce'],
+        ]);
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_SEO_MetaBox_save',
+            'post_id' => $post_id,
+            'step' => 'exit_no_cap',
+        ]);
+        return;
+    }
 
     if (isset($_POST['gpai_seo_fields']) && is_array($_POST['gpai_seo_fields'])) {
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_SEO_MetaBox_save',
+            'post_id' => $post_id,
+            'step' => 'calling_SET',
+            'fields' => $_POST['gpai_seo_fields'],
+        ]);
         GPAI_SEO::SET($post_id, $_POST['gpai_seo_fields']);
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_SEO_MetaBox_save',
+            'post_id' => $post_id,
+            'step' => 'SET_complete',
+        ]);
+    } else {
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'GPAI_SEO_MetaBox_save',
+            'post_id' => $post_id,
+            'step' => 'exit_no_fields',
+            'gpai_seo_fields_raw' => $_POST['gpai_seo_fields'] ?? 'NOT_SET',
+            'post_keys' => array_keys($_POST),
+        ]);
     }
 }
 add_action('save_post', 'GPAI_SEO_MetaBox_save');
