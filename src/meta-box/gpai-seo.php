@@ -89,6 +89,7 @@ function GPAI_SEO_MetaBox_render($post)
     echo '<div style="padding:4px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">';
     echo '<button type="button" id="gpai-seo-save-btn" class="button button-primary">Guardar SEO</button>';
     echo '<button type="button" id="gpai-seo-generate-btn" class="button button-primary" data-post-id="' . esc_attr($post->ID) . '" data-nonce="' . esc_attr($generate_nonce) . '">Generar SEO con IA</button>';
+    echo '<a href="https://validator.schema.org/#url=' . urlencode(get_permalink($post->ID)) . '" target="_blank" class="button">Validar SEO</a>';
     echo '<span id="gpai-seo-save-status" style="font-style:italic;font-size:13px;"></span>';
     echo '</div>';
 

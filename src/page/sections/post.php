@@ -299,6 +299,7 @@ if (isset($post_id)) {
         $gpaiSeoContent .= '<div class="content-btn" style="padding:12px 0 0;">';
         $gpaiSeoNonce = wp_create_nonce('gpai_seo_generate_' . $post_id);
         $gpaiSeoContent .= '<button type="button" class="button button-primary gpai-seo-generate-btn" data-post-id="' . esc_attr($post_id) . '" data-nonce="' . esc_attr($gpaiSeoNonce) . '">Generar SEO con IA</button>';
+        $gpaiSeoContent .= '<a href="https://validator.schema.org/#url=' . urlencode(get_permalink($post_id)) . '" target="_blank" class="button">Validar SEO</a>';
         $gpaiSeoContent .= '<span class="gpai-seo-generate-status" style="margin-left:8px;font-style:italic;"></span>';
         $gpaiSeoContent .= '</div>';
         ?>

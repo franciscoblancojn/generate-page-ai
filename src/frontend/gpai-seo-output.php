@@ -309,6 +309,20 @@ function GPAI_SEO_override_document_title($title_parts)
 }
 add_filter('document_title_parts', 'GPAI_SEO_override_document_title', 20);
 
+function GPAI_SEO_clean_yoast_schema($graph)
+{
+    if (!is_array($graph)) return $graph;
+    foreach ($graph as $key => $value) {
+        if ($key === 'description_schema_fallback') {
+            unset($graph[$key]);
+        } elseif (is_array($value)) {
+            $graph[$key] = GPAI_SEO_clean_yoast_schema($value);
+        }
+    }
+    return $graph;
+}
+add_filter('wpseo_schema_graph', 'GPAI_SEO_clean_yoast_schema', 100);
+
 function GPAI_SEO_handle_redirect()
 {
     if (!is_singular() && !is_front_page()) return;
