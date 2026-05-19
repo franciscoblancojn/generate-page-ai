@@ -26,6 +26,7 @@ function GPAI_SEO_MetaBox_render($post)
     $groups    = GPAI_SEO::getGroups();
     $values    = GPAI_SEO::GET($post->ID);
     $ajax_nonce = wp_create_nonce('gpai_seo_ajax_' . $post->ID);
+    $generate_nonce = wp_create_nonce('gpai_seo_generate_' . $post->ID);
 
     echo '<div id="gpai-seo-box" style="display:flex;flex-direction:column;gap:12px;" data-post-id="' . esc_attr($post->ID) . '" data-nonce="' . esc_attr($ajax_nonce) . '">';
 
@@ -85,8 +86,9 @@ function GPAI_SEO_MetaBox_render($post)
         echo '</details>';
     }
 
-    echo '<div style="padding:4px 0;display:flex;align-items:center;gap:12px;">';
+    echo '<div style="padding:4px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">';
     echo '<button type="button" id="gpai-seo-save-btn" class="button button-primary">Guardar SEO</button>';
+    echo '<button type="button" id="gpai-seo-generate-btn" class="button button-primary" data-post-id="' . esc_attr($post->ID) . '" data-nonce="' . esc_attr($generate_nonce) . '">Generar SEO con IA</button>';
     echo '<span id="gpai-seo-save-status" style="font-style:italic;font-size:13px;"></span>';
     echo '</div>';
 
@@ -156,7 +158,40 @@ function GPAI_SEO_MetaBox_script()
                 status.textContent = '✗ Error de conexión';
             });
     });
-})();
+    })();
+
+    var generateBtn = document.getElementById('gpai-seo-generate-btn');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', function () {
+            var postId = generateBtn.dataset.postId;
+            var nonce = generateBtn.dataset.nonce;
+            var status = document.getElementById('gpai-seo-save-status');
+
+            generateBtn.disabled = true;
+            if (status) { status.style.color = ''; status.textContent = 'Generando SEO...'; }
+
+            var formData = new FormData();
+            formData.append('action', 'gpai_seo_generate');
+            formData.append('post_id', postId);
+            formData.append('nonce', nonce);
+
+            fetch(ajaxurl, { method: 'POST', body: formData })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        if (status) { status.style.color = '#00a32a'; status.textContent = '✓ SEO generado. Recargando...'; }
+                        setTimeout(function () { location.reload(); }, 800);
+                    } else {
+                        generateBtn.disabled = false;
+                        if (status) { status.style.color = '#d63638'; status.textContent = '✗ ' + (data.data || 'Error'); }
+                    }
+                })
+                .catch(function () {
+                    generateBtn.disabled = false;
+                    if (status) { status.style.color = '#d63638'; status.textContent = '✗ Error de conexión'; }
+                });
+        });
+    }
 </script>
 <?php
 }

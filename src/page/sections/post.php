@@ -294,12 +294,15 @@ if (isset($post_id)) {
             true
         )
         ?>
-        <?= GPAI_Collapse(
-            "Gpai SEO",
-            GPAI_Custom_Gpai_Seo_Grouped($gpaiSeoFields, $CONFIG['gpaiSeoFields_prompt'] ?? []),
-            true
-        )
+        <?php
+        $gpaiSeoContent = GPAI_Custom_Gpai_Seo_Grouped($gpaiSeoFields, $CONFIG['gpaiSeoFields_prompt'] ?? []);
+        $gpaiSeoContent .= '<div class="content-btn" style="padding:12px 0 0;">';
+        $gpaiSeoNonce = wp_create_nonce('gpai_seo_generate_' . $post_id);
+        $gpaiSeoContent .= '<button type="button" class="button button-primary gpai-seo-generate-btn" data-post-id="' . esc_attr($post_id) . '" data-nonce="' . esc_attr($gpaiSeoNonce) . '">Generar SEO con IA</button>';
+        $gpaiSeoContent .= '<span class="gpai-seo-generate-status" style="margin-left:8px;font-style:italic;"></span>';
+        $gpaiSeoContent .= '</div>';
         ?>
+        <?= GPAI_Collapse("Gpai SEO", $gpaiSeoContent, true) ?>
         <?php foreach ($template_ids_detected as $tpl_id) {
             $fields = $globalFieldsByTemplate[$tpl_id] ?? [];
             if (empty($fields)) continue;

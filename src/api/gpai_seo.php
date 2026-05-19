@@ -122,4 +122,107 @@ class GPAI_SEO
             ],
         ];
     }
+
+    public static function getSEOBasePromptDefault()
+    {
+        $file = GPAI_DIR . 'src/prompts/seo-v1.txt';
+        if (!file_exists($file)) return '';
+        return file_get_contents($file);
+    }
+
+    public static function getSEOPrompt($post_id, $customPrompt = '')
+    {
+        $title = get_the_title($post_id);
+        $post = get_post($post_id);
+        $postContent = $post ? wp_trim_words($post->post_content, 200, '...') : '';
+
+        $template = self::getSEOBasePromptDefault();
+
+        $replacements = [
+            '{{title}}' => $title,
+            '{{postContent}}' => $postContent,
+            '{{prompt}}' => $customPrompt ?: 'Genera datos SEO optimizados para esta página.',
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
+    }
+
+    public static function generateSEO($post_id, $promptText = '')
+    {
+        try {
+            $PROMPT = self::getSEOPrompt($post_id, $promptText);
+            $result = GPAI_AI::sendPrompt($PROMPT);
+
+            if ($result['status'] === 'error') {
+                return $result;
+            }
+
+            $data = GPAI_AI::parseJson($result['data']);
+
+            $allowed = array_keys(self::getFields());
+            $toSave = [];
+            foreach ($data as $key => $value) {
+                if (in_array($key, $allowed)) {
+                    $toSave[$key] = $value;
+                }
+            }
+
+            if (!empty($toSave)) {
+                self::SET($post_id, $toSave);
+            }
+
+            FWUSystemLog::add(GPAI_KEY, [
+                'type' => 'GPAI_SEO_AI_GENERATE',
+                'post_id' => $post_id,
+                'generated' => $toSave,
+            ]);
+
+            return [
+                'status' => 'ok',
+                'message' => 'SEO generado correctamente.',
+                'data' => $toSave,
+            ];
+        } catch (\Throwable $th) {
+            $error = [
+                'status' => 'error',
+                'message' => $th->getMessage(),
+                'data' => [
+                    'line' => $th->getLine(),
+                    'file' => $th->getFile(),
+                ],
+            ];
+            FWUSystemLog::add(GPAI_KEY, [
+                'type' => 'GPAI_SEO_AI_ERROR',
+                'post_id' => $post_id,
+                'error' => $error,
+            ]);
+            return $error;
+        }
+    }
+
+    public static function generateSEO_ajax()
+    {
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $prompt = isset($_POST['prompt']) ? sanitize_text_field(wp_unslash($_POST['prompt'])) : '';
+        $nonce = $_POST['nonce'] ?? '';
+
+        if (!$post_id || !wp_verify_nonce($nonce, 'gpai_seo_generate_' . $post_id)) {
+            wp_send_json_error('Nonce inválido.');
+            return;
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error('Sin permisos.');
+            return;
+        }
+
+        $result = self::generateSEO($post_id, $prompt);
+        if ($result['status'] === 'ok') {
+            wp_send_json_success($result['data']);
+        } else {
+            wp_send_json_error($result['message']);
+        }
+    }
 }
+
+add_action('wp_ajax_gpai_seo_generate', ['GPAI_SEO', 'generateSEO_ajax']);
