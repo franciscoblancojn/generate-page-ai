@@ -1,0 +1,18 @@
+----HTML ORIGINAL----
+{{htmlContent}}
+
+----INSTRUCCIONES IMPORTANTES:
+- ROL: Eres un Desarrollador Web Senior experto en optimización de rendimiento frontend, minificación de HTML/CSS/JS y buenas prácticas de PageSpeed.
+- OBJETIVO: Optimiza el HTML proporcionado para que sea más liviano, limpio y rápido de cargar, sin alterar NADA de la apariencia visual ni la funcionalidad.
+- REGLA ABSOLUTA: El resultado debe verse EXACTAMENTE igual en el navegador. No cambies textos, estructuras de maquetación, clases de CSS críticas ni estilos inline que afecten el diseño.
+- ELIMINA: comentarios HTML innecesarios, espacios en blanco redundantes, atributos vacíos, etiquetas de cierre innecesarias (en void elements), y cualquier markup muerto.
+- OPTIMIZA CSS inline: combina reglas duplicadas, elimina propiedades redundantes, acorta propiedades shorthand cuando sea seguro.
+- OPTIMIZA JS inline: elimina espacios innecesarios, comentarios, punto y coma redundantes.
+- NO conviertas CSS/JS inline a externo. Mantén todo inline.
+- NO modifiques URLs, rutas de recursos, ni enlaces.
+- NO elimines etiquetas <script>, <link>, <style> o <meta> necesarias.
+- Si hay SVG inline, optimízalos (elimina atributos vacíos o redundantes de SVG).
+- Preserva la indentación mínima necesaria para legibilidad.
+
+----FORMATO DE RESPUESTA:
+Retorna ÚNICAMENTE el HTML optimizado, sin etiquetas ```html ni ``` de markdown. Solo el HTML puro.

@@ -225,6 +225,145 @@ class GPAI_SEO
             wp_send_json_error($result['message']);
         }
     }
+
+    public static function getHTMLBasePromptDefault()
+    {
+        $file = GPAI_DIR . 'src/prompts/html-v1.txt';
+        if (!file_exists($file)) return '';
+        return file_get_contents($file);
+    }
+
+    public static function getHTMLPrompt($post_id)
+    {
+        $htmlPath = get_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE', true);
+        if (!$htmlPath) {
+            return ['status' => 'error', 'message' => 'Este post no tiene archivo HTML estático.'];
+        }
+
+        $uploadDir = wp_upload_dir();
+        $fullPath = $uploadDir['basedir'] . str_replace($uploadDir['baseurl'], '', $htmlPath);
+
+        if (!file_exists($fullPath)) {
+            return ['status' => 'error', 'message' => 'El archivo HTML estático no existe en el servidor.'];
+        }
+
+        $htmlContent = file_get_contents($fullPath);
+        if ($htmlContent === false || trim($htmlContent) === '') {
+            return ['status' => 'error', 'message' => 'El archivo HTML estático está vacío.'];
+        }
+
+        $template = self::getHTMLBasePromptDefault();
+        if (empty($template)) {
+            return ['status' => 'error', 'message' => 'No se encontró el prompt base para HTML.'];
+        }
+
+        $prompt = str_replace('{{htmlContent}}', $htmlContent, $template);
+
+        return [
+            'status' => 'ok',
+            'data' => $prompt,
+            'originalPath' => $fullPath,
+            'htmlPath' => $htmlPath,
+        ];
+    }
+
+    public static function generateHTML($post_id)
+    {
+        try {
+            $promptResult = self::getHTMLPrompt($post_id);
+            if ($promptResult['status'] === 'error') {
+                return $promptResult;
+            }
+
+            $PROMPT = $promptResult['data'];
+            $originalPath = $promptResult['originalPath'];
+            $htmlPath = $promptResult['htmlPath'];
+
+            $result = GPAI_AI::sendPrompt($PROMPT);
+
+            if ($result['status'] === 'error') {
+                return $result;
+            }
+
+            $optimizedHtml = $result['data'];
+
+            $optimizedPath = str_replace('.html', '-2.html', $originalPath);
+            $bytesWritten = file_put_contents($optimizedPath, $optimizedHtml);
+
+            if ($bytesWritten === false) {
+                return [
+                    'status' => 'error',
+                    'message' => 'No se pudo escribir el archivo HTML optimizado.',
+                ];
+            }
+
+            $uploadDir = wp_upload_dir();
+            $optimizedUrl = str_replace(
+                $uploadDir['basedir'],
+                $uploadDir['baseurl'],
+                $optimizedPath
+            );
+
+            FWUSystemLog::add(GPAI_KEY, [
+                'type' => 'GPAI_HTML_AI_GENERATE',
+                'post_id' => $post_id,
+                'original' => $htmlPath,
+                'optimized' => $optimizedUrl,
+                'original_size' => filesize($originalPath),
+                'optimized_size' => $bytesWritten,
+            ]);
+
+            return [
+                'status' => 'ok',
+                'message' => 'HTML optimizado correctamente.',
+                'data' => [
+                    'original' => $htmlPath,
+                    'optimized' => $optimizedUrl,
+                    'original_size' => filesize($originalPath),
+                    'optimized_size' => $bytesWritten,
+                ],
+            ];
+        } catch (\Throwable $th) {
+            $error = [
+                'status' => 'error',
+                'message' => $th->getMessage(),
+                'data' => [
+                    'line' => $th->getLine(),
+                    'file' => $th->getFile(),
+                ],
+            ];
+            FWUSystemLog::add(GPAI_KEY, [
+                'type' => 'GPAI_HTML_AI_ERROR',
+                'post_id' => $post_id,
+                'error' => $error,
+            ]);
+            return $error;
+        }
+    }
+
+    public static function generateHTML_ajax()
+    {
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $nonce = $_POST['nonce'] ?? '';
+
+        if (!$post_id || !wp_verify_nonce($nonce, 'gpai_html_generate_' . $post_id)) {
+            wp_send_json_error('Nonce inválido.');
+            return;
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error('Sin permisos.');
+            return;
+        }
+
+        $result = self::generateHTML($post_id);
+        if ($result['status'] === 'ok') {
+            wp_send_json_success($result['data']);
+        } else {
+            wp_send_json_error($result['message']);
+        }
+    }
 }
 
 add_action('wp_ajax_gpai_seo_generate', ['GPAI_SEO', 'generateSEO_ajax']);
+add_action('wp_ajax_gpai_html_generate', ['GPAI_SEO', 'generateHTML_ajax']);
