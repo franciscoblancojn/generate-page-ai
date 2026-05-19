@@ -135,12 +135,14 @@ class GPAI_SEO
         $title = get_the_title($post_id);
         $post = get_post($post_id);
         $postContent = $post ? wp_trim_words($post->post_content, 200, '...') : '';
+        $currentFields = self::GET($post_id);
 
         $template = self::getSEOBasePromptDefault();
 
         $replacements = [
             '{{title}}' => $title,
             '{{postContent}}' => $postContent,
+            '{{currentSeoFields}}' => wp_json_encode($currentFields, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
             '{{prompt}}' => $customPrompt ?: 'Genera datos SEO optimizados para esta página.',
         ];
 
