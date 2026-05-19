@@ -296,7 +296,7 @@ if (isset($post_id)) {
         ?>
         <?= GPAI_Collapse(
             "Gpai SEO",
-            GPAI_Custom_Gpai_Seo($gpaiSeoFields, $CONFIG['gpaiSeoFields_prompt'] ?? []),
+            GPAI_Custom_Gpai_Seo_Grouped($gpaiSeoFields, $CONFIG['gpaiSeoFields_prompt'] ?? []),
             true
         )
         ?>
