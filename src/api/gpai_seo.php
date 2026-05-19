@@ -31,6 +31,7 @@ class GPAI_SEO
             'gpai_wpseo_twitter-image' => 'Twitter Imagen',
             'gpai_wpseo_schema_page_type' => 'Schema Tipo de Página',
             'gpai_wpseo_schema_article_type' => 'Schema Tipo de Artículo',
+            'gpai_wpseo_schema_extra_json' => 'Schema Bloques Adicionales (JSON)',
         ];
     }
 
@@ -117,6 +118,7 @@ class GPAI_SEO
             'Schema' => [
                 'gpai_wpseo_schema_page_type',
                 'gpai_wpseo_schema_article_type',
+                'gpai_wpseo_schema_extra_json',
             ],
         ];
     }

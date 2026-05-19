@@ -68,7 +68,8 @@ function GPAI_SEO_MetaBox_render($post)
                     echo '</select>';
                     break;
                 case 'textarea':
-                    echo '<textarea id="gpai_seo_' . esc_attr($key) . '" name="gpai_seo_fields[' . esc_attr($key) . ']" class="large-text code" style="min-height:60px;">' . esc_textarea($value) . '</textarea>';
+                    $minHeight = ($key === 'gpai_wpseo_schema_extra_json') ? '200px' : '60px';
+                    echo '<textarea id="gpai_seo_' . esc_attr($key) . '" name="gpai_seo_fields[' . esc_attr($key) . ']" class="large-text code" style="min-height:' . $minHeight . ';">' . esc_textarea($value) . '</textarea>';
                     break;
                 default:
                     echo '<input type="' . $type . '" id="gpai_seo_' . esc_attr($key) . '" name="gpai_seo_fields[' . esc_attr($key) . ']" value="' . esc_attr($value) . '" class="regular-text" style="width:100%;">';
@@ -242,6 +243,7 @@ function GPAI_SEO_MetaBox_getFieldType($key)
         'gpai_wpseo_focuskeywords',
         'gpai_wpseo_opengraph-description',
         'gpai_wpseo_twitter-description',
+        'gpai_wpseo_schema_extra_json',
     ];
     $checkboxFields = [
         'gpai_wpseo_is_cornerstone',
