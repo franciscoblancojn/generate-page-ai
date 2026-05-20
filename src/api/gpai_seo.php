@@ -282,7 +282,7 @@ class GPAI_SEO
 
             $optimizedHtml = $result['data'];
 
-            $optimizedPath = str_replace('.html', '-2.html', $originalPath);
+            $optimizedPath = str_replace('.html', '-optimize.html', $originalPath);
             $bytesWritten = file_put_contents($optimizedPath, $optimizedHtml);
 
             if ($bytesWritten === false) {
@@ -291,6 +291,8 @@ class GPAI_SEO
                     'message' => 'No se pudo escribir el archivo HTML optimizado.',
                 ];
             }
+
+            update_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE_OPTIMIZE', $optimizedPath);
 
             $uploadDir = wp_upload_dir();
             $originalUrl = str_replace(

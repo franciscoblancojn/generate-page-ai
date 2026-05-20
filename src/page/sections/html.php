@@ -17,12 +17,12 @@ if (isset($_POST['save']) && $_POST['save'] === 'html') {
                 'fullPath' => $htmlPath,
                 'size' => filesize($htmlPath),
             ];
-            $optimizedCandidate = str_replace('.html', '-optimize.html', $htmlPath);
-            if (file_exists($optimizedCandidate)) {
+            $optimizedPath = get_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE_OPTIMIZE', true);
+            if ($optimizedPath && file_exists($optimizedPath)) {
                 $optimizedFile = [
-                    'url' => str_replace($uploadDir['basedir'], $uploadDir['baseurl'], $optimizedCandidate),
-                    'fullPath' => $optimizedCandidate,
-                    'size' => filesize($optimizedCandidate),
+                    'url' => str_replace($uploadDir['basedir'], $uploadDir['baseurl'], $optimizedPath),
+                    'fullPath' => $optimizedPath,
+                    'size' => filesize($optimizedPath),
                 ];
             }
         }
@@ -106,6 +106,7 @@ if (isset($_POST['save']) && $_POST['save'] === 'html') {
 
             <div class="content-btn" style="margin-top:12px;">
                 <a href="<?= get_permalink($post_id) ?>" target="_blank" class="button">Ver Post</a>
+                <a href="<?= get_edit_post_link($post_id) ?>" target="_blank" class="button">Editar Post</a>
                 <a href="<?= esc_url($staticInfo['url']) ?>" target="_blank" class="button">Ver HTML Estático</a>
                 <?php if ($optimizedFile) : ?>
                 <a href="<?= esc_url($optimizedFile['url']) ?>" target="_blank" class="button">Ver HTML Optimizado</a>
