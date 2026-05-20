@@ -9,23 +9,21 @@ if (isset($_POST['save']) && $_POST['save'] === 'html') {
     $post_id = intval($_POST['post_id'] ?? 0);
     if ($post_id) {
         $htmlPath = get_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE', true);
-        if ($htmlPath) {
+        if ($htmlPath && file_exists($htmlPath)) {
             $uploadDir = wp_upload_dir();
-            $fullPath = $uploadDir['basedir'] . str_replace($uploadDir['baseurl'], '', $htmlPath);
-            if (file_exists($fullPath)) {
-                $staticInfo = [
-                    'path' => $htmlPath,
-                    'fullPath' => $fullPath,
-                    'size' => filesize($fullPath),
+            $htmlUrl = str_replace($uploadDir['basedir'], $uploadDir['baseurl'], $htmlPath);
+            $staticInfo = [
+                'url' => $htmlUrl,
+                'fullPath' => $htmlPath,
+                'size' => filesize($htmlPath),
+            ];
+            $optimizedCandidate = str_replace('.html', '-optimize.html', $htmlPath);
+            if (file_exists($optimizedCandidate)) {
+                $optimizedFile = [
+                    'url' => str_replace($uploadDir['basedir'], $uploadDir['baseurl'], $optimizedCandidate),
+                    'fullPath' => $optimizedCandidate,
+                    'size' => filesize($optimizedCandidate),
                 ];
-                $optimizedCandidate = str_replace('.html', '-2.html', $fullPath);
-                if (file_exists($optimizedCandidate)) {
-                    $optimizedFile = [
-                        'path' => str_replace('.html', '-2.html', $htmlPath),
-                        'fullPath' => $optimizedCandidate,
-                        'size' => filesize($optimizedCandidate),
-                    ];
-                }
             }
         }
     }
@@ -85,13 +83,12 @@ if (isset($_POST['save']) && $_POST['save'] === 'html') {
     <?php if ($post_id) : ?>
         <hr>
         <h3><?= get_the_title($post_id) ?> (#<?= $post_id ?>)</h3>
-
         <?php if ($staticInfo) : ?>
             <table class="form-table">
                 <tr>
                     <th scope="row">Archivo Estático</th>
                     <td>
-                        <code><?= esc_html($staticInfo['path']) ?></code>
+                        <code><?= esc_html($staticInfo['url']) ?></code>
                         <br><small>Tamaño: <?= size_format($staticInfo['size']) ?></small>
                     </td>
                 </tr>
@@ -99,7 +96,7 @@ if (isset($_POST['save']) && $_POST['save'] === 'html') {
                 <tr>
                     <th scope="row">Archivo Optimizado</th>
                     <td>
-                        <code><?= esc_html($optimizedFile['path']) ?></code>
+                        <code><?= esc_html($optimizedFile['url']) ?></code>
                         <br><small>Tamaño: <?= size_format($optimizedFile['size']) ?></small>
                         <br><span class="description">Ya existe una versión optimizada. Puedes generar una nueva.</span>
                     </td>
@@ -109,7 +106,10 @@ if (isset($_POST['save']) && $_POST['save'] === 'html') {
 
             <div class="content-btn" style="margin-top:12px;">
                 <a href="<?= get_permalink($post_id) ?>" target="_blank" class="button">Ver Post</a>
-                <a href="<?= esc_url($staticInfo['path']) ?>" target="_blank" class="button">Ver HTML Estático</a>
+                <a href="<?= esc_url($staticInfo['url']) ?>" target="_blank" class="button">Ver HTML Estático</a>
+                <?php if ($optimizedFile) : ?>
+                <a href="<?= esc_url($optimizedFile['url']) ?>" target="_blank" class="button">Ver HTML Optimizado</a>
+                <?php endif; ?>
                 <button type="button" class="button button-primary gpai-html-optimize-btn"
                     data-post-id="<?= esc_attr($post_id) ?>"
                     data-nonce="<?= esc_attr(wp_create_nonce('gpai_html_generate_' . $post_id)) ?>">

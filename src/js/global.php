@@ -110,6 +110,8 @@
         const statusEl = btn.parentElement.querySelector('.gpai-seo-generate-status')
         if (!postId || !nonce) return
 
+        if (!confirm('¿Generar nuevos datos SEO con IA? Se sobrescribirán los valores actuales.')) return
+
         btn.disabled = true
         if (statusEl) statusEl.textContent = 'Generando...'
 

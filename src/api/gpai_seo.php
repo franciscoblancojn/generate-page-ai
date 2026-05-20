@@ -235,13 +235,10 @@ class GPAI_SEO
 
     public static function getHTMLPrompt($post_id)
     {
-        $htmlPath = get_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE', true);
-        if (!$htmlPath) {
+        $fullPath = get_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE', true);
+        if (!$fullPath) {
             return ['status' => 'error', 'message' => 'Este post no tiene archivo HTML estático.'];
         }
-
-        $uploadDir = wp_upload_dir();
-        $fullPath = $uploadDir['basedir'] . str_replace($uploadDir['baseurl'], '', $htmlPath);
 
         if (!file_exists($fullPath)) {
             return ['status' => 'error', 'message' => 'El archivo HTML estático no existe en el servidor.'];
@@ -263,7 +260,6 @@ class GPAI_SEO
             'status' => 'ok',
             'data' => $prompt,
             'originalPath' => $fullPath,
-            'htmlPath' => $htmlPath,
         ];
     }
 
@@ -277,7 +273,6 @@ class GPAI_SEO
 
             $PROMPT = $promptResult['data'];
             $originalPath = $promptResult['originalPath'];
-            $htmlPath = $promptResult['htmlPath'];
 
             $result = GPAI_AI::sendPrompt($PROMPT);
 
@@ -298,6 +293,11 @@ class GPAI_SEO
             }
 
             $uploadDir = wp_upload_dir();
+            $originalUrl = str_replace(
+                $uploadDir['basedir'],
+                $uploadDir['baseurl'],
+                $originalPath
+            );
             $optimizedUrl = str_replace(
                 $uploadDir['basedir'],
                 $uploadDir['baseurl'],
@@ -307,7 +307,7 @@ class GPAI_SEO
             FWUSystemLog::add(GPAI_KEY, [
                 'type' => 'GPAI_HTML_AI_GENERATE',
                 'post_id' => $post_id,
-                'original' => $htmlPath,
+                'original' => $originalUrl,
                 'optimized' => $optimizedUrl,
                 'original_size' => filesize($originalPath),
                 'optimized_size' => $bytesWritten,
@@ -317,7 +317,7 @@ class GPAI_SEO
                 'status' => 'ok',
                 'message' => 'HTML optimizado correctamente.',
                 'data' => [
-                    'original' => $htmlPath,
+                    'original' => $originalUrl,
                     'optimized' => $optimizedUrl,
                     'original_size' => filesize($originalPath),
                     'optimized_size' => $bytesWritten,

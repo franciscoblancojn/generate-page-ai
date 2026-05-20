@@ -168,6 +168,8 @@ function GPAI_SEO_MetaBox_script()
             var nonce = generateBtn.dataset.nonce;
             var status = document.getElementById('gpai-seo-save-status');
 
+            if (!confirm('¿Generar nuevos datos SEO con IA? Se sobrescribirán los valores actuales.')) return;
+
             generateBtn.disabled = true;
             if (status) { status.style.color = ''; status.textContent = 'Generando SEO...'; }
 

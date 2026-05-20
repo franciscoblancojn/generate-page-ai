@@ -1,7 +1,10 @@
 <?php
 
 add_action('admin_menu', function () {
-    if (!is_plugin_active('static-page/index.php')) return;
+    if (!(
+        is_plugin_active('static-page/index.php') ||
+        is_plugin_active('static-page-master/index.php')
+    )) return;
 
     add_submenu_page(
         GPAI_KEY,
