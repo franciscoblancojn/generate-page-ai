@@ -2,6 +2,9 @@
 try {
     require_once GPAI_DIR . 'src/css/global.php';
 
+    $GPAI_USE_DATA_CONFIG = new GPAI_USE_DATA_CONFIG();
+    $CONFIG = $GPAI_USE_DATA_CONFIG->get();
+
     $TAGS = [
         [
             'key' => 'html',
