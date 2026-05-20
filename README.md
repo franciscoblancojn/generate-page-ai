@@ -17,11 +17,11 @@ Generate Page AI es un plugin de WordPress que potencia tus páginas con **intel
 - 🔗 **Reemplazo en Frontend** — Las variables `{g{key}}`, `{{key}}` y `__key__` se reemplazan automáticamente con sus valores al mostrar la página.
 - 🖌️ **Crear Plantilla desde Variación** — Convierte una variación de contenido en una nueva plantilla de Elementor independiente.
 - 🔍 **Vista Previa** — Previsualiza variaciones directamente en el editor de Elementor con los valores inyectados como parámetros.
-- 🧠 **Prompts Base Editables** — Personaliza los prompts base que usa la IA para generar contenido, imágenes y variables globales. Acceso desde Configuración > Prompts Base.
-- 🏷️ **GPAI SEO** — Sistema completo de SEO con 24 campos en 5 grupos (Principales, Robots, Open Graph, Twitter, Schema). Meta box en el editor de posts, salida de etiquetas `<head>`, Schema JSON-LD, **anulación de Yoast SEO**, y botón **Validar SEO** que abre Schema.org validator con la URL del post.
+- 🧠 **Prompts Base Editables** — Personaliza los prompts base que usa la IA para generar contenido, SEO, optimización HTML y variables globales. Acceso desde Configuración > Prompts Base.
+- 🏷️ **GPAI SEO** — Sistema completo de SEO con 25 campos en 5 grupos (Principales, Robots, Open Graph, Twitter, Schema). Meta box en el editor de posts, salida de etiquetas `<head>`, Schema JSON-LD con soporte para **bloques adicionales** (`gpai_wpseo_schema_extra_json` generado por IA), **anulación de Yoast SEO**, y botón **Validar SEO** que abre Schema.org validator con la URL del post.
 - 🔄 **Auto-Update vía GitHub** — El plugin se actualiza automáticamente desde GitHub Releases cuando hay una nueva versión.
 - 📋 **Sistema de Logs** — Registro de actividad del plugin accesible desde la barra de administración.
-- 🧹 **Optimización HTML** — Subpágina "Optimización HTML" (visible solo si **Static Page** está activo). Selecciona un post, verifica si tiene HTML estático generado por Static Page, y permite **mejorar el HTML con IA** usando Gemini para optimizarlo (más liviano, misma apariencia). Guarda el resultado como `page-{id}-optimize.html` y registra la ruta en `STPA_PAGE_STATIC_HTML_FILE_OPTIMIZE`.
+- 🧹 **Optimización HTML** — Subpágina "Optimización HTML" (visible solo si **Static Page** está activo). Selecciona un post (con selección persistente entre cargas), verifica si tiene HTML estático generado por Static Page, y permite **mejorar el HTML con IA** usando Gemini para optimizarlo (más liviano, misma apariencia). Guarda el resultado como `page-{id}-optimize.html` y registra la ruta en `STPA_PAGE_STATIC_HTML_FILE_OPTIMIZE`. Incluye un botón para **alternar entre HTML normal y optimizado** intercambiando la ruta activa.
 - ✅ **Confirmación en Generar SEO** — El botón "Generar SEO con IA" ahora pide confirmación antes de sobrescribir los valores actuales.
 - 🧼 **Limpieza de Schema Yoast** — Filtro automático que remueve propiedades internas no estándar (`description_schema_fallback`) del schema de Yoast antes de renderizar.
 
@@ -39,8 +39,8 @@ Generate Page AI es un plugin de WordPress que potencia tus páginas con **intel
 
 ## ⚙️ Instalación
 
-1. Descarga el plugin y súbelo a `/wp-content/plugins/generate-page-ai/`.
-2. Actívalo desde el menú **Plugins** de WordPress.
+1. Descarga el plugin desde [Aqui](https://github.com/franciscoblancojn/generate-page-ai/archive/refs/heads/master.zip).
+2. Subelo y Actívalo desde el menú **Plugins** de WordPress.
 3. Ve a **Generate Page AI → Configuración** e ingresa tu **API Key de Gemini**.
 4. ¡Listo! Comienza a gestionar posts y plantillas. 🎉
 
@@ -160,7 +160,7 @@ generate-page-ai/
 | Menú | Slug | Descripción |
 |------|------|-------------|
 | ⚙️ **Configuración** | `GPAI_config` | API Key de Gemini, selección de modelo, toggle de generación de imágenes |
-| 🧠 **Prompts Base** | `GPAI_config` (tab) | Editor de templates base para generación de contenido, imágenes y variables globales |
+| 🧠 **Prompts Base** | `GPAI_config` (tab) | Editor de templates base para generación de contenido, SEO, optimización HTML y variables globales |
 | 🧪 **Pruebas** | `GPAI_config` (tab, solo dev) | Pruebas de parseo JSON (solo visible en modo desarrollo) |
 | 📄 **Post** | `GPAI_post` | Gestión de posts: campos personalizados, Yoast, GPAI SEO, prompts, variaciones |
 | 🧩 **Plantillas** | `GPAI_plantilllas` | Gestión de plantillas Elementor: variables globales, prompts, variaciones |
@@ -200,11 +200,11 @@ Se agrega una meta box **"Gpai SEO"** en todos los post types públicos con 24 c
 
 | Grupo | Campos |
 |-------|--------|
-| **Principales** | `title`, `description`, `canonical`, `redirect` |
-| **Robots** | `noindex`, `nofollow`, `noarchive`, `nosnippet` |
-| **Open Graph** | `og_title`, `og_description`, `og_image`, `og_url`, `og_type`, `og_site_name` |
-| **Twitter** | `twitter_title`, `twitter_description`, `twitter_image`, `twitter_card` |
-| **Schema** | `schema_type`, `schema_name`, `schema_description`, `schema_image`, `schema_url` |
+| **Principales** | `title`, `description`, `focuskw`, `focuskeywords`, `canonical`, `bctitle`, `redirect`, `cornerstone` |
+| **Robots** | `noindex`, `nofollow`, `robots_adv`, `noarchive`, `nosnippet`, `noimageindex` |
+| **Open Graph** | `og_title`, `og_description`, `og_image`, `og_image_id`, `og_url` |
+| **Twitter** | `twitter_title`, `twitter_description`, `twitter_image` |
+| **Schema** | `schema_page_type`, `schema_article_type`, `schema_extra_json` |
 
 Los campos se guardan vía **AJAX** (sin recargar la página) o mediante `save_post`.
 
@@ -244,8 +244,9 @@ Los prompts que la IA utiliza para generar contenido ahora son **totalmente edit
 | Template | Método | Archivo por Defecto | Placeholders |
 |----------|--------|---------------------|--------------|
 | **Contenido (v2)** | `getPrompt()` | `prompts/content-v2.txt` | `{{title}}`, `{{customFields}}`, `{{customFields_prompt}}`, `{{yoastFields}}`, `{{yoastFields_prompt}}`, `{{gpaiSeoFields}}`, `{{gpaiSeoFields_prompt}}`, `{{prompt}}` |
-| **Imagen** | `getPromptImg()` | `prompts/content_img-v1.txt` | `{{title}}`, `{{customFields}}`, `{{yoastFields}}`, `{{gpaiSeoFields}}`, `{{imageUrl}}` |
 | **Plantillas** | `getContentTemplate()` | `prompts/template-v1.txt` | `{{title}}`, `{{globalFields}}`, `{{globalFields_prompt}}`, `{{prompt}}` |
+| **SEO** | `getSEOBasePromptDefault()` | `prompts/seo-v1.txt` | `{{title}}`, `{{postContent}}`, `{{currentSeoFields}}`, `{{prompt}}` |
+| **HTML** | `getHTMLBasePromptDefault()` | `prompts/html-v1.txt` | `{{htmlContent}}` |
 
 Los valores predeterminados se leen de archivos `.txt` en `src/prompts/`. Cada template incluye un botón **"Restaurar predeterminado"** para volver al valor de fábrica. Actualmente hay 6 archivos de prompt:
 
@@ -253,12 +254,11 @@ Los valores predeterminados se leen de archivos `.txt` en `src/prompts/`. Cada t
 |---------|-----------|
 | `content-v1.txt` | Prompt legacy para contenido |
 | `content-v2.txt` | Prompt actualizado para contenido (incluye GPAI SEO) |
-| `content_img-v1.txt` | Prompt para generación de imágenes |
 | `template-v1.txt` | Prompt para variables globales de plantillas |
 | `seo-v1.txt` | Prompt para generación de datos GPAI SEO con IA |
 | `html-v1.txt` | Prompt para optimización de HTML estático con IA |
 
-> ℹ️ Los prompts `seo-v1.txt` y `html-v1.txt` se leen directamente desde el código y no son editables desde la UI de Prompts Base.
+> ℹ️ Todos los prompts (incluyendo SEO y HTML) se pueden editar desde la UI de Prompts Base. Los valores guardados reemplazan a los archivos por defecto.
 
 > ⚠️ **Aviso:** Esta sección es de alto nivel. Usuarios no experimentados no deben modificar estos templates.
 
@@ -289,13 +289,14 @@ El plugin incluye una subpágina **"Optimización HTML"** (visible solo si el pl
 
 ### Funcionamiento
 
-1. **Selecciona un post** del desplegable y haz clic en "Cargar Post".
+1. **Selecciona un post** del desplegable y haz clic en "Cargar Post". La selección se mantiene entre cargas.
 2. Si el post tiene HTML estático (almacenado en `STPA_PAGE_STATIC_HTML_FILE`), se muestra:
-   - Ruta y tamaño del archivo estático original
+   - Ruta y tamaño del archivo estático activo
    - Ruta y tamaño del archivo optimizado (si ya existe)
-   - Botones: **Ver Post**, **Editar Post**, **Ver HTML Estático**, **Ver HTML Optimizado**
-3. Si no tiene HTML estático, se muestra un aviso con un enlace para editar el post.
-4. Haz clic en **"Mejorar HTML con IA"** para enviar el HTML a Gemini. El resultado se guarda como `page-{id}-optimize.html` y la ruta se almacena en `STPA_PAGE_STATIC_HTML_FILE_OPTIMIZE`.
+   - Botones: **Ver Post**, **Editar Post**, **Ver HTML Estático**, **Ver HTML Optimizado**, **Usar HTML Normal/Usar HTML Optimizado**
+3. El botón **"Usar HTML Normal"** o **"Usar HTML Optimizado"** permite alternar entre ambas versiones intercambiando la ruta activa en `STPA_PAGE_STATIC_HTML_FILE`. Al recargar se refleja el cambio.
+4. Si no tiene HTML estático, se muestra un aviso con un enlace para editar el post.
+5. Haz clic en **"Mejorar HTML con IA"** para enviar el HTML a Gemini. El resultado se guarda como `page-{id}-optimize.html` y la ruta se almacena en `STPA_PAGE_STATIC_HTML_FILE_OPTIMIZE`.
 
 ### Prompt de Optimización
 
@@ -353,6 +354,7 @@ El archivo `src/prompts/html-v1.txt` contiene el prompt especializado que instru
 - `wp_ajax_gpai_seo_save` — Guardar campos GPAI SEO desde la meta box (AJAX).
 - `wp_ajax_gpai_seo_generate` — Generar datos SEO con IA (Gemini) para un post.
 - `wp_ajax_gpai_html_generate` — Optimizar HTML estático con IA para un post.
+- `wp_ajax_gpai_html_swap` — Alternar entre HTML normal y optimizado en un post.
 
 ---
 
