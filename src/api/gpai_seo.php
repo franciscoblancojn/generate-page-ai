@@ -125,6 +125,12 @@ class GPAI_SEO
 
     public static function getSEOBasePromptDefault()
     {
+        $config = new GPAI_USE_DATA_CONFIG();
+        $data = $config->get();
+        $promptsBase = $data['prompts_base'] ?? [];
+        if (!empty($promptsBase['seo'])) {
+            return $promptsBase['seo'];
+        }
         $file = GPAI_DIR . 'src/prompts/seo-v1.txt';
         if (!file_exists($file)) return '';
         return file_get_contents($file);
@@ -228,6 +234,12 @@ class GPAI_SEO
 
     public static function getHTMLBasePromptDefault()
     {
+        $config = new GPAI_USE_DATA_CONFIG();
+        $data = $config->get();
+        $promptsBase = $data['prompts_base'] ?? [];
+        if (!empty($promptsBase['html'])) {
+            return $promptsBase['html'];
+        }
         $file = GPAI_DIR . 'src/prompts/html-v1.txt';
         if (!file_exists($file)) return '';
         return file_get_contents($file);

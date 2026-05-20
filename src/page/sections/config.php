@@ -73,7 +73,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
         }
         ?>
 
-        <tr>
+        <!-- <tr>
             <th scope="row">
                 <?= GPAI_Tooltip("Generar images.", "Permitir que Gemini genere la imagen principal para tus duplicados.") ?>
             </th>
@@ -90,7 +90,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
                     Esto puede agotar tus tokens mas rapido.
                 </label>
             </td>
-        </tr>
+        </tr> -->
     </table>
 
     <div class="content-btn">

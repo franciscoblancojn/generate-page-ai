@@ -4,6 +4,8 @@ $types = [
     'content' => 'Generar contenido (getPrompt)',
     // 'content_img' => 'Generar imagen (getPromptImg)', //de momento no esta disponible
     'template' => 'Variables globales (getContentTemplate)',
+    'seo' => 'SEO (getSEOBasePromptDefault)',
+    'html' => 'Optimización HTML (getHTMLBasePromptDefault)',
 ];
 
 $placeholders = [
@@ -30,14 +32,34 @@ $placeholders = [
         '{{globalFields_prompt}}' => 'JSON con prompts por variable global',
         '{{prompt}}' => 'Prompt base del usuario',
     ],
+    'seo' => [
+        '{{title}}' => 'Titulo de la pagina',
+        '{{postContent}}' => 'Contenido de la pagina (200 palabras)',
+        '{{currentSeoFields}}' => 'JSON con datos actuales de SEO',
+        '{{prompt}}' => 'Prompt personalizado del usuario',
+    ],
+    'html' => [
+        '{{htmlContent}}' => 'Codigo HTML completo de la pagina',
+    ],
 ];
+function getBasePromptDefaultForType($type)
+{
+    if ($type === 'seo') {
+        return GPAI_SEO::getSEOBasePromptDefault();
+    }
+    if ($type === 'html') {
+        return GPAI_SEO::getHTMLBasePromptDefault();
+    }
+    return GPAI_CONTENT::getBasePromptDefault($type);
+}
+
 $respond_prompts_base = null;
 if ($_POST['save'] === 'prompts_base') {
     $promptsBase = [];
     foreach ($types as $type => $label) {
         $promptsBase[$type] = isset($_POST['prompts_base'][$type])
             ? wp_kses_post(wp_unslash($_POST['prompts_base'][$type]))
-            : GPAI_CONTENT::getBasePromptDefault($type);
+            : getBasePromptDefaultForType($type);
     }
     $GPAI_USE_DATA_CONFIG->setField('prompts_base', $promptsBase);
 
@@ -100,7 +122,7 @@ function getContentCollapsePromptBase($type, $currentValue, $placeholders)
 
     <?php
     foreach ($types as $type => $label):
-        $currentValue = $storedPrompts[$type] ?? GPAI_CONTENT::getBasePromptDefault($type);
+        $currentValue = $storedPrompts[$type] ?? getBasePromptDefaultForType($type);
         echo GPAI_Collapse(
             esc_html($label),
             getContentCollapsePromptBase($type, $currentValue, $placeholders),
