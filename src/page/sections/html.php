@@ -110,6 +110,16 @@ if (isset($_POST['save']) && $_POST['save'] === 'html') {
                 <a href="<?= esc_url($staticInfo['url']) ?>" target="_blank" class="button">Ver HTML Estático</a>
                 <?php if ($optimizedFile) : ?>
                 <a href="<?= esc_url($optimizedFile['url']) ?>" target="_blank" class="button">Ver HTML Optimizado</a>
+                <?php
+                $isUsingOptimized = $staticInfo['fullPath'] === $optimizedFile['fullPath'];
+                ?>
+                <button type="button" class="button gpai-html-swap-btn"
+                    data-post-id="<?= esc_attr($post_id) ?>"
+                    data-nonce="<?= esc_attr(wp_create_nonce('gpai_html_swap_' . $post_id)) ?>"
+                    data-confirm="<?= $isUsingOptimized ? '¿Cambiar al HTML original?' : '¿Cambiar al HTML optimizado?' ?>">
+                    <?= $isUsingOptimized ? 'Usar HTML Normal' : 'Usar HTML Optimizado' ?>
+                </button>
+                <span class="gpai-html-swap-status" style="margin-left:8px;font-style:italic;"></span>
                 <?php endif; ?>
                 <button type="button" class="button button-primary gpai-html-optimize-btn"
                     data-post-id="<?= esc_attr($post_id) ?>"

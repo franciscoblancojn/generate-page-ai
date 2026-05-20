@@ -377,7 +377,49 @@ class GPAI_SEO
             wp_send_json_error($result['message']);
         }
     }
+
+    public static function swapHTML_ajax()
+    {
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $nonce = $_POST['nonce'] ?? '';
+
+        if (!$post_id || !wp_verify_nonce($nonce, 'gpai_html_swap_' . $post_id)) {
+            wp_send_json_error('Nonce inválido.');
+            return;
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error('Sin permisos.');
+            return;
+        }
+
+        $activePath = get_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE', true);
+        $optimizedPath = get_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE_OPTIMIZE', true);
+
+        if (!$activePath || !file_exists($activePath)) {
+            wp_send_json_error('No hay archivo HTML activo.');
+            return;
+        }
+
+        if ($activePath === $optimizedPath) {
+            $originalPath = str_replace('-optimize.html', '.html', $optimizedPath);
+            if (!file_exists($originalPath)) {
+                wp_send_json_error('No se encontró el archivo HTML original.');
+                return;
+            }
+            update_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE', $originalPath);
+            wp_send_json_success(['message' => 'HTML normal activado.', 'switched_to' => 'normal']);
+        } else {
+            if (!$optimizedPath || !file_exists($optimizedPath)) {
+                wp_send_json_error('No hay versión optimizada disponible.');
+                return;
+            }
+            update_post_meta($post_id, 'STPA_PAGE_STATIC_HTML_FILE', $optimizedPath);
+            wp_send_json_success(['message' => 'HTML optimizado activado.', 'switched_to' => 'optimized']);
+        }
+    }
 }
 
 add_action('wp_ajax_gpai_seo_generate', ['GPAI_SEO', 'generateSEO_ajax']);
 add_action('wp_ajax_gpai_html_generate', ['GPAI_SEO', 'generateHTML_ajax']);
+add_action('wp_ajax_gpai_html_swap', ['GPAI_SEO', 'swapHTML_ajax']);
