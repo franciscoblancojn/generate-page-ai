@@ -1,6 +1,6 @@
 # Generate Page AI 🚀
 
-**Version:** 1.9.1 | **License:** GPLv2+
+**Version:** 1.9.2 | **License:** GPLv2+
 
 Generate Page AI es un plugin de WordPress que potencia tus páginas con **inteligencia artificial** 🤖. Conéctalo a Google Gemini, gestiona campos personalizados, datos Yoast SEO, datos **GPAI SEO** (con meta box, etiquetas `<head>` y Schema JSON-LD), crea variaciones de contenido en masa para posts y plantillas de Elementor, gestiona campos personalizados **directamente desde el editor de Elementor**, optimiza HTML estático generado por **Static Page**, y cuenta con auto-actualizador vía GitHub.
 
