@@ -142,6 +142,12 @@ if (isset($template_id)) {
                             class="button">
                             Ver Plantilla
                         </a>
+                        <a
+                            href="<?= get_edit_post_link($template_id) ?>"
+                            target="_blank"
+                            class="button">
+                            Editar Plantilla
+                        </a>
                     <?php } ?>
                 </div>
             </td>

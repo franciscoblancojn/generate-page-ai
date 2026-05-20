@@ -25,6 +25,7 @@
 - Para schema: WebPage es el tipo de página predeterminado. Solo usa article_type cuando la página sea un post de blog.
 - Los campos de robots (noindex, nofollow, etc.) deben ser "0" a menos que la página no deba indexarse.
 - cornerstone debe ser "0" a menos que sea contenido pilar.
+- gpai_wpseo_schema_extra_json: Genera un array JSON de bloques schema.org adicionales relevantes al contenido de la página. Ejemplos de tipos: SoftwareApplication, Service, Product, FAQPage, Person, Article, LocalBusiness, etc. Cada bloque debe tener @type y @id. Usa datos reales del contenido de la página (nombre, descripción, reseñas, preguntas frecuentes, etc.). Si no hay contenido relevante para bloques adicionales, usa un array vacío [].
 
 ----FORMATO DE RESPUESTA:
 Retorna únicamente un JSON válido con esta estructura exacta:
@@ -52,5 +53,6 @@ Retorna únicamente un JSON válido con esta estructura exacta:
     "gpai_wpseo_twitter-description": "string",
     "gpai_wpseo_twitter-image": "string",
     "gpai_wpseo_schema_page_type": "WebPage",
-    "gpai_wpseo_schema_article_type": ""
+    "gpai_wpseo_schema_article_type": "",
+    "gpai_wpseo_schema_extra_json": []
 }

@@ -279,6 +279,12 @@ if (isset($post_id)) {
                             class="button ">
                             Ver Post
                         </a>
+                        <a
+                            href="<?= get_edit_post_link($post_id) ?>"
+                            target="_blank"
+                            class="button ">
+                            Editar Post
+                        </a>
                     <?php } ?>
                 </div>
             </td>
