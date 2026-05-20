@@ -21,8 +21,11 @@ class GPAI_AI
 
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-            // ⏱️ TIMEOUTS (CLAVE)
-            curl_setopt($ch, CURLOPT_TIMEOUT, 120001);
+            $timeout = 300000;
+            if (defined('GPAI_HTTP_TIMEOUT')) {
+                $timeout = GPAI_HTTP_TIMEOUT;
+            }
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
 
             if ($method == "POST") {
@@ -108,6 +111,10 @@ class GPAI_AI
                             ["text" => $PROMPT]
                         ]
                     ]
+                ],
+                "generationConfig" => [
+                    "maxOutputTokens" => 65536,
+                    "temperature" => 0.2
                 ]
             ];
 
