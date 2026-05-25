@@ -15,6 +15,32 @@ function GPAI_SEO_MetaBox_register()
             'high'
         );
     }
+
+    add_action('admin_head', function () {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        $screen = get_current_screen();
+        if ($screen && $screen->base === 'post') {
+            $pts = get_post_types(['public' => true], 'names');
+            if (in_array($screen->post_type, $pts)) {
+                require_once GPAI_DIR . 'src/css/global.php';
+            }
+        }
+    });
+
+    add_action('admin_footer', function () {
+        static $done = false;
+        if ($done) return;
+        $done = true;
+        $screen = get_current_screen();
+        if ($screen && $screen->base === 'post') {
+            $pts = get_post_types(['public' => true], 'names');
+            if (in_array($screen->post_type, $pts)) {
+                require_once GPAI_DIR . 'src/js/global.php';
+            }
+        }
+    });
 }
 add_action('add_meta_boxes', 'GPAI_SEO_MetaBox_register');
 
@@ -28,7 +54,7 @@ function GPAI_SEO_MetaBox_render($post)
     $ajax_nonce = wp_create_nonce('gpai_seo_ajax_' . $post->ID);
     $generate_nonce = wp_create_nonce('gpai_seo_generate_' . $post->ID);
 
-    echo '<div id="gpai-seo-box" style="display:flex;flex-direction:column;gap:12px;" data-post-id="' . esc_attr($post->ID) . '" data-nonce="' . esc_attr($ajax_nonce) . '">';
+    echo '<div id="gpai-seo-box" style="padding:1rem;display:flex;flex-direction:column;gap:12px;" data-post-id="' . esc_attr($post->ID) . '" data-nonce="' . esc_attr($ajax_nonce) . '">';
 
     foreach ($groups as $groupName => $fieldKeys) {
         $hasAny = false;
@@ -90,9 +116,24 @@ function GPAI_SEO_MetaBox_render($post)
     echo '<button type="button" id="gpai-seo-save-btn" class="button button-primary">Guardar SEO</button>';
     echo '<button type="button" id="gpai-seo-generate-btn" class="button button-primary" data-post-id="' . esc_attr($post->ID) . '" data-nonce="' . esc_attr($generate_nonce) . '">Generar SEO con IA</button>';
     echo '<a href="https://validator.schema.org/#url=' . urlencode(get_permalink($post->ID)) . '" target="_blank" class="button">Validar SEO</a>';
+    echo '<button type="button" class="button" onclick="gpaiExport(\'gpai_seo_export\',{post_id:' . $post->ID . '},\'seo-' . $post->ID . '.json\')">Exportar SEO</button>';
+    echo '<button type="button" class="button" onclick="gpaiOpenModal(\'gpai-modal-seo\')">Importar SEO</button>';
     echo '<span id="gpai-seo-save-status" style="font-style:italic;font-size:13px;"></span>';
     echo '</div>';
 
+    echo '</div>';
+
+    echo '<div id="gpai-modal-seo" class="gpai-modal">';
+    echo '    <div class="gpai-modal-content">';
+    echo '        <span class="gpai-modal-close" onclick="gpaiCloseModal(\'gpai-modal-seo\')">&times;</span>';
+    echo '        <h3>Importar JSON &mdash; GPAI SEO</h3>';
+    echo '        <p><input type="file" class="gpai-import-file" accept=".json"></p>';
+    echo '        <textarea class="gpai-import-data" rows="12" placeholder="Pega el JSON aquí o selecciona un archivo..."></textarea>';
+    echo '        <div class="gpai-modal-actions">';
+    echo '            <button type="button" class="button button-primary gpai-import-btn" onclick="gpaiImport(\'gpai_seo_import\',{post_id:' . $post->ID . '},\'gpai-modal-seo\',true)">Importar</button>';
+    echo '            <button type="button" class="button" onclick="gpaiCloseModal(\'gpai-modal-seo\')">Cancelar</button>';
+    echo '        </div>';
+    echo '    </div>';
     echo '</div>';
 
     static $script_registered = false;
@@ -316,3 +357,53 @@ function GPAI_SEO_MetaBox_getFieldOptions($key)
             return [];
     }
 }
+
+function GPAI_SEO_export_ajax()
+{
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+    if (!current_user_can('edit_post', $post_id)) wp_die(-1);
+
+    $post = get_post($post_id);
+    if (!$post) wp_send_json_error(['message' => 'Post no existe.']);
+
+    $fields = GPAI_SEO::GET($post_id);
+    $data = [];
+    foreach ($fields as $key => $value) {
+        $data[] = [
+            'key'      => $key,
+            'key_html' => '{{' . $key . '}}',
+            'valor'    => is_string($value) ? $value : '',
+        ];
+    }
+
+    wp_send_json([
+        'post_id'       => $post_id,
+        'post_name'     => $post->post_title,
+        'camposGpaiSeo' => $data,
+    ]);
+}
+add_action('wp_ajax_gpai_seo_export', 'GPAI_SEO_export_ajax');
+
+function GPAI_SEO_import_ajax()
+{
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+    if (!current_user_can('edit_post', $post_id)) wp_die(-1);
+
+    $post = get_post($post_id);
+    if (!$post) wp_send_json_error(['message' => 'Post no existe.']);
+
+    $raw   = wp_unslash($_POST['data'] ?? '');
+    $import = json_decode($raw, true);
+    if (!$import) wp_send_json_error(['message' => 'JSON inválido.']);
+
+    if (!empty($import['camposGpaiSeo'])) {
+        $gf = [];
+        foreach ($import['camposGpaiSeo'] as $campo) {
+            $gf[sanitize_text_field($campo['key'])] = wp_kses_post($campo['valor']);
+        }
+        GPAI_SEO::SET($post_id, $gf);
+    }
+
+    wp_send_json_success(['message' => 'Importación completada. Recarga la página para ver los cambios.']);
+}
+add_action('wp_ajax_gpai_seo_import', 'GPAI_SEO_import_ajax');
