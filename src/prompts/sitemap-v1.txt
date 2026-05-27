@@ -11,8 +11,11 @@ NO generes rutas 404.
 NO generes rutas sin https.
 El XML debe comenzar con <?xml version="1.0" encoding="UTF-8"?>
 
-----URLS DISPONIBLES----
-{{URL_LIST}}
+----URLS PAGINAS DISPONIBLES----
+{{URL_PAGINAS_LIST}}
+
+----URLS POSTS DISPONIBLES----
+{{URL_POSTS_LIST}}
 
 ----EJEMPLO DE XML----
 <?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="//{{URL_BASE}}/wp-content/plugins/wordpress-seo/css/main-sitemap.xsl"?>

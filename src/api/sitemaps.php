@@ -52,18 +52,31 @@ class GPAI_SITEMAPS_API
         $prompt = str_replace('{{URL_BASE}}', $site_url, $prompt);
 
         $enabled_posts = get_option('GPAI_SITEMAP_URLS', []);
-        $url_lines = [];
+        $paginas_lines = [];
+        $posts_lines = [];
         foreach ($enabled_posts as $post_id) {
+            $post = get_post($post_id);
+            if (!$post) continue;
             $permalink = get_permalink($post_id);
-            if ($permalink) {
-                $lastmod = get_the_modified_date('Y-m-d', $post_id);
-                $url_lines[] = "{$permalink} (lastmod: {$lastmod})";
+            if (!$permalink) continue;
+            $lastmod = get_the_modified_date('Y-m-d', $post_id);
+            $line = "{$permalink} (lastmod: {$lastmod})";
+            if ($post->post_type === 'page') {
+                $paginas_lines[] = $line;
+            } else {
+                $posts_lines[] = $line;
             }
         }
-        $url_list = !empty($url_lines) ? implode("\n", $url_lines) : 'No hay URLs configuradas.';
-        $prompt = str_replace('{{URL_LIST}}', $url_list, $prompt);
+        $paginas_list = !empty($paginas_lines) ? implode("\n", $paginas_lines) : 'No hay paginas configuradas.';
+        $posts_list = !empty($posts_lines) ? implode("\n", $posts_lines) : 'No hay posts configurados.';
+        $prompt = str_replace('{{URL_PAGINAS_LIST}}', $paginas_list, $prompt);
+        $prompt = str_replace('{{URL_POSTS_LIST}}', $posts_list, $prompt);
 
         $prompt = str_replace('{{custom_prompt}}', $custom_prompt, $prompt);
+            FWUSystemLog::add(GPAI_KEY, [
+                'type' => "prompt",
+                'data' => $prompt
+            ]);
 
         $result = GPAI_AI::sendPrompt($prompt);
 
