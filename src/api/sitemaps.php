@@ -27,6 +27,42 @@ class GPAI_SITEMAPS_API
         return file_get_contents($file);
     }
 
+    public static function getPostImages($post_id)
+    {
+        $images = [];
+
+        $thumb_id = get_post_thumbnail_id($post_id);
+        if ($thumb_id) {
+            $thumb_url = wp_get_attachment_url($thumb_id);
+            if ($thumb_url) $images[] = $thumb_url;
+        }
+
+        $post = get_post($post_id);
+        if ($post && !empty($post->post_content)) {
+            preg_match_all('/<img[^>]+src=["\']([^"\']+)["\']/i', $post->post_content, $matches);
+            if (!empty($matches[1])) {
+                foreach ($matches[1] as $url) {
+                    $url = strtok($url, '?');
+                    if (!in_array($url, $images)) {
+                        $images[] = $url;
+                    }
+                }
+            }
+        }
+
+        $gallery_ids = get_post_meta($post_id, '_product_image_gallery', true);
+        if (!empty($gallery_ids)) {
+            foreach (explode(',', $gallery_ids) as $gid) {
+                $gurl = wp_get_attachment_url((int) $gid);
+                if ($gurl && !in_array($gurl, $images)) {
+                    $images[] = $gurl;
+                }
+            }
+        }
+
+        return $images;
+    }
+
     public static function generate()
     {
         $sitemap_name = isset($_POST['sitemap_name'])
@@ -54,6 +90,8 @@ class GPAI_SITEMAPS_API
         $enabled_posts = get_option('GPAI_SITEMAP_URLS', []);
         $paginas_lines = [];
         $posts_lines = [];
+        $paginas_images = [];
+        $posts_images = [];
         foreach ($enabled_posts as $post_id) {
             $post = get_post($post_id);
             if (!$post) continue;
@@ -66,12 +104,27 @@ class GPAI_SITEMAPS_API
             } else {
                 $posts_lines[] = $line;
             }
+            $imgs = self::getPostImages($post_id);
+            if (!empty($imgs)) {
+                $img_block = "URL: {$permalink}\n" . implode("\n", array_map(function ($u) {
+                    return "  - {$u}";
+                }, $imgs));
+                if ($post->post_type === 'page') {
+                    $paginas_images[] = $img_block;
+                } else {
+                    $posts_images[] = $img_block;
+                }
+            }
         }
         $paginas_list = !empty($paginas_lines) ? implode("\n", $paginas_lines) : 'No hay paginas configuradas.';
         $posts_list = !empty($posts_lines) ? implode("\n", $posts_lines) : 'No hay posts configurados.';
         $prompt = str_replace('{{URL_PAGINAS_LIST}}', $paginas_list, $prompt);
         $prompt = str_replace('{{URL_POSTS_LIST}}', $posts_list, $prompt);
 
+        $paginas_images_block = !empty($paginas_images) ? implode("\n\n", $paginas_images) : 'No se encontraron imagenes en paginas.';
+        $posts_images_block = !empty($posts_images) ? implode("\n\n", $posts_images) : 'No se encontraron imagenes en posts.';
+        $prompt = str_replace('{{PAGINAS_IMAGES}}', $paginas_images_block, $prompt);
+        $prompt = str_replace('{{POSTS_IMAGES}}', $posts_images_block, $prompt);
         $prompt = str_replace('{{custom_prompt}}', $custom_prompt, $prompt);
             FWUSystemLog::add(GPAI_KEY, [
                 'type' => "prompt",

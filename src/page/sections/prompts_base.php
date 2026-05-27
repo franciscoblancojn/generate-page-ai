@@ -47,6 +47,8 @@ $placeholders = [
         '{{URL_BASE}}' => 'URL base del sitio',
         '{{URL_PAGINAS_LIST}}' => 'Lista de URLs de paginas habilitadas',
         '{{URL_POSTS_LIST}}' => 'Lista de URLs de posts habilitados',
+        '{{PAGINAS_IMAGES}}' => 'Imagenes extraidas de cada pagina',
+        '{{POSTS_IMAGES}}' => 'Imagenes extraidas de cada post',
         '{{custom_prompt}}' => 'Prompt personalizado del usuario',
     ],
 ];
