@@ -47,7 +47,9 @@ class GPAI_SITEMAPS_API
         }
 
         $template = self::getSitemapBasePrompt();
+        $site_url = untrailingslashit(get_site_url());
         $prompt = str_replace('{{sitemap_name}}', $sitemap_name, $template);
+        $prompt = str_replace('{{URL_BASE}}', $site_url, $prompt);
         $prompt = str_replace('{{custom_prompt}}', $custom_prompt, $prompt);
 
         $result = GPAI_AI::sendPrompt($prompt);
