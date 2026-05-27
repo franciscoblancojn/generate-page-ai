@@ -44,6 +44,8 @@ $placeholders = [
     ],
     'sitemap' => [
         '{{sitemap_name}}' => 'Nombre del sitemap',
+        '{{URL_BASE}}' => 'URL base del sitio',
+        '{{URL_LIST}}' => 'Lista de URLs habilitadas (desde pestana URLs)',
         '{{custom_prompt}}' => 'Prompt personalizado del usuario',
     ],
 ];

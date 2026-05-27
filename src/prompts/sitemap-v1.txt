@@ -4,111 +4,72 @@
 ----INSTRUCCIONES----
 Eres un experto en SEO y XML. Genera el contenido XML completo para un sitemap de WordPress.
 El sitemap debe seguir el formato estandar de sitemaps.org.
-Incluye una estructura XML valida con URLs de ejemplo basadas en un sitio WordPress tipico.
-Usa la URL base {{URL_BASE}} para las URLs de ejemplo.
+Usa la URL base {{URL_BASE}} para todas las URLs.
+Incluye SOLO las URLs que estan en la lista de URLs disponibles.
 Devuelve SOLO el XML, sin explicaciones ni markdown.
+NO generes rutas 404.
+NO generes rutas sin https.
 El XML debe comenzar con <?xml version="1.0" encoding="UTF-8"?>
+
+----URLS DISPONIBLES----
+{{URL_LIST}}
 
 ----EJEMPLO DE XML----
 <?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="//{{URL_BASE}}/wp-content/plugins/wordpress-seo/css/main-sitemap.xsl"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 	<url>
-		<loc>{{URL_BASE}}/como-hacer-dropshipping-en-amazon-facebook-y-otras-plataformas/</loc>
+		<loc>{{URL_BASE}}/pagina-1/</loc>
 		<lastmod>2022-09-07T14:11:37+00:00</lastmod>
 		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/09/banner-plataformas.jpg2_.jpg</image:loc>
+			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/09/imagen.jpg</image:loc>
 		</image:image>
+	</url>
+    <url>
+		<loc>{{URL_BASE}}/pagina-2/</loc>
+		<lastmod>2022-09-07T14:11:37+00:00</lastmod>
 		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/04/plataformas.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/03/fulfillment3.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/04/amazon-1-702x400.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/04/amazon.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/04/shopify-ventas.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/04/plataformas-shopping.jpg</image:loc>
+			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/09/imagen-2.jpg</image:loc>
 		</image:image>
 	</url>
 	<url>
-		<loc>{{URL_BASE}}/que-es-fulfillment/</loc>
+		<loc>{{URL_BASE}}/service/service-1/</loc>
 		<lastmod>2022-09-07T14:17:56+00:00</lastmod>
 		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/09/fulfillment2.jpg</image:loc>
+			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/09/imagen2.jpg</image:loc>
 		</image:image>
 		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/03/fulfillment3.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/03/dropshipping3.jpg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/03/que-es-fulfillment.jpg</image:loc>
+			<image:loc>{{URL_BASE}}/wp-content/uploads/2022/09/imagen3.jpg</image:loc>
 		</image:image>
 	</url>
 	<url>
-		<loc>{{URL_BASE}}/alianza-con-alegra/</loc>
+		<loc>{{URL_BASE}}/blog/</loc>
 		<lastmod>2024-08-29T20:54:10+00:00</lastmod>
 		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3141.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3143.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3142.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3144-1.jpeg</image:loc>
+			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/imagen4.jpeg</image:loc>
 		</image:image>
 	</url>
 	<url>
-		<loc>{{URL_BASE}}/automatizacion-con-shopify-simplificar-e-commerce/</loc>
+		<loc>{{URL_BASE}}/blog/post-1/</loc>
 		<lastmod>2024-08-29T20:56:19+00:00</lastmod>
 		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3140.jpeg</image:loc>
+			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/imagen5.jpeg</image:loc>
 		</image:image>
 		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3137.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3138.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3139.jpeg</image:loc>
+			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/imagen6.jpeg</image:loc>
 		</image:image>
 	</url>
 	<url>
-		<loc>{{URL_BASE}}/ventajes-envios-contraentrega-e-commerce/</loc>
+		<loc>{{URL_BASE}}/categorias/</loc>
 		<lastmod>2024-08-29T21:09:46+00:00</lastmod>
 		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3019.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3016.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_3017.jpeg</image:loc>
+			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/imagen7.jpeg</image:loc>
 		</image:image>
 	</url>
 	<url>
-		<loc>{{URL_BASE}}/eficiencia-logistica-transportadoras/</loc>
+		<loc>{{URL_BASE}}/categorias/categoria-1/</loc>
 		<lastmod>2024-08-29T21:13:17+00:00</lastmod>
 		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_2920.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_2922.jpeg</image:loc>
-		</image:image>
-		<image:image>
-			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/IMG_2921.jpeg</image:loc>
+			<image:loc>{{URL_BASE}}/wp-content/uploads/2024/08/imagen8.jpeg</image:loc>
 		</image:image>
 	</url>
 </urlset>

@@ -50,6 +50,19 @@ class GPAI_SITEMAPS_API
         $site_url = untrailingslashit(get_site_url());
         $prompt = str_replace('{{sitemap_name}}', $sitemap_name, $template);
         $prompt = str_replace('{{URL_BASE}}', $site_url, $prompt);
+
+        $enabled_posts = get_option('GPAI_SITEMAP_URLS', []);
+        $url_lines = [];
+        foreach ($enabled_posts as $post_id) {
+            $permalink = get_permalink($post_id);
+            if ($permalink) {
+                $lastmod = get_the_modified_date('Y-m-d', $post_id);
+                $url_lines[] = "{$permalink} (lastmod: {$lastmod})";
+            }
+        }
+        $url_list = !empty($url_lines) ? implode("\n", $url_lines) : 'No hay URLs configuradas.';
+        $prompt = str_replace('{{URL_LIST}}', $url_list, $prompt);
+
         $prompt = str_replace('{{custom_prompt}}', $custom_prompt, $prompt);
 
         $result = GPAI_AI::sendPrompt($prompt);
