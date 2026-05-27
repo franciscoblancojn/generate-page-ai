@@ -14,8 +14,8 @@ $TAGS = [
         'title' => 'Crear Site Map',
     ],
     [
-        'key' => 'urls',
-        'title' => 'URLs',
+        'key' => 'config-sitemaps',
+        'title' => 'Configuraciones',
     ],
 ];
 

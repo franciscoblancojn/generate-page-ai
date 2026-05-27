@@ -217,7 +217,7 @@ uksort($posts_by_type, function ($a, $b) use ($order_keys) {
 
     <div class="content-btn" style="margin-bottom:1rem;">
         <button type="submit" class="button button-primary">Guardar Configuracion</button>
-        <button type="submit" name="save" value="sitemap_urls_generate" class="button">Generar URLs</button>
+        <!-- <button type="submit" name="save" value="sitemap_urls_generate" class="button">Generar URLs</button> -->
         <span style="font-size:13px;color:#666;">
             <?php
             $total = 0;
