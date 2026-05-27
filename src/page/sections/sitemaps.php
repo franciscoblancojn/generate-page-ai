@@ -77,8 +77,11 @@ if (isset($_POST['save']) && $_POST['save'] == "sitemap_delete") {
                 <tr>
                     <th scope="row">Archivo</th>
                     <td>
-                        <code>' . esc_html($filename) . '</code>
-                        <a href="' . esc_url($sitemap_url) . '" target="_blank" class="button" style="margin-left:1rem;">Ver</a>
+                        <div style="display:flex;gap:.5rem;align-items:center;">
+                            <code>' . esc_html($filename) . '</code>
+                            <a href="' . esc_url($sitemap_url) . '" target="_blank" class="button" style="margin-left:1rem;">Ver</a>
+                            <a href="' . esc_url($sitemap_url) . '" download class="button">Descargar</a>
+                        </div>
                     </td>
                 </tr>
                 <tr>
