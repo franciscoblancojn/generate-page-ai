@@ -1,6 +1,6 @@
 # Generate Page AI 🚀
 
-**Version:** 1.10.0 | **License:** GPLv2+
+**Version:** 1.10.1 | **License:** GPLv2+
 
 Generate Page AI es un plugin de WordPress que potencia tus páginas con **inteligencia artificial** 🤖. Conéctalo a Google Gemini, gestiona campos personalizados, datos Yoast SEO, datos **GPAI SEO** (con meta box, etiquetas `<head>` y Schema JSON-LD), crea variaciones de contenido en masa para posts y plantillas de Elementor, gestiona campos personalizados **directamente desde el editor de Elementor**, optimiza HTML estático generado por **Static Page**, y cuenta con auto-actualizador vía GitHub.
 
@@ -22,6 +22,9 @@ Generate Page AI es un plugin de WordPress que potencia tus páginas con **intel
 - 🔄 **Auto-Update vía GitHub** — El plugin se actualiza automáticamente desde GitHub Releases cuando hay una nueva versión.
 - 📋 **Sistema de Logs** — Registro de actividad del plugin accesible desde la barra de administración.
 - 🧹 **Optimización HTML** — Subpágina "Optimización HTML" (visible solo si **Static Page** está activo). Selecciona un post (con selección persistente entre cargas), verifica si tiene HTML estático generado por Static Page, y permite **mejorar el HTML con IA** usando Gemini para optimizarlo (más liviano, misma apariencia). Guarda el resultado como `page-{id}-optimize.html` y registra la ruta en `STPA_PAGE_STATIC_HTML_FILE_OPTIMIZE`. Incluye un botón para **alternar entre HTML normal y optimizado** intercambiando la ruta activa.
+- 🗺️ **Site Maps** — Subpágina completa para gestionar archivos XML de sitemaps en la raíz de WordPress. Lectura, edición, creación y eliminación de archivos. Generación de contenido XML con IA usando el prompt base de sitemaps más las URLs reales del sitio.
+- 🔗 **URLs para Sitemaps** — Pestaña dentro de Site Maps que lista todos los posts y páginas publicadas con checkboxes para activar/desactivar su inclusión. Genera XML con `<url><loc><lastmod><changefreq><priority>`. Configuración persistente de frecuencia y prioridad por tipo de contenido.
+- 🖼️ **Imágenes en Sitemaps** — Escaneo automático de imágenes destacadas, contenido y galerías de productos para cada URL. Se inyectan en el prompt de IA para generar `<image:image>` tags en el sitemap.
 - ✅ **Confirmación en Generar SEO** — El botón "Generar SEO con IA" ahora pide confirmación antes de sobrescribir los valores actuales.
 - 🧼 **Limpieza de Schema Yoast** — Filtro automático que remueve propiedades internas no estándar (`description_schema_fallback`) del schema de Yoast antes de renderizar.
 
@@ -68,7 +71,8 @@ generate-page-ai/
 │   │   ├── yoast.php             # GPAI_YOAST - API para metadatos Yoast SEO
 │   │   ├── gpai_seo.php          # GPAI_SEO - API para campos SEO personalizados
 │   │   ├── cf_template.php       # GPAI_CF_TEMPLATE - API para variables {g{...}}
-│   │   └── export_import.php     # GPAI_EXPORT_IMPORT - Exportación/Importación JSON
+│   │   ├── export_import.php     # GPAI_EXPORT_IMPORT - Exportación/Importación JSON
+│   │   └── sitemaps.php          # GPAI_SITEMAPS_API - AJAX para generar XML de sitemaps con IA
 │   ├── css/                      # Estilos CSS inline
 │   │   ├── global.php            # Estilos generales del admin
 │   │   └── elementor-editor.css  # Estilos del panel flotante en editor Elementor
@@ -77,7 +81,8 @@ generate-page-ai/
 │   │   ├── base.php              # GPAI_USE_DATA_BASE - CRUD genérico con wp_options
 │   │   ├── config.php            # GPAI_USE_DATA_CONFIG - Configuración del plugin
 │   │   ├── duplicados.php        # GPAI_USE_DATA_DUPLICADOS - Variaciones de posts
-│   │   └── templates_data.php    # GPAI_USE_DATA_TEMPLATES - Variaciones de plantillas
+│   │   ├── templates_data.php    # GPAI_USE_DATA_TEMPLATES - Variaciones de plantillas
+│   │   └── sitemaps_data.php     # GPAI_USE_DATA_SITEMAPS - CRUD de archivos XML de sitemaps
 │   ├── elementor/                # Integración con Elementor
 │   │   ├── _.php                 # Cargador condicional
 │   │   ├── editor.php            # Encola assets en el editor de Elementor
@@ -112,7 +117,8 @@ generate-page-ai/
 │   │   ├── content_img-v1.txt    # Prompt para generación de imágenes
 │   │   ├── template-v1.txt       # Prompt para variables globales de plantillas
 │   │   ├── seo-v1.txt            # Prompt para generación de datos GPAI SEO con IA
-│   │   └── html-v1.txt           # Prompt para optimización de HTML estático con IA
+│   │   ├── html-v1.txt           # Prompt para optimización de HTML estático con IA
+│   │   └── sitemap-v1.txt        # Prompt para generación de sitemaps XML con IA
 │   ├── sections/                 # Secciones de cada página
 │   │   ├── config.php            # API Key, modelo, toggle de imágenes
 │   │   ├── prompts_base.php      # Editor de prompts base (templates editables)
@@ -121,7 +127,10 @@ generate-page-ai/
 │   │   ├── procesar_contenido.php# Variaciones de contenido
 │   │   ├── plantillas.php        # Gestión de plantillas
 │   │   ├── procesar_plantillas.php# Variaciones de plantillas
-│   │   └── html.php              # Optimización HTML (selector de post, estado static, mejora con IA)
+│   │   ├── html.php              # Optimización HTML (selector de post, estado static, mejora con IA)
+│   │   ├── sitemaps.php          # Site Maps: listado de archivos XML con edición y generación IA
+│   │   ├── crear_sitemap.php     # Site Maps: formulario para crear nuevos archivos XML
+│   │   └── urls.php              # Site Maps: gestión de URLs habilitadas, generación de XML con lastmod/changefreq/priority
 │   └── templates/                # Helpers de renderizado
 │       ├── _.php
 │       ├── respond.php           # GPAI_Respond() - Mensajes de estado
@@ -131,7 +140,8 @@ generate-page-ai/
 │       ├── custom_fields.php     # GPAI_Custom_Fields() - Campos personalizados
 │       ├── custom_yoast.php      # GPAI_Custom_Yoast() - Campos Yoast
 │       ├── custom_gpai_seo.php   # GPAI_Custom_Gpai_Seo() - Campos GPAI SEO
-│       └── global_fields.php     # GPAI_Global_Fields() - Variables globales {g{...}}
+│       ├── global_fields.php     # GPAI_Global_Fields() - Variables globales {g{...}}
+│       └── table_post_by_url.php # GPAI_Table_Post_By_Url() - Tabla de posts con checkboxes para sitemaps
 ```
 
 ---
@@ -152,6 +162,8 @@ generate-page-ai/
 | `GPAI_USE_DATA_CONFIG` | `src/data/config.php` | ⚙️ Configuración del plugin |
 | `GPAI_USE_DATA_DUPLICADOS` | `src/data/duplicados.php` | 📝 Variaciones de posts pendientes |
 | `GPAI_USE_DATA_TEMPLATES` | `src/data/templates_data.php` | 📐 Configuración y variaciones de plantillas |
+| `GPAI_USE_DATA_SITEMAPS` | `src/data/sitemaps_data.php` | 🗺️ CRUD de archivos XML de sitemaps en la raíz de WordPress |
+| `GPAI_SITEMAPS_API` | `src/api/sitemaps.php` | 🤖 AJAX para generar XML de sitemaps con Gemini, reemplaza `{{URL_BASE}}`, `{{URL_PAGINAS_LIST}}`, `{{URL_POSTS_LIST}}`, `{{PAGINAS_IMAGES}}`, `{{POSTS_IMAGES}}` |
 
 ---
 
@@ -165,6 +177,7 @@ generate-page-ai/
 | 📄 **Post** | `GPAI_post` | Gestión de posts: campos personalizados, Yoast, GPAI SEO, prompts, variaciones |
 | 🧩 **Plantillas** | `GPAI_plantilllas` | Gestión de plantillas Elementor: variables globales, prompts, variaciones |
 | 🧹 **Optimización HTML** | `GPAI_html` | Optimización de HTML estático con IA (solo visible si **Static Page** está activo) |
+| 🗺️ **Site Maps** | `GPAI_sitemaps` | Gestión de archivos XML de sitemaps. Tres pestañas: **Site Maps** (lista, editar, generar con IA, descargar), **Crear Site Map** (nuevo archivo XML), **URLs** (seleccionar posts/páginas, configurar frecuencia/prioridad, generar XML). |
 
 ---
 
@@ -247,6 +260,7 @@ Los prompts que la IA utiliza para generar contenido ahora son **totalmente edit
 | **Plantillas** | `getContentTemplate()` | `prompts/template-v1.txt` | `{{title}}`, `{{globalFields}}`, `{{globalFields_prompt}}`, `{{prompt}}` |
 | **SEO** | `getSEOBasePromptDefault()` | `prompts/seo-v1.txt` | `{{title}}`, `{{postContent}}`, `{{currentSeoFields}}`, `{{prompt}}` |
 | **HTML** | `getHTMLBasePromptDefault()` | `prompts/html-v1.txt` | `{{htmlContent}}` |
+| **Site Maps** | `getSitemapBasePrompt()` | `prompts/sitemap-v1.txt` | `{{sitemap_name}}`, `{{URL_BASE}}`, `{{URL_PAGINAS_LIST}}`, `{{URL_POSTS_LIST}}`, `{{PAGINAS_IMAGES}}`, `{{POSTS_IMAGES}}`, `{{custom_prompt}}` |
 
 Los valores predeterminados se leen de archivos `.txt` en `src/prompts/`. Cada template incluye un botón **"Restaurar predeterminado"** para volver al valor de fábrica. Actualmente hay 6 archivos de prompt:
 
@@ -257,6 +271,7 @@ Los valores predeterminados se leen de archivos `.txt` en `src/prompts/`. Cada t
 | `template-v1.txt` | Prompt para variables globales de plantillas |
 | `seo-v1.txt` | Prompt para generación de datos GPAI SEO con IA |
 | `html-v1.txt` | Prompt para optimización de HTML estático con IA |
+| `sitemap-v1.txt` | Prompt para generación de sitemaps XML con IA. Incluye placeholders para URLs reales e imágenes del sitio |
 
 > ℹ️ Todos los prompts (incluyendo SEO y HTML) se pueden editar desde la UI de Prompts Base. Los valores guardados reemplazan a los archivos por defecto.
 
@@ -355,6 +370,7 @@ El archivo `src/prompts/html-v1.txt` contiene el prompt especializado que instru
 - `wp_ajax_gpai_seo_generate` — Generar datos SEO con IA (Gemini) para un post.
 - `wp_ajax_gpai_html_generate` — Optimizar HTML estático con IA para un post.
 - `wp_ajax_gpai_html_swap` — Alternar entre HTML normal y optimizado en un post.
+- `wp_ajax_gpai_sitemap_generate` — Generar contenido XML de sitemap con IA usando Gemini. Reemplaza `{{URL_BASE}}`, `{{URL_PAGINAS_LIST}}`, `{{URL_POSTS_LIST}}`, `{{PAGINAS_IMAGES}}` y `{{POSTS_IMAGES}}` con datos reales del sitio.
 
 ---
 
