@@ -6,6 +6,7 @@ $types = [
     'template' => 'Variables globales (getContentTemplate)',
     'seo' => 'SEO (getSEOBasePromptDefault)',
     'html' => 'Optimización HTML (getHTMLBasePromptDefault)',
+    'sitemap' => 'Site Maps (getSitemapBasePrompt)',
 ];
 
 $placeholders = [
@@ -41,6 +42,10 @@ $placeholders = [
     'html' => [
         '{{htmlContent}}' => 'Codigo HTML completo de la pagina',
     ],
+    'sitemap' => [
+        '{{sitemap_name}}' => 'Nombre del sitemap',
+        '{{custom_prompt}}' => 'Prompt personalizado del usuario',
+    ],
 ];
 function getBasePromptDefaultForType($type)
 {
@@ -49,6 +54,9 @@ function getBasePromptDefaultForType($type)
     }
     if ($type === 'html') {
         return GPAI_SEO::getHTMLBasePromptDefault();
+    }
+    if ($type === 'sitemap') {
+        return GPAI_SITEMAPS_API::getSitemapBasePromptDefault();
     }
     return GPAI_CONTENT::getBasePromptDefault($type);
 }

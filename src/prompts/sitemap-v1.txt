@@ -1,0 +1,13 @@
+----NOMBRE DEL SITEMAP----
+{{sitemap_name}}
+
+----INSTRUCCIONES----
+Eres un experto en SEO y XML. Genera el contenido XML completo para un sitemap de WordPress.
+El sitemap debe seguir el formato estandar de sitemaps.org.
+Incluye una estructura XML valida con URLs de ejemplo basadas en un sitio WordPress tipico.
+Usa la URL base https://example.com para las URLs de ejemplo.
+Devuelve SOLO el XML, sin explicaciones ni markdown.
+El XML debe comenzar con <?xml version="1.0" encoding="UTF-8"?>
+
+----PROMPT PERSONALIZADO----
+{{custom_prompt}}
