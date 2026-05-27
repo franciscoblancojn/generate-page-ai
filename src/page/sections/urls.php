@@ -43,10 +43,23 @@ if (isset($_POST['save']) && $_POST['save'] == 'sitemap_urls_generate') {
     }
 }
 
-$post_types = get_post_types(['public' => true, 'publicly_queryable' => true], 'objects');
 $posts_by_type = [];
+$order_keys = ['Paginas' => 0, 'Posts' => 1];
+
+$pages_query = new WP_Query([
+    'post_type' => 'page',
+    'posts_per_page' => -1,
+    'post_status' => 'publish',
+    'orderby' => 'title',
+    'order' => 'ASC',
+]);
+if ($pages_query->have_posts()) {
+    $posts_by_type['Paginas'] = $pages_query->posts;
+}
+
+$post_types = get_post_types(['public' => true, 'publicly_queryable' => true], 'objects');
 foreach ($post_types as $pt) {
-    if ($pt->name === 'attachment') continue;
+    if ($pt->name === 'attachment' || $pt->name === 'page') continue;
     $query = new WP_Query([
         'post_type' => $pt->name,
         'posts_per_page' => -1,
@@ -55,10 +68,16 @@ foreach ($post_types as $pt) {
         'order' => 'ASC',
     ]);
     if ($query->have_posts()) {
-        $posts_by_type[$pt->label ?? $pt->name] = $query->posts;
+        $label = $pt->label ?? $pt->name;
+        $posts_by_type[$label] = $query->posts;
+        if (!isset($order_keys[$label])) {
+            $order_keys[$label] = count($order_keys);
+        }
     }
 }
-ksort($posts_by_type);
+uksort($posts_by_type, function ($a, $b) use ($order_keys) {
+    return ($order_keys[$a] ?? 99) - ($order_keys[$b] ?? 99);
+});
 
 ?>
 <?= GPAI_Respond($respond_urls ?? null) ?>
@@ -73,27 +92,10 @@ ksort($posts_by_type);
             <span style="font-weight:400;font-size:12px;color:#666;">' . count($posts) . ' posts</span>
         </div>';
 
-        $list = '<div style="max-height:400px;overflow-y:auto;">';
-        $list .= '<table class="wp-list-table widefat fixed striped" style="border:none;">';
-        $list .= '<thead><tr>
-            <th style="width:40px;"><input type="checkbox" class="gpai-toggle-type"></th>
-            <th>Titulo</th>
-            <th>URL</th>
-        </tr></thead><tbody>';
+        $table = GPAI_Table_Post_By_Url($posts,$enabled_posts);
 
-        foreach ($posts as $post) {
-            $checked = in_array($post->ID, $enabled_posts) ? 'checked' : '';
-            $permalink = get_permalink($post->ID);
-            $list .= '<tr>
-                <td><input type="checkbox" name="enabled_posts[]" value="' . esc_attr($post->ID) . '" ' . $checked . '></td>
-                <td>' . esc_html($post->post_title) . ' <code style="font-size:10px;">ID:' . $post->ID . '</code></td>
-                <td><code style="font-size:11px;word-break:break-all;">' . esc_url($permalink) . '</code></td>
-            </tr>';
-        }
 
-        $list .= '</tbody></table></div>';
-
-        echo GPAI_Collapse($collapse_title, $list, false);
+        echo GPAI_Collapse($collapse_title, $table, false);
         ?>
     <?php endforeach; ?>
 
