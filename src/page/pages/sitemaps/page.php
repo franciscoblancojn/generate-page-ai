@@ -13,6 +13,10 @@ $TAGS = [
         'key' => 'crear_sitemap',
         'title' => 'Crear Site Map',
     ],
+    [
+        'key' => 'urls',
+        'title' => 'URLs',
+    ],
 ];
 
 $defaultTag = $TAGS[0]['key'];
