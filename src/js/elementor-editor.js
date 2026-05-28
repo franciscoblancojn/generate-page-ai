@@ -6,6 +6,7 @@
   var editingKey = null;
   var fieldsData = [];
   var currentElementKeys = [];
+  var currentElementKeysCustom = [];
   var currentTab = "all";
   var searchQuery = "";
   var templateFieldsData = [];
@@ -209,8 +210,24 @@
 
     if (currentTab === "section") {
       if (currentElementKeys.length > 0) {
+        var existingKeysMap = {};
+        filtered.forEach(function (f) {
+          existingKeysMap[f.key] = true;
+        });
+
         filtered = filtered.filter(function (f) {
           return currentElementKeys.indexOf(f.key) !== -1;
+        });
+
+        currentElementKeysCustom.forEach(function (k) {
+          if (!existingKeysMap[k]) {
+            filtered.push({
+              key: k,
+              value: "",
+              type: "custom",
+              _missing: true,
+            });
+          }
         });
       } else {
         $items.empty();
@@ -256,8 +273,12 @@
       var key = field.key;
       var value = field.value || "";
       var fieldType = field.type || "custom";
-      var displayValue =
-        value.length > 80 ? value.substring(0, 80) + "..." : value;
+      var isMissing = field._missing === true;
+      var displayValue = isMissing
+        ? "No creado"
+        : value.length > 80
+          ? value.substring(0, 80) + "..."
+          : value;
 
       var displayKey, keyClass;
       if (fieldType === "global") {
@@ -266,6 +287,24 @@
       } else {
         displayKey = "{{" + key + "}}";
         keyClass = "gpai-cf-field-key";
+      }
+
+      var actionsHtml;
+      if (isMissing) {
+        actionsHtml =
+          '<button class="gpai-cf-field-create" data-key="' +
+          key +
+          '" title="Crear campo">+</button>';
+      } else {
+        actionsHtml =
+          '<button class="gpai-cf-field-edit" data-key="' +
+          key +
+          '" data-type="' +
+          fieldType +
+          '" title="Editar">\u270E</button>' +
+          '<button class="gpai-cf-field-delete" data-key="' +
+          key +
+          '" title="Eliminar">\u2715</button>';
       }
 
       var $row = $(
@@ -281,14 +320,7 @@
           "</span>" +
           "  </div>" +
           '  <div class="gpai-cf-field-actions">' +
-          '    <button class="gpai-cf-field-edit" data-key="' +
-          key +
-          '" data-type="' +
-          fieldType +
-          '" title="Editar">\u270E</button>' +
-          '    <button class="gpai-cf-field-delete" data-key="' +
-          key +
-          '" title="Eliminar">\u2715</button>' +
+          actionsHtml +
           "  </div>" +
           "</div>",
       );
@@ -307,6 +339,11 @@
         if (confirm("\u00BFEliminar el campo {{" + k + "}}?")) {
           deleteField(k);
         }
+      });
+
+      $row.find(".gpai-cf-field-create").on("click", function () {
+        var k = $(this).data("key");
+        showForm(k);
       });
 
       $items.append($row);
@@ -337,6 +374,8 @@
   function handleSave() {
     var key = $("#gpai-cf-form-key").val().trim();
     var value = $("#gpai-cf-form-value").val().trim();
+
+    key = key.replace(/[{}]/g, '').trim();
 
     if (!key) {
       alert("Por favor ingresa una clave.");
@@ -637,23 +676,23 @@
   }
 
   function findKeysInHtml(html) {
-    var keys = {};
-    if (!html) return keys;
+    var result = { custom: {}, global: {} };
+    if (!html) return result;
 
     var match;
     var regex = /\{\{(.*?)\}\}/g;
     while ((match = regex.exec(html)) !== null) {
       var k = match[1].trim();
-      if (k) keys[k] = true;
+      if (k) result.custom[k] = true;
     }
 
     regex = /\{g\{(.*?)\}\}/g;
     while ((match = regex.exec(html)) !== null) {
       var gk = match[1].trim();
-      if (gk) keys[gk] = true;
+      if (gk) result.global[gk] = true;
     }
 
-    return keys;
+    return result;
   }
 
   function setupPreviewClickHandler() {
@@ -718,7 +757,8 @@
       var html = targetEl.innerHTML;
 
       var foundKeys = findKeysInHtml(html);
-      currentElementKeys = Object.keys(foundKeys);
+      currentElementKeys = Object.keys(foundKeys.custom).concat(Object.keys(foundKeys.global));
+      currentElementKeysCustom = Object.keys(foundKeys.custom);
 
       if (currentTab === "section") {
         renderList();
