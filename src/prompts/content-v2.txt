@@ -47,7 +47,7 @@
 ----
 FORMATO DE RESPUESTA:
 
-Retorna \u00fanicamente un JSON v\u00e1lido.
+Retorna únicamente un JSON válido.
 
 Formato:
 {
@@ -63,7 +63,7 @@ Formato:
     }
 }
 
-Si se generan m\u00faltiples opciones:
+Si se generan múltiples opciones:
 
 [
     {

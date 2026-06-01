@@ -37,7 +37,7 @@ class GPAI_AI
             ]);
 
             if (isset($data)) {
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
             }
 
             $response = curl_exec($ch);

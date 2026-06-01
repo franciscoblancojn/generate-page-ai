@@ -19,23 +19,23 @@
 ----
 INSTRUCCIONES IMPORTANTES:
 
-- Genera una NUEVA versi\u00f3n del contenido.
+- Genera una NUEVA versión del contenido.
 - NO copies literalmente el contenido actual.
 - NO reutilices frases exactas.
 - Reescribe completamente cada texto manteniendo el mismo objetivo comercial.
-- Usa un tono m\u00e1s persuasivo, moderno y orientado a conversi\u00f3n.
+- Usa un tono más persuasivo, moderno y orientado a conversión.
 - Los valores actuales solo son contexto de referencia.
 - Los ejemplos incluidos en los prompts NO deben copiarse literalmente.
-- Cambia estructura, redacci\u00f3n y enfoque manteniendo la intenci\u00f3n original.
-- Mant\u00e9n \u00fanicamente URLs, nombres de marca o datos t\u00e9cnicos cuando sea necesario.
-- Evita respuestas id\u00e9nticas o muy similares al contenido original.
+- Cambia estructura, redacción y enfoque manteniendo la intención original.
+- Mantén únicamente URLs, nombres de marca o datos técnicos cuando sea necesario.
+- Evita respuestas idénticas o muy similares al contenido original.
 - Cada campo debe ser significativamente distinto al valor original.
-- Usa vocabulario diferente y evita sin\u00f3nimos directos.
-- Cada texto debe sentirse como una nueva versi\u00f3n de marketing.
-- Evita reemplazos m\u00ednimos de palabras.
+- Usa vocabulario diferente y evita sinónimos directos.
+- Cada texto debe sentirse como una nueva versión de marketing.
+- Evita reemplazos mínimos de palabras.
 - Reestructura completamente frases y titulares.
 - Prioriza nuevas propuestas de valor.
-- Usa diferentes \u00e1ngulos comerciales y emocionales.
+- Usa diferentes ángulos comerciales y emocionales.
 - customFields SOLO puede contener claves presentes en CAMPOS PERSONALIZADOS.
 - yoastFields SOLO puede contener claves presentes en DATOS DE YOAST SEO.
 - NO mezcles campos entre ambas estructuras.
@@ -44,7 +44,7 @@ INSTRUCCIONES IMPORTANTES:
 ----
 FORMATO DE RESPUESTA:
 
-Retorna \u00fanicamente un JSON v\u00e1lido.
+Retorna únicamente un JSON válido.
 
 Formato:
 {
@@ -57,7 +57,7 @@ Formato:
     }
 }
 
-Si se generan m\u00faltiples opciones:
+Si se generan múltiples opciones:
 
 [
     {

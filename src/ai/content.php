@@ -39,9 +39,9 @@ class GPAI_CONTENT
 
         $replacements = [
             '{{title}}' => $title,
-            '{{customFields}}' => json_encode($customFields),
-            '{{yoastFields}}' => json_encode($yoastFields),
-            '{{gpaiSeoFields}}' => json_encode($gpaiSeoFields),
+            '{{customFields}}' => json_encode($customFields, JSON_UNESCAPED_UNICODE),
+            '{{yoastFields}}' => json_encode($yoastFields, JSON_UNESCAPED_UNICODE),
+            '{{gpaiSeoFields}}' => json_encode($gpaiSeoFields, JSON_UNESCAPED_UNICODE),
             '{{imageUrl}}' => $imageUrl,
         ];
 
