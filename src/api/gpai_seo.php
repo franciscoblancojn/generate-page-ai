@@ -63,7 +63,7 @@ class GPAI_SEO
             }
             $original = $value;
             if (is_array($value)) {
-                $value = wp_json_encode($value);
+                $value = wp_json_encode($value, JSON_UNESCAPED_UNICODE);
             } else {
                 $value = wp_kses_post($value);
             }
@@ -181,6 +181,23 @@ class GPAI_SEO
         return !empty($valid) ? $valid : [];
     }
 
+    private static function decodeUnicodeEscapes($data)
+    {
+        if (is_string($data)) {
+            return preg_replace_callback('/\\\\?u00([0-9a-fA-F]{2})/', function ($m) {
+                return json_decode('"\u00' . $m[1] . '"');
+            }, $data);
+        }
+        if (is_array($data)) {
+            $result = [];
+            foreach ($data as $key => $value) {
+                $result[$key] = self::decodeUnicodeEscapes($value);
+            }
+            return $result;
+        }
+        return $data;
+    }
+
     public static function generateSEO($post_id, $promptText = '')
     {
         try {
@@ -192,6 +209,8 @@ class GPAI_SEO
             }
 
             $data = GPAI_AI::parseJson($result['data']);
+
+            $data = self::decodeUnicodeEscapes($data);
 
             // Normalizar gpai_wpseo_schema_extra_json: si la IA lo devuelve con formato @graph, extraer el array plano
             if (isset($data['gpai_wpseo_schema_extra_json'])) {
