@@ -32,6 +32,7 @@ class GPAI_SEO
             'gpai_wpseo_schema_page_type' => 'Schema Tipo de Página',
             'gpai_wpseo_schema_article_type' => 'Schema Tipo de Artículo',
             'gpai_wpseo_schema_extra_json' => 'Schema Bloques Adicionales (JSON)',
+            'gpai_wpseo_remove_other_jsonld' => 'Eliminar otros application/ld+json',
         ];
     }
 
@@ -119,6 +120,7 @@ class GPAI_SEO
                 'gpai_wpseo_schema_page_type',
                 'gpai_wpseo_schema_article_type',
                 'gpai_wpseo_schema_extra_json',
+                'gpai_wpseo_remove_other_jsonld',
             ],
         ];
     }

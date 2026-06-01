@@ -329,6 +329,7 @@ function GPAI_SEO_MetaBox_getFieldType($key)
         'gpai_wpseo_meta-robots-noarchive',
         'gpai_wpseo_meta-robots-nosnippet',
         'gpai_wpseo_meta-robots-noimageindex',
+        'gpai_wpseo_remove_other_jsonld',
     ];
     $selectFields = [
         'gpai_wpseo_meta-robots-noindex',

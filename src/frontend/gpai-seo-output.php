@@ -335,3 +335,33 @@ function GPAI_SEO_handle_redirect()
     }
 }
 add_action('template_redirect', 'GPAI_SEO_handle_redirect', 1);
+
+function GPAI_SEO_remove_other_jsonld()
+{
+    if (!is_singular() && !is_front_page()) return;
+    $post_id = get_queried_object_id();
+    if (is_front_page() && 'page' === get_option('show_on_front')) {
+        $post_id = get_option('page_on_front');
+    }
+    if (!$post_id) return;
+
+    $remove = get_post_meta($post_id, 'gpai_wpseo_remove_other_jsonld', true);
+    if ($remove !== '1') return;
+
+    ob_start('GPAI_SEO_remove_other_jsonld_callback');
+}
+add_action('template_redirect', 'GPAI_SEO_remove_other_jsonld', 0);
+
+function GPAI_SEO_remove_other_jsonld_callback($buffer)
+{
+    return preg_replace_callback(
+        '/<script\b[^>]*type="application\/ld\+json"[^>]*>.*?<\/script>/is',
+        function ($matches) {
+            if (strpos($matches[0], 'gpai-seo-schema') !== false) {
+                return $matches[0];
+            }
+            return '';
+        },
+        $buffer
+    );
+}

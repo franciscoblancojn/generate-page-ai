@@ -56,12 +56,28 @@ if (isset($_POST['save']) && $_POST['save'] == 'sitemap_urls_save') {
 if (isset($_POST['save']) && $_POST['save'] == 'sitemap_urls_generate') {
     $enabled_posts = isset($_POST['enabled_posts']) ? array_map('intval', $_POST['enabled_posts']) : [];
     $xml_lines = [];
+    $skipped = [];
 
     foreach ($enabled_posts as $post_id) {
         $post = get_post($post_id);
         if (!$post) continue;
         $permalink = get_permalink($post_id);
         if (!$permalink) continue;
+
+        if (strpos($permalink, '?page_id=') !== false) {
+            $skipped[] = "{$permalink} (?page_id)";
+            continue;
+        }
+
+        $response = wp_remote_head($permalink, [
+            'timeout' => 5,
+            'blocking' => true,
+        ]);
+        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) === 404) {
+            $skipped[] = "{$permalink} (404)";
+            continue;
+        }
+
         $lastmod = get_the_modified_date('Y-m-d', $post_id);
         $changefreq = get_changefreq($post, $urls_config);
         $priority = get_priority($post, $urls_config);
@@ -71,9 +87,13 @@ if (isset($_POST['save']) && $_POST['save'] == 'sitemap_urls_generate') {
     if (!empty($xml_lines)) {
         $generated_xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
             . implode("\n", $xml_lines) . "\n</urlset>";
+        $message = "XML generado con " . count($xml_lines) . " URLs.";
+        if (!empty($skipped)) {
+            $message .= ' Omitidas: ' . implode(', ', $skipped);
+        }
         $respond_urls = [
             "status" => "ok",
-            "message" => "XML generado con " . count($xml_lines) . " URLs.",
+            "message" => $message,
             'data' => [],
         ];
     } else {

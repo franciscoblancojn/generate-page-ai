@@ -92,11 +92,27 @@ class GPAI_SITEMAPS_API
         $posts_lines = [];
         $paginas_images = [];
         $posts_images = [];
+        $skipped = [];
         foreach ($enabled_posts as $post_id) {
             $post = get_post($post_id);
             if (!$post) continue;
             $permalink = get_permalink($post_id);
             if (!$permalink) continue;
+
+            if (strpos($permalink, '?page_id=') !== false) {
+                $skipped[] = "{$permalink} (?page_id)";
+                continue;
+            }
+
+            $response = wp_remote_head($permalink, [
+                'timeout' => 5,
+                'blocking' => true,
+            ]);
+            if (is_wp_error($response) || wp_remote_retrieve_response_code($response) === 404) {
+                $skipped[] = "{$permalink} (404)";
+                continue;
+            }
+
             $lastmod = get_the_modified_date('Y-m-d', $post_id);
             $line = "{$permalink} (lastmod: {$lastmod})";
             if ($post->post_type === 'page') {
@@ -140,9 +156,13 @@ class GPAI_SITEMAPS_API
             $content = preg_replace('/```$/', '', $content);
             $content = trim($content);
 
+            $message = 'Contenido generado correctamente.';
+            if (!empty($skipped)) {
+                $message .= ' URLs omitidas: ' . implode(', ', $skipped);
+            }
             wp_send_json_success([
                 'content' => $content,
-                'message' => 'Contenido generado correctamente.',
+                'message' => $message,
             ]);
         } else {
             wp_send_json_error($result['message']);
