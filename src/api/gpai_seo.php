@@ -157,6 +157,30 @@ class GPAI_SEO
         return str_replace(array_keys($replacements), array_values($replacements), $template);
     }
 
+    public static function normalizeSchemaExtraJson($extra)
+    {
+        if (!is_array($extra)) {
+            return [];
+        }
+
+        // Caso 1: Array con un solo elemento que contiene @graph: [{"@context": "...", "@graph": [...]}]
+        if (count($extra) === 1 && isset($extra[0]) && is_array($extra[0]) && isset($extra[0]['@graph'])) {
+            $graph = $extra[0]['@graph'];
+            if (is_array($graph)) {
+                return array_values(array_filter($graph, function ($item) {
+                    return is_array($item) && isset($item['@type']);
+                }));
+            }
+        }
+
+        // Caso 2: Array indexado normal de bloques schema.org
+        $valid = array_values(array_filter($extra, function ($item) {
+            return is_array($item) && isset($item['@type']);
+        }));
+
+        return !empty($valid) ? $valid : [];
+    }
+
     public static function generateSEO($post_id, $promptText = '')
     {
         try {
@@ -168,6 +192,11 @@ class GPAI_SEO
             }
 
             $data = GPAI_AI::parseJson($result['data']);
+
+            // Normalizar gpai_wpseo_schema_extra_json: si la IA lo devuelve con formato @graph, extraer el array plano
+            if (isset($data['gpai_wpseo_schema_extra_json'])) {
+                $data['gpai_wpseo_schema_extra_json'] = self::normalizeSchemaExtraJson($data['gpai_wpseo_schema_extra_json']);
+            }
 
             $allowed = array_keys(self::getFields());
             $toSave = [];
