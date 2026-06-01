@@ -1,6 +1,6 @@
 {
   "name": "generate-page-ai",
-  "version": "1.10.7",
+  "version": "1.10.8",
   "description": "It is an plugin of wordpress, for create custom field and duplicate page.",
   "main": "index.js",
   "scripts": {
