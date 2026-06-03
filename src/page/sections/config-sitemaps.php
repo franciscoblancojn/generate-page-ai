@@ -141,6 +141,23 @@ uksort($posts_by_type, function ($a, $b) use ($order_keys) {
     return ($order_keys[$a] ?? 99) - ($order_keys[$b] ?? 99);
 });
 
+// Agrupar páginas por el primer segmento de su URL
+$pages_by_segment = [];
+$root_pages = [];
+foreach ($posts_by_type['Paginas'] ?? [] as $page) {
+    $permalink = get_permalink($page->ID);
+    $path = parse_url($permalink, PHP_URL_PATH);
+    $path = trim($path, '/');
+    $segments = explode('/', $path);
+    if (count($segments) > 1) {
+        $segment = $segments[0];
+        $pages_by_segment[$segment][] = $page;
+    } else {
+        $root_pages[] = $page;
+    }
+}
+ksort($pages_by_segment);
+
 ?>
 <?= GPAI_Respond($respond_urls ?? null) ?>
 
@@ -219,9 +236,27 @@ uksort($posts_by_type, function ($a, $b) use ($order_keys) {
             <span style="font-weight:400;font-size:12px;color:#666;">' . count($posts) . ' posts</span>
         </div>';
 
-        $table = GPAI_Table_Post_By_Url($posts, $enabled_posts);
-
-        echo GPAI_Collapse($collapse_title, $table, false);
+        if ($label === 'Paginas') {
+            $inner = '';
+            if (!empty($root_pages)) {
+                $sub_title = '<div class="content-title-btn" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding-right:2rem;">
+                    <strong style="padding-left:1rem;">Raíz</strong>
+                    <span style="font-weight:400;font-size:12px;color:#666;">' . count($root_pages) . ' páginas</span>
+                </div>';
+                $inner .= GPAI_Collapse($sub_title, GPAI_Table_Post_By_Url($root_pages, $enabled_posts), false);
+            }
+            foreach ($pages_by_segment as $segment => $segment_pages) {
+                $sub_title = '<div class="content-title-btn" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding-right:2rem;">
+                    <strong style="padding-left:1rem;">' . esc_html($segment) . '</strong>
+                    <span style="font-weight:400;font-size:12px;color:#666;">' . count($segment_pages) . ' páginas</span>
+                </div>';
+                $inner .= GPAI_Collapse($sub_title, GPAI_Table_Post_By_Url($segment_pages, $enabled_posts), false);
+            }
+            echo GPAI_Collapse($collapse_title, $inner, false);
+        } else {
+            $table = GPAI_Table_Post_By_Url($posts, $enabled_posts);
+            echo GPAI_Collapse($collapse_title, $table, false);
+        }
         ?>
     <?php endforeach; ?>
 
