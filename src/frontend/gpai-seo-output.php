@@ -59,12 +59,10 @@ function GPAI_SEO_output()
         echo '<meta name="twitter:image" content="' . esc_url($twImage) . '" class="gpai-seo-meta-tag">' . "\n";
     }
 
-    $noindex = $values['gpai_wpseo_meta-robots-noindex'] ?? '';
-    $nofollow = $values['gpai_wpseo_meta-robots-nofollow'] ?? '';
-    if ($noindex !== '' || $nofollow !== '') {
-        $content = ($noindex === '1' ? 'noindex' : 'index') . ',' . ($nofollow === '1' ? 'nofollow' : 'follow');
-        echo '<meta name="robots" content="' . esc_attr($content) . '" class="gpai-seo-meta-tag">' . "\n";
-    }
+    $noindex = $values['gpai_wpseo_meta-robots-noindex'] ?? '0';
+    $nofollow = $values['gpai_wpseo_meta-robots-nofollow'] ?? '0';
+    $content = ($noindex === '1' ? 'noindex' : 'index') . ',' . ($nofollow === '1' ? 'nofollow' : 'follow');
+    echo '<meta name="robots" content="' . esc_attr($content) . '" class="gpai-seo-meta-tag">' . "\n";
 
     GPAI_SEO_output_jsonld($post_id, $post, $values, $title, $desc, $canonical, $ogImage);
 
@@ -288,10 +286,10 @@ function GPAI_SEO_override_yoast_robots($robots)
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $robots;
 
-    $noindex = get_post_meta($post_id, 'gpai_wpseo_meta-robots-noindex', true);
-    $nofollow = get_post_meta($post_id, 'gpai_wpseo_meta-robots-nofollow', true);
-
-    if ($noindex !== '' || $nofollow !== '') {
+    if (
+        metadata_exists('post', $post_id, 'gpai_wpseo_meta-robots-noindex') ||
+        metadata_exists('post', $post_id, 'gpai_wpseo_meta-robots-nofollow')
+    ) {
         return '';
     }
 
@@ -304,10 +302,10 @@ function GPAI_SEO_override_yoast_robots_array($robots)
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $robots;
 
-    $noindex = get_post_meta($post_id, 'gpai_wpseo_meta-robots-noindex', true);
-    $nofollow = get_post_meta($post_id, 'gpai_wpseo_meta-robots-nofollow', true);
-
-    if ($noindex !== '' || $nofollow !== '') {
+    if (
+        metadata_exists('post', $post_id, 'gpai_wpseo_meta-robots-noindex') ||
+        metadata_exists('post', $post_id, 'gpai_wpseo_meta-robots-nofollow')
+    ) {
         return [];
     }
 
