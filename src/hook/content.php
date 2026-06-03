@@ -1,5 +1,14 @@
 <?php
 
+function GPAI_get_global_field($key)
+{
+    $value = get_option('GPAI_GLOBAL_FIELDS_' . $key, '');
+    if ($value !== '') {
+        return $value;
+    }
+    return null;
+}
+
 function GPAI_replace_custom_vars($content, $depth = 0)
 {
     // Evita loops infinitos
@@ -30,6 +39,13 @@ function GPAI_replace_custom_vars($content, $depth = 0)
             $value = sanitize_text_field($_GET[$key]);
         } else {
             $value = get_post_meta(get_the_ID(), $key, true);
+        }
+
+        if (($value === null || $value === '') && function_exists('GPAI_get_global_field')) {
+            $global_value = GPAI_get_global_field($key);
+            if ($global_value !== null && $global_value !== '') {
+                $value = $global_value;
+            }
         }
 
         if ($value !== null && $value !== '') {
