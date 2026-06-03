@@ -61,7 +61,7 @@ function GPAI_SEO_output()
 
     $noindex = $values['gpai_wpseo_meta-robots-noindex'] ?? '';
     $nofollow = $values['gpai_wpseo_meta-robots-nofollow'] ?? '';
-    if ($noindex || $nofollow) {
+    if ($noindex !== '' || $nofollow !== '') {
         $content = ($noindex === '1' ? 'noindex' : 'index') . ',' . ($nofollow === '1' ? 'nofollow' : 'follow');
         echo '<meta name="robots" content="' . esc_attr($content) . '" class="gpai-seo-meta-tag">' . "\n";
     }
@@ -288,8 +288,16 @@ function GPAI_SEO_override_yoast_robots($robots)
     $nofollow = get_post_meta($post_id, 'gpai_wpseo_meta-robots-nofollow', true);
 
     if (is_array($robots)) {
-        if ($noindex === '1') $robots['index'] = 'noindex';
-        if ($nofollow === '1') $robots['follow'] = 'nofollow';
+        if ($noindex === '1') {
+            $robots['index'] = 'noindex';
+        } elseif ($noindex === '0') {
+            $robots['index'] = 'index';
+        }
+        if ($nofollow === '1') {
+            $robots['follow'] = 'nofollow';
+        } elseif ($nofollow === '0') {
+            $robots['follow'] = 'follow';
+        }
     }
 
     return $robots;
