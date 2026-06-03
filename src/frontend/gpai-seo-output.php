@@ -159,7 +159,11 @@ function GPAI_SEO_output_jsonld($post_id, $post, $values, $title, $desc, $canoni
 
     // --- Additional Schema Blocks from Extra JSON ---
     if (!empty($values['gpai_wpseo_schema_extra_json'])) {
-        $extra = json_decode($values['gpai_wpseo_schema_extra_json'], true);
+        $extra_json = $values['gpai_wpseo_schema_extra_json'];
+        if (function_exists('GPAI_replace_custom_vars')) {
+            $extra_json = GPAI_replace_custom_vars($extra_json);
+        }
+        $extra = json_decode($extra_json, true);
         if (is_array($extra)) {
             foreach ($extra as $block) {
                 if (isset($block['@type'])) {
@@ -287,22 +291,29 @@ function GPAI_SEO_override_yoast_robots($robots)
     $noindex = get_post_meta($post_id, 'gpai_wpseo_meta-robots-noindex', true);
     $nofollow = get_post_meta($post_id, 'gpai_wpseo_meta-robots-nofollow', true);
 
-    if (is_array($robots)) {
-        if ($noindex === '1') {
-            $robots['index'] = 'noindex';
-        } elseif ($noindex === '0') {
-            $robots['index'] = 'index';
-        }
-        if ($nofollow === '1') {
-            $robots['follow'] = 'nofollow';
-        } elseif ($nofollow === '0') {
-            $robots['follow'] = 'follow';
-        }
+    if ($noindex !== '' || $nofollow !== '') {
+        return '';
     }
 
     return $robots;
 }
 add_filter('wpseo_robots', 'GPAI_SEO_override_yoast_robots', 20);
+
+function GPAI_SEO_override_yoast_robots_array($robots)
+{
+    $post_id = GPAI_SEO_get_post_id();
+    if (!$post_id) return $robots;
+
+    $noindex = get_post_meta($post_id, 'gpai_wpseo_meta-robots-noindex', true);
+    $nofollow = get_post_meta($post_id, 'gpai_wpseo_meta-robots-nofollow', true);
+
+    if ($noindex !== '' || $nofollow !== '') {
+        return [];
+    }
+
+    return $robots;
+}
+add_filter('wpseo_robots_array', 'GPAI_SEO_override_yoast_robots_array', 20);
 
 function GPAI_SEO_override_document_title($title_parts)
 {
