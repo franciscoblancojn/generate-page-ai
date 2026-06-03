@@ -7,6 +7,18 @@ class GPAI_SITEMAPS_API
     public static function init()
     {
         add_action('wp_ajax_gpai_sitemap_generate', [self::class, 'generate']);
+        add_action('wp_ajax_gpai_sitemap_save_generate', [self::class, 'saveAndGenerate']);
+        add_action('wp_ajax_gpai_sitemap_save_xml', [self::class, 'saveXml']);
+    }
+
+    public static function getEnabledPosts($sitemap_name)
+    {
+        $sitemap_file = $sitemap_name . '.xml';
+        $all_configs = get_option('GPAI_SITEMAP_CONFIGS', []);
+        if (isset($all_configs[$sitemap_file]) && !empty($all_configs[$sitemap_file]['enabled_posts'])) {
+            return $all_configs[$sitemap_file]['enabled_posts'];
+        }
+        return get_option('GPAI_SITEMAP_URLS', []);
     }
 
     public static function getSitemapBasePrompt()
@@ -87,7 +99,7 @@ class GPAI_SITEMAPS_API
         $prompt = str_replace('{{sitemap_name}}', $sitemap_name, $template);
         $prompt = str_replace('{{URL_BASE}}', $site_url, $prompt);
 
-        $enabled_posts = get_option('GPAI_SITEMAP_URLS', []);
+        $enabled_posts = self::getEnabledPosts($sitemap_name);
         $paginas_lines = [];
         $posts_lines = [];
         $paginas_images = [];
@@ -157,6 +169,158 @@ class GPAI_SITEMAPS_API
             $content = trim($content);
 
             $message = 'Contenido generado correctamente.';
+            if (!empty($skipped)) {
+                $message .= ' URLs omitidas: ' . implode(', ', $skipped);
+            }
+            wp_send_json_success([
+                'content' => $content,
+                'message' => $message,
+            ]);
+        } else {
+            wp_send_json_error($result['message']);
+        }
+    }
+
+    public static function saveXml()
+    {
+        $sitemap_name = isset($_POST['sitemap_name'])
+            ? sanitize_text_field(wp_unslash($_POST['sitemap_name'])) : '';
+        $xml_content = isset($_POST['xml_content'])
+            ? wp_unslash($_POST['xml_content']) : '';
+
+        if (empty($sitemap_name) || empty($xml_content)) {
+            wp_send_json_error('Faltan parametros.');
+            return;
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Sin permisos.');
+            return;
+        }
+
+        $sitemap_file = $sitemap_name . '.xml';
+        $dataSitemaps = new GPAI_USE_DATA_SITEMAPS();
+        $saved = $dataSitemaps->saveSitemap($sitemap_file, $xml_content);
+
+        if ($saved) {
+            wp_send_json_success([
+                'message' => 'XML guardado correctamente en ' . esc_html($sitemap_file),
+            ]);
+        } else {
+            wp_send_json_error('Error al guardar el archivo XML.');
+        }
+    }
+
+    public static function saveAndGenerate()
+    {
+        $sitemap_name = isset($_POST['sitemap_name'])
+            ? sanitize_text_field(wp_unslash($_POST['sitemap_name'])) : '';
+        $custom_prompt = isset($_POST['custom_prompt'])
+            ? sanitize_textarea_field(wp_unslash($_POST['custom_prompt'])) : '';
+
+        if (empty($sitemap_name)) {
+            wp_send_json_error('El nombre del Site Map es requerido.');
+            return;
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Sin permisos.');
+            return;
+        }
+
+        $sitemap_file = $sitemap_name . '.xml';
+
+        $enabled_posts = isset($_POST['enabled_posts']) && is_array($_POST['enabled_posts'])
+            ? array_map('intval', $_POST['enabled_posts']) : [];
+
+        // Save per-sitemap config
+        $all_configs = get_option('GPAI_SITEMAP_CONFIGS', []);
+        $all_configs[$sitemap_file] = [
+            'enabled_posts' => $enabled_posts,
+            'changefreq_page' => sanitize_text_field($_POST['changefreq_page'] ?? 'monthly'),
+            'priority_page' => sanitize_text_field($_POST['priority_page'] ?? '0.8'),
+            'changefreq_post' => sanitize_text_field($_POST['changefreq_post'] ?? 'weekly'),
+            'priority_post' => sanitize_text_field($_POST['priority_post'] ?? '0.9'),
+            'changefreq_default' => sanitize_text_field($_POST['changefreq_default'] ?? 'monthly'),
+            'priority_default' => sanitize_text_field($_POST['priority_default'] ?? '0.5'),
+        ];
+        update_option('GPAI_SITEMAP_CONFIGS', $all_configs);
+
+        // Build prompt and generate XML
+        $template = self::getSitemapBasePrompt();
+        $site_url = untrailingslashit(get_site_url());
+        $prompt = str_replace('{{sitemap_name}}', $sitemap_name, $template);
+        $prompt = str_replace('{{URL_BASE}}', $site_url, $prompt);
+
+        $paginas_lines = [];
+        $posts_lines = [];
+        $paginas_images = [];
+        $posts_images = [];
+        $skipped = [];
+        foreach ($enabled_posts as $post_id) {
+            $post = get_post($post_id);
+            if (!$post) continue;
+            $permalink = get_permalink($post_id);
+            if (!$permalink) continue;
+
+            if (strpos($permalink, '?page_id=') !== false) {
+                $skipped[] = "{$permalink} (?page_id)";
+                continue;
+            }
+
+            $response = wp_remote_head($permalink, [
+                'timeout' => 5,
+                'blocking' => true,
+            ]);
+            if (is_wp_error($response) || wp_remote_retrieve_response_code($response) === 404) {
+                $skipped[] = "{$permalink} (404)";
+                continue;
+            }
+
+            $lastmod = get_the_modified_date('Y-m-d', $post_id);
+            $line = "{$permalink} (lastmod: {$lastmod})";
+            if ($post->post_type === 'page') {
+                $paginas_lines[] = $line;
+            } else {
+                $posts_lines[] = $line;
+            }
+            $imgs = self::getPostImages($post_id);
+            if (!empty($imgs)) {
+                $img_block = "URL: {$permalink}\n" . implode("\n", array_map(function ($u) {
+                    return "  - {$u}";
+                }, $imgs));
+                if ($post->post_type === 'page') {
+                    $paginas_images[] = $img_block;
+                } else {
+                    $posts_images[] = $img_block;
+                }
+            }
+        }
+
+        $paginas_list = !empty($paginas_lines) ? implode("\n", $paginas_lines) : 'No hay paginas configuradas.';
+        $posts_list = !empty($posts_lines) ? implode("\n", $posts_lines) : 'No hay posts configurados.';
+        $prompt = str_replace('{{URL_PAGINAS_LIST}}', $paginas_list, $prompt);
+        $prompt = str_replace('{{URL_POSTS_LIST}}', $posts_list, $prompt);
+
+        $paginas_images_block = !empty($paginas_images) ? implode("\n\n", $paginas_images) : 'No se encontraron imagenes en paginas.';
+        $posts_images_block = !empty($posts_images) ? implode("\n\n", $posts_images) : 'No se encontraron imagenes en posts.';
+        $prompt = str_replace('{{PAGINAS_IMAGES}}', $paginas_images_block, $prompt);
+        $prompt = str_replace('{{POSTS_IMAGES}}', $posts_images_block, $prompt);
+        $prompt = str_replace('{{custom_prompt}}', $custom_prompt, $prompt);
+
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => "prompt",
+            'data' => $prompt
+        ]);
+
+        $result = GPAI_AI::sendPrompt($prompt);
+
+        if ($result['status'] === 'ok') {
+            $content = $result['data'];
+            $content = preg_replace('/^```xml\s*/i', '', $content);
+            $content = preg_replace('/^```\s*/i', '', $content);
+            $content = preg_replace('/```$/', '', $content);
+            $content = trim($content);
+
+            $message = 'Configuracion guardada y XML generado correctamente. Revisa el XML y usa "Guardar XML" para escribirlo al archivo.';
             if (!empty($skipped)) {
                 $message .= ' URLs omitidas: ' . implode(', ', $skipped);
             }
