@@ -1,5 +1,10 @@
 <?php
 
+function GPAI_SEO_is_active($post_id)
+{
+    return get_post_meta($post_id, 'gpai_wpseo_active', true) === '1';
+}
+
 function GPAI_SEO_output()
 {
     if (!is_singular() && !is_front_page()) return;
@@ -8,6 +13,7 @@ function GPAI_SEO_output()
         $post_id = get_option('page_on_front');
     }
     if (!$post_id) return;
+    if (!GPAI_SEO_is_active($post_id)) return;
 
     $values = GPAI_SEO::GET($post_id);
     $hasValues = false;
@@ -195,6 +201,7 @@ function GPAI_SEO_override_yoast_title($title)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $title;
+    if (!GPAI_SEO_is_active($post_id)) return $title;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_title', true);
     return $gpai ?: $title;
 }
@@ -204,6 +211,7 @@ function GPAI_SEO_override_yoast_metadesc($desc)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $desc;
+    if (!GPAI_SEO_is_active($post_id)) return $desc;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_metadesc', true);
     return $gpai ?: $desc;
 }
@@ -213,6 +221,7 @@ function GPAI_SEO_override_yoast_canonical($canonical)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $canonical;
+    if (!GPAI_SEO_is_active($post_id)) return $canonical;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_canonical', true);
     return $gpai ?: $canonical;
 }
@@ -222,6 +231,7 @@ function GPAI_SEO_override_yoast_og_title($title)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $title;
+    if (!GPAI_SEO_is_active($post_id)) return $title;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_opengraph-title', true);
     return $gpai ?: $title;
 }
@@ -231,6 +241,7 @@ function GPAI_SEO_override_yoast_og_desc($desc)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $desc;
+    if (!GPAI_SEO_is_active($post_id)) return $desc;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_opengraph-description', true);
     return $gpai ?: $desc;
 }
@@ -240,6 +251,7 @@ function GPAI_SEO_override_yoast_og_image($image)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $image;
+    if (!GPAI_SEO_is_active($post_id)) return $image;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_opengraph-image', true);
     return $gpai ?: $image;
 }
@@ -249,6 +261,7 @@ function GPAI_SEO_override_yoast_og_url($url)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $url;
+    if (!GPAI_SEO_is_active($post_id)) return $url;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_opengraph-url', true);
     return $gpai ?: $url;
 }
@@ -258,6 +271,7 @@ function GPAI_SEO_override_yoast_twitter_title($title)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $title;
+    if (!GPAI_SEO_is_active($post_id)) return $title;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_twitter-title', true);
     return $gpai ?: $title;
 }
@@ -267,6 +281,7 @@ function GPAI_SEO_override_yoast_twitter_desc($desc)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $desc;
+    if (!GPAI_SEO_is_active($post_id)) return $desc;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_twitter-description', true);
     return $gpai ?: $desc;
 }
@@ -276,6 +291,7 @@ function GPAI_SEO_override_yoast_twitter_image($image)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $image;
+    if (!GPAI_SEO_is_active($post_id)) return $image;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_twitter-image', true);
     return $gpai ?: $image;
 }
@@ -285,6 +301,7 @@ function GPAI_SEO_override_yoast_robots($robots)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $robots;
+    if (!GPAI_SEO_is_active($post_id)) return $robots;
 
     if (
         metadata_exists('post', $post_id, 'gpai_wpseo_meta-robots-noindex') ||
@@ -301,6 +318,7 @@ function GPAI_SEO_override_yoast_robots_array($robots)
 {
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $robots;
+    if (!GPAI_SEO_is_active($post_id)) return $robots;
 
     if (
         metadata_exists('post', $post_id, 'gpai_wpseo_meta-robots-noindex') ||
@@ -318,6 +336,7 @@ function GPAI_SEO_override_document_title($title_parts)
     if (!is_singular() && !is_front_page()) return $title_parts;
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return $title_parts;
+    if (!GPAI_SEO_is_active($post_id)) return $title_parts;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_title', true);
     if ($gpai) {
         $title_parts['title'] = $gpai;
@@ -329,6 +348,7 @@ add_filter('document_title_parts', 'GPAI_SEO_override_document_title', 20);
 function GPAI_SEO_clean_yoast_schema($graph)
 {
     if (!is_array($graph)) return $graph;
+    if (!GPAI_SEO_is_active(get_the_ID())) return $graph;
     foreach ($graph as $key => $value) {
         if ($key === 'description_schema_fallback') {
             unset($graph[$key]);
@@ -345,6 +365,7 @@ function GPAI_SEO_handle_redirect()
     if (!is_singular() && !is_front_page()) return;
     $post_id = GPAI_SEO_get_post_id();
     if (!$post_id) return;
+    if (!GPAI_SEO_is_active($post_id)) return;
     $redirect = get_post_meta($post_id, 'gpai_wpseo_redirect', true);
     if ($redirect) {
         wp_redirect(esc_url($redirect), 301);
@@ -361,6 +382,7 @@ function GPAI_SEO_remove_other_jsonld()
         $post_id = get_option('page_on_front');
     }
     if (!$post_id) return;
+    if (!GPAI_SEO_is_active($post_id)) return;
 
     $remove = get_post_meta($post_id, 'gpai_wpseo_remove_other_jsonld', true);
     if ($remove !== '1') return;

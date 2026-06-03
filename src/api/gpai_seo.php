@@ -7,6 +7,7 @@ class GPAI_SEO
     public static function getFields()
     {
         return [
+            'gpai_wpseo_active' => 'Activo',
             'gpai_wpseo_title' => 'Título SEO',
             'gpai_wpseo_metadesc' => 'Meta Descripción',
             'gpai_wpseo_focuskw' => 'Palabra Clave',

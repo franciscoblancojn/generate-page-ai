@@ -56,6 +56,14 @@ function GPAI_SEO_MetaBox_render($post)
 
     echo '<div id="gpai-seo-box" style="padding:1rem;display:flex;flex-direction:column;gap:12px;" data-post-id="' . esc_attr($post->ID) . '" data-nonce="' . esc_attr($ajax_nonce) . '">';
 
+    $active = $values['gpai_wpseo_active'] ?? '0';
+    echo '<div style="padding:10px 12px;background:#e8f0fe;border:1px solid #c5d9f7;border-radius:6px;display:flex;align-items:center;gap:8px;">';
+    echo '<input type="hidden" name="gpai_seo_fields[gpai_wpseo_active]" value="0">';
+    echo '<input type="checkbox" id="gpai_seo_gpai_wpseo_active" name="gpai_seo_fields[gpai_wpseo_active]" value="1" ' . checked('1', $active, false) . '>';
+    echo '<label for="gpai_seo_gpai_wpseo_active" style="font-weight:600;">Activo</label>';
+    echo '<span style="color:#555;font-size:12px;">— Al activar, GPAI SEO reemplaza los meta tags de Yoast en el frontend</span>';
+    echo '</div>';
+
     foreach ($groups as $groupName => $fieldKeys) {
         $hasAny = false;
         foreach ($fieldKeys as $k) {
