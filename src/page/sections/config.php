@@ -13,6 +13,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
         $CONFIG['list_modelos'] = null;
     }
     $CONFIG['generate_img'] = isset($_POST['generate_img']);
+    $CONFIG[GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE] = isset($_POST[GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE]);
     if (isset($_POST['modelo'])) {
         $CONFIG['modelo'] = $_POST['modelo'];
     }
@@ -91,6 +92,22 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
                 </label>
             </td>
         </tr> -->
+        <tr>
+            <th scope="row">
+                <?= GPAI_Tooltip("Contenido independiente", "Si está activo, las páginas generadas guardan su propio contenido (comportamiento actual). Si está desactivado, las páginas heredan el contenido de la página base, ahorrando espacio en base de datos y permitiendo que cambios de estilo en la página base se reflejen automáticamente en todas sus variaciones.") ?>
+            </th>
+            <td>
+                <input
+                    type="checkbox"
+                    id="<?= GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE ?>"
+                    name="<?= GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE ?>"
+                    <?= ($CONFIG[GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE] ?? false) ? "checked" : "" ?>
+                    class="regular-text" />
+                <label for="<?= GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE ?>">
+                    Generar páginas con contenido independiente (desactivado = heredar contenido de la página base)
+                </label>
+            </td>
+        </tr>
     </table>
 
     <div class="content-btn">

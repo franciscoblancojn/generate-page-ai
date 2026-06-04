@@ -391,6 +391,17 @@ function GPAI_SEO_remove_other_jsonld()
 }
 add_action('template_redirect', 'GPAI_SEO_remove_other_jsonld', 0);
 
+function GPAI_SEO_remove_default_robots($robots)
+{
+    if (!is_singular() && !is_front_page()) return $robots;
+    $post_id = GPAI_SEO_get_post_id();
+    if (!$post_id) return $robots;
+    if (!GPAI_SEO_is_active($post_id)) return $robots;
+
+    return [];
+}
+add_filter('wp_robots', 'GPAI_SEO_remove_default_robots', 15);
+
 function GPAI_SEO_remove_other_jsonld_callback($buffer)
 {
     return preg_replace_callback(

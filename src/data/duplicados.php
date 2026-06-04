@@ -84,15 +84,61 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
 
         /*
         |--------------------------------------------------------------------------
+        | MODO CONTENIDO INDEPENDIENTE
+        |--------------------------------------------------------------------------
+        */
+
+        $config = get_option(GPAI_CONFIG, []);
+        $content_independiente = $config[GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE] ?? false;
+
+        update_post_meta(
+            $new_post_id,
+            GPAI_CONTENT_INDEPENDIENTE_META,
+            $content_independiente ? '1' : '0'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
         | ACTUALIZAR TÍTULO
         |--------------------------------------------------------------------------
         */
 
-        wp_update_post([
-            'ID'         => $new_post_id,
-            'post_title' => $title,
+        $update_post_data = [
+            'ID'          => $new_post_id,
+            'post_title'  => $title,
             'post_status' => 'draft',
-        ]);
+        ];
+
+        if (!$content_independiente) {
+            $update_post_data['post_content'] = '';
+        }
+
+        wp_update_post($update_post_data);
+
+        if (!$content_independiente) {
+            delete_post_meta(
+                $new_post_id,
+                '_elementor_data'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | STPA STATIC
+        |--------------------------------------------------------------------------
+        */
+
+        $STPA_CONFIG = get_post_meta(
+            $post_id,
+            'STPA_KEY_CONFIG',
+            []
+        );
+        $STPA_CONFIG['STPA_PAGE_STATIC_ACTIVE'] = false;
+        update_post_meta(
+            $new_post_id,
+            'STPA_KEY_CONFIG',
+            $STPA_CONFIG
+        );
 
         /*
         |--------------------------------------------------------------------------
