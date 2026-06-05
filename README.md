@@ -82,7 +82,9 @@ generate-page-ai/
 │   │   ├── config.php            # GPAI_USE_DATA_CONFIG - Configuración del plugin
 │   │   ├── duplicados.php        # GPAI_USE_DATA_DUPLICADOS - Variaciones de posts
 │   │   ├── templates_data.php    # GPAI_USE_DATA_TEMPLATES - Variaciones de plantillas
-│   │   └── sitemaps_data.php     # GPAI_USE_DATA_SITEMAPS - CRUD de archivos XML de sitemaps
+│   │   ├── sitemaps_data.php     # GPAI_USE_DATA_SITEMAPS - CRUD de archivos XML de sitemaps
+│   │   ├── global_fields_data.php# GPAI_USE_DATA_GLOBAL_FIELDS - Campos globales {g{key}}
+│   │   └── htaccess_data.php     # GPAI_USE_DATA_HTACCESS - CRUD de archivos .htaccess
 │   ├── elementor/                # Integración con Elementor
 │   │   ├── _.php                 # Cargador condicional
 │   │   ├── editor.php            # Encola assets en el editor de Elementor
@@ -96,7 +98,7 @@ generate-page-ai/
 │   │   ├── global.php            # JS general del admin (tabs, modales, export/import)
 │   │   └── elementor-editor.js   # Panel flotante de campos personalizados en Elementor
 │   ├── meta-box/                 # Meta boxes en el editor de posts
-│   │   └── gpai-seo.php          # GPAI SEO meta box (5 grupos, 24 campos, guardado AJAX)
+│   │   └── gpai-seo.php          # GPAI SEO meta box (5 grupos, 25 campos, guardado AJAX)
 │   ├── page/                     # Páginas del admin
 │   │   ├── _.php
 │   │   ├── add.php               # Registro del menú principal
@@ -107,10 +109,23 @@ generate-page-ai/
 │   │       │   ├── add.php       # Submenú "Configuración"
 │   │       │   └── page.php      # Layout con tabs: IA, Prompts Base, Pruebas
 │   │       ├── post/             # Página de posts
+│   │       │   ├── add.php       # Submenú "Post"
+│   │       │   └── page.php      # Layout con tabs
 │   │       ├── plantillas/       # Página de plantillas
-│   │       └── html/             # Página de optimización HTML
-│   │           ├── add.php       # Submenú "Optimización HTML" (solo si Static Page activo)
-│   │           └── page.php      # Layout con tabs
+│   │       │   ├── add.php       # Submenú "Plantillas"
+│   │       │   └── page.php      # Layout con tabs
+│   │       ├── html/             # Página de optimización HTML
+│   │       │   ├── add.php       # Submenú "Optimización HTML" (solo si Static Page activo)
+│   │       │   └── page.php      # Layout con tabs
+│   │       ├── sitemaps/         # Página de Site Maps
+│   │       │   ├── add.php       # Submenú "Site Maps"
+│   │       │   └── page.php      # Layout con tabs
+│   │       ├── htaccess/         # Página de .htaccess
+│   │       │   ├── add.php       # Submenú ".htaccess"
+│   │       │   └── page.php      # Layout
+│   │       └── campos_globales/  # Página de Campos Globales
+│   │           ├── add.php       # Submenú "Campos Globales"
+│   │           └── page.php      # Layout
 │   ├── prompts/                  # Archivos de texto con templates de prompts por defecto
 │   │   ├── content-v1.txt        # Prompt original para contenido
 │   │   ├── content-v2.txt        # Prompt actualizado para contenido (incluye GPAI SEO)
@@ -129,8 +144,10 @@ generate-page-ai/
 │   │   ├── procesar_plantillas.php# Variaciones de plantillas
 │   │   ├── html.php              # Optimización HTML (selector de post, estado static, mejora con IA)
 │   │   ├── sitemaps.php          # Site Maps: listado de archivos XML con edición y generación IA
+│   │   ├── config-sitemaps.php   # Site Maps: configuración de URLs por tipo de contenido
 │   │   ├── crear_sitemap.php     # Site Maps: formulario para crear nuevos archivos XML
-│   │   └── urls.php              # Site Maps: gestión de URLs habilitadas, generación de XML con lastmod/changefreq/priority
+│   │   ├── campos_globales.php   # CRUD de campos globales
+│   │   └── htaccess.php          # Editor de archivos .htaccess
 │   └── templates/                # Helpers de renderizado
 │       ├── _.php
 │       ├── respond.php           # GPAI_Respond() - Mensajes de estado
@@ -155,7 +172,9 @@ generate-page-ai/
 | `GPAI_PROMPT` | `src/ai/prompt.php` | 💡 Mejora de prompts existentes vía IA |
 | `GPAI_CF` | `src/api/cf.php` | 📦 API para campos personalizados de posts. Incluye endpoints AJAX para el editor de Elementor |
 | `GPAI_YOAST` | `src/api/yoast.php` | 🔍 API para metadatos Yoast SEO |
-| `GPAI_SEO` | `src/api/gpai_seo.php` | 🏷️ API para 24 campos SEO personalizados en 5 grupos |
+| `GPAI_SEO` | `src/api/gpai_seo.php` | 🏷️ API para 25 campos SEO personalizados en 5 grupos |
+| `GPAI_USE_DATA_GLOBAL_FIELDS` | `src/data/global_fields_data.php` | 🌐 Campos globales `{g{key}}` almacenados en opciones |
+| `GPAI_USE_DATA_HTACCESS` | `src/data/htaccess_data.php` | 🔒 CRUD de archivos .htaccess |
 | `GPAI_CF_TEMPLATE` | `src/api/cf_template.php` | 🧩 API para variables globales `{g{...}}` de plantillas |
 | `GPAI_EXPORT_IMPORT` | `src/api/export_import.php` | 📤 Exportación/Importación JSON |
 | `GPAI_USE_DATA_BASE` | `src/data/base.php` | 💾 CRUD genérico basado en `wp_options` |
@@ -178,6 +197,8 @@ generate-page-ai/
 | 🧩 **Plantillas** | `GPAI_plantilllas` | Gestión de plantillas Elementor: variables globales, prompts, variaciones |
 | 🧹 **Optimización HTML** | `GPAI_html` | Optimización de HTML estático con IA (solo visible si **Static Page** está activo) |
 | 🗺️ **Site Maps** | `GPAI_sitemaps` | Gestión de archivos XML de sitemaps. Tres pestañas: **Site Maps** (lista, editar, generar con IA, descargar), **Crear Site Map** (nuevo archivo XML), **URLs** (seleccionar posts/páginas, configurar frecuencia/prioridad, generar XML). |
+| 🌐 **Campos Globales** | `GPAI_campos_globales` | CRUD de campos globales reutilizables (text, textarea, number, email, url, wysiwyg) |
+| 🔒 **.htaccess** | `GPAI_htaccess` | Listar, editar, crear y eliminar archivos .htaccess |
 
 ---
 
@@ -209,11 +230,11 @@ El plugin incluye un **sistema completo de SEO** propio que puede funcionar junt
 
 ### Meta Box en el Editor
 
-Se agrega una meta box **"Gpai SEO"** en todos los post types públicos con 24 campos organizados en 5 grupos:
+Se agrega una meta box **"Gpai SEO"** en todos los post types públicos con 25 campos organizados en 5 grupos:
 
 | Grupo | Campos |
 |-------|--------|
-| **Principales** | `title`, `description`, `focuskw`, `focuskeywords`, `canonical`, `bctitle`, `redirect`, `cornerstone` |
+| **Principales** | `title`, `metadesc`, `focuskw`, `focuskeywords`, `canonical`, `bctitle`, `redirect`, `cornerstone` |
 | **Robots** | `noindex`, `nofollow`, `robots_adv`, `noarchive`, `nosnippet`, `noimageindex` |
 | **Open Graph** | `og_title`, `og_description`, `og_image`, `og_image_id`, `og_url` |
 | **Twitter** | `twitter_title`, `twitter_description`, `twitter_image` |
@@ -243,6 +264,53 @@ El hook `wp_head` genera automáticamente:
 - Robots meta (`<meta name="robots">`)
 - **JSON-LD Schema** (`WebPage`, `WebSite`, `Organization` con `SearchAction`)
 - **Redirección 301** si `gpai_wpseo_redirect` está configurado
+
+### Schema JSON-LD — Estructura de Salida
+
+```json
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "{canonical}#webpage",
+      "url": "{canonical}",
+      "name": "{title}",
+      "description": "{metadesc}",
+      "inLanguage": "{site_language}",
+      "isPartOf": {"@id": "{home}#website"},
+      "publisher": {"@id": "{home}#organization"},
+      "image": "{og_image}",
+      "keywords": "{focuskw}",
+      "datePublished": "...",
+      "dateModified": "..."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "{home}#website",
+      "url": "{home}",
+      "name": "{site_name}",
+      "description": "{site_description}",
+      "publisher": {"@id": "{home}#organization"},
+      "potentialAction": [{"@type":"SearchAction", ...}]
+    },
+    {
+      "@type": "Organization",
+      "@id": "{home}#organization",
+      "name": "{site_name}",
+      "url": "{home}",
+      "logo": {...},
+      "image": {...}
+    }
+  ]
+}
+```
+
+Los bloques adicionales definidos en `gpai_wpseo_schema_extra_json` se agregan al `@graph`. Cada objeto debe tener `@type` para ser incluido.
+
+### Eliminación de Otros JSON-LD
+
+Cuando `gpai_wpseo_remove_other_jsonld` está activo, el plugin elimina todos los `<script type="application/ld+json">` que no contengan la clase `gpai-seo-schema`, mediante output buffering en `template_redirect`.
 
 ### Anulación de Yoast SEO
 
@@ -323,6 +391,33 @@ El archivo `src/prompts/html-v1.txt` contiene el prompt especializado que instru
 
 ---
 
+## 🌐 Campos Globales
+
+El plugin incluye un sistema de **Campos Globales** accesible desde el submenú del mismo nombre. Permite crear variables reutilizables con los siguientes tipos:
+
+| Tipo | Descripción |
+|------|-------------|
+| `text` | Texto plano |
+| `textarea` | Texto multilínea |
+| `number` | Valor numérico |
+| `email` | Correo electrónico |
+| `url` | URL |
+| `wysiwyg` | Editor visual (TinyMCE) |
+
+Los campos se almacenan como opciones de WordPress con prefijo `GPAI_GLOBAL_FIELDS_{key}` y un índice en `GPAI_GLOBAL_FIELDS_INDEX`. Se referencian en contenido y plantillas mediante `{g{nombre_variable}}`.
+
+---
+
+## 🔒 Editor .htaccess
+
+El submenú **.htaccess** permite gestionar archivos `.htaccess` desde el admin:
+- Listar archivos `.htaccess` existentes en la raíz de WordPress
+- Editar el contenido de cualquier archivo
+- Crear nuevos archivos `.htaccess`
+- Eliminar archivos existentes
+
+---
+
 ## 🔌 Hooks
 
 ### Filtros de Contenido
@@ -343,7 +438,8 @@ El archivo `src/prompts/html-v1.txt` contiene el prompt especializado que instru
 - `document_title_parts` → `GPAI_SEO_override_document_title()` — Anula el título del documento.
 
 ### Otros Filtros
-- `gpai_seo_schema` — Filtro para modificar la salida del Schema JSON-LD.
+- `gpai_seo_schema` — Filtro para modificar la salida del Schema JSON-LD (aplica sobre el array `@graph` antes de `wp_json_encode`).
+- `wpseo_robots_array` — `GPAI_SEO_override_yoast_robots_array()` — Anula robots array de Yoast.
 - `wpseo_schema_graph` — `GPAI_SEO_clean_yoast_schema()` — Limpia propiedades internas no estándar (`description_schema_fallback`) del schema de Yoast.
 - `site_transient_update_plugins` — Integración con el auto-actualizador de GitHub.
 
@@ -354,7 +450,8 @@ El archivo `src/prompts/html-v1.txt` contiene el prompt especializado que instru
 - `elementor/editor/after_enqueue_scripts` — Carga de JS en el editor de Elementor.
 - `elementor/editor/after_enqueue_styles` — Carga de CSS en el editor de Elementor.
 - `wp_head` — Salida de etiquetas SEO y Schema JSON-LD.
-- `template_redirect` — Manejo de redirección 301.
+- `template_redirect` — Manejo de redirección 301 y eliminación de otros JSON-LD (output buffer).
+- `wp_robots` — Eliminación de robots meta por defecto (priority 15).
 
 ### AJAX
 - `wp_ajax_gpai_export_post` — Exportar datos de un post.
@@ -368,21 +465,98 @@ El archivo `src/prompts/html-v1.txt` contiene el prompt especializado que instru
 - `wp_ajax_gpai_save_global_field` — Guardar un valor `global_` de plantilla para un post.
 - `wp_ajax_gpai_seo_save` — Guardar campos GPAI SEO desde la meta box (AJAX).
 - `wp_ajax_gpai_seo_generate` — Generar datos SEO con IA (Gemini) para un post.
+- `wp_ajax_gpai_seo_export` — Exportar campos GPAI SEO a JSON.
+- `wp_ajax_gpai_seo_import` — Importar campos GPAI SEO desde JSON.
 - `wp_ajax_gpai_html_generate` — Optimizar HTML estático con IA para un post.
 - `wp_ajax_gpai_html_swap` — Alternar entre HTML normal y optimizado en un post.
 - `wp_ajax_gpai_sitemap_generate` — Generar contenido XML de sitemap con IA usando Gemini. Reemplaza `{{URL_BASE}}`, `{{URL_PAGINAS_LIST}}`, `{{URL_POSTS_LIST}}`, `{{PAGINAS_IMAGES}}` y `{{POSTS_IMAGES}}` con datos reales del sitio.
+- `wp_ajax_gpai_sitemap_save_generate` — Guardar configuración + generar XML de sitemap con IA.
+- `wp_ajax_gpai_sitemap_save_xml` — Escribir archivo XML de sitemap en la raíz de WordPress.
 
 ---
 
 ## 🔐 Seguridad
 
-- ✅ Todos los valores de campos usan `wp_kses_post()` para sanitizar HTML permitido.
+- ✅ Todos los valores de campos usan `wp_kses_post()` para sanitizar HTML permitido (excepto `gpai_wpseo_schema_extra_json` que usa `sanitize_textarea_field` para preservar JSON).
 - ✅ Las capacidades requeridas son `manage_options` y/o `edit_post`.
 - ✅ Los nonces de WordPress se verifican en todas las peticiones AJAX (incluyendo GPAI SEO y Elementor).
 - ✅ Las claves de variación se codifican en base64 para evitar roturas en formularios HTML.
 - ✅ El panel de Elementor solo se activa si `ELEMENTOR_VERSION` está definido.
 - ✅ Validación de JSON en importaciones antes de procesar.
 - ✅ Sanitización específica por tipo de dato (`sanitize_text_field`, `sanitize_key`, `intval`, `esc_attr`, `esc_url`).
+
+---
+
+## 📦 Constantes Globales
+
+| Constante | Valor | Propósito |
+|-----------|-------|-----------|
+| `GPAI_KEY` | `'GPAI'` | Prefijo de opciones, meta keys y slugs |
+| `GPAI_CONFIG` | `'GPAI_CONFIG'` | Opción de configuración del plugin |
+| `GPAI_CONTENT` | `'GPAI_CONTENT'` | Variaciones de posts generadas |
+| `GPAI_DIR` | `plugin_dir_path(__FILE__)` | Ruta absoluta del plugin |
+| `GPAI_URL` | `plugin_dir_url(__FILE__)` | URL base del plugin |
+| `GPAI_KEY_SEPARETE` | `'____GPAI____'` | Separador en valores de formularios |
+| `GPAI_CONTENT_INDEPENDIENTE_META` | `'GPAI_CONTENT_INDEPENDIENTE'` | Post meta flag de contenido independiente |
+| `GPAI_TEMPLATES_CONFIG` | `'GPAI_TEMPLATES_CONFIG'` | Configuración de plantillas |
+| `GPAI_TEMPLATES_CONTENT` | `'GPAI_TEMPLATES_CONTENT'` | Variaciones de plantillas |
+
+---
+
+## 🗄️ Post Meta Keys
+
+### Sistema GPAI SEO (25 campos)
+```
+gpai_wpseo_active                 → '1'/'0'
+gpai_wpseo_title                  → string
+gpai_wpseo_metadesc               → string
+gpai_wpseo_focuskw                → string
+gpai_wpseo_focuskeywords          → string (JSON)
+gpai_wpseo_canonical              → string (URL)
+gpai_wpseo_bctitle                → string
+gpai_wpseo_redirect               → string (URL)
+gpai_wpseo_is_cornerstone         → '1'/'0'
+gpai_wpseo_meta-robots-noindex    → '1'/'0'
+gpai_wpseo_meta-robots-nofollow   → '1'/'0'
+gpai_wpseo_meta-robots-adv        → string
+gpai_wpseo_meta-robots-noarchive  → '1'/'0'
+gpai_wpseo_meta-robots-nosnippet  → '1'/'0'
+gpai_wpseo_meta-robots-noimageindex → '1'/'0'
+gpai_wpseo_opengraph-title        → string
+gpai_wpseo_opengraph-description  → string
+gpai_wpseo_opengraph-image        → URL
+gpai_wpseo_opengraph-image-id     → string (ID)
+gpai_wpseo_opengraph-url          → URL
+gpai_wpseo_twitter-title          → string
+gpai_wpseo_twitter-description    → string
+gpai_wpseo_twitter-image          → URL
+gpai_wpseo_schema_page_type       → string
+gpai_wpseo_schema_article_type    → string
+gpai_wpseo_schema_extra_json      → string (JSON)
+gpai_wpseo_remove_other_jsonld    → '1'/'0'
+```
+
+### Sistema de Plantillas y Herencias
+| Meta Key | Propósito |
+|----------|-----------|
+| `_g_{key}` | Valor default de variable global en plantilla Elementor |
+| `global_{key}` | Valor sobrescrito en un post específico |
+| `GPAI_PARENT` | ID del post padre (contenido independiente) |
+| `GPAI_CONTENT_INDEPENDIENTE` | `'1'` = tiene contenido propio, `'0'` = hereda |
+
+---
+
+## ⚙️ Opciones de WordPress (wp_options)
+
+| Option Key | Propósito |
+|------------|-----------|
+| `GPAI_CONFIG` | Config global: API key, modelo, flags, prompts base |
+| `GPAI_CONTENT` | Variaciones de posts pendientes de generar |
+| `GPAI_TEMPLATES_CONFIG` | Config de plantillas: prompts, campos |
+| `GPAI_TEMPLATES_CONTENT` | Variaciones de plantillas pendientes |
+| `GPAI_SITEMAP_CONFIGS` | Config de sitemaps: URLs habilitadas, frecuencia, prioridad |
+| `GPAI_GLOBAL_FIELDS_INDEX` | Índice de campos globales |
+| `GPAI_GLOBAL_FIELDS_{key}` | Valor de campo global individual |
 
 ---
 
