@@ -109,18 +109,7 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
             'post_status' => 'draft',
         ];
 
-        if (!$content_independiente) {
-            $update_post_data['post_content'] = '';
-        }
-
         wp_update_post($update_post_data);
-
-        if (!$content_independiente) {
-            delete_post_meta(
-                $new_post_id,
-                '_elementor_data'
-            );
-        }
 
         /*
         |--------------------------------------------------------------------------

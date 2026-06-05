@@ -11,7 +11,7 @@ function GPAI_get_global_field($key)
 
 function GPAI_replace_custom_vars($content, $depth = 0)
 {
-    if(isset($_GET['GPAI_CUSTOM_FIELDS_DISABLE'])){
+    if (isset($_GET['GPAI_CUSTOM_FIELDS_DISABLE'])) {
         return $content;
     }
 
@@ -121,67 +121,70 @@ function GPAI_replace_custom_vars($content, $depth = 0)
     return $content;
 }
 
-function GPAI_inherit_parent_content($content)
-{
-    if (!is_singular() || is_admin()) {
-        return $content;
+add_filter('the_content', 'GPAI_replace_custom_vars', 20);
+
+add_action('template_redirect', function () {
+
+    if (isset($_GET['GPAI_DISABLE'])) {
+        return;
+    }
+    if (isset($_GET['preview']) && $_GET['preview'] == 'true') {
+        return;
+    }
+    if (isset($_GET["action"]) && $_GET["action"] == "elementor") {
+        return;
+    }
+    if (
+        defined('ELEMENTOR_VERSION') &&
+        (
+            \Elementor\Plugin::$instance->editor->is_edit_mode()
+            || \Elementor\Plugin::$instance->preview->is_preview_mode()
+        )
+    ) {
+        return;
+    }
+    // Admin
+    if (is_admin()) {
+        return;
     }
 
-    $post_id = get_the_ID();
-    if (!$post_id) {
-        return $content;
+    // AJAX
+    if (wp_doing_ajax()) {
+        return;
     }
+
+    // REST API
+    if (defined('REST_REQUEST') && REST_REQUEST) {
+        return;
+    }
+    if (!is_page()) {
+        return;
+    }
+
+    global $post;
+
+    if (!$post) {
+        return;
+    }
+    $post_id = $post->ID;
 
     $content_independiente = get_post_meta($post_id, GPAI_CONTENT_INDEPENDIENTE_META, true);
-    if ($content_independiente != '0') {
-        return $content;
+    if ($content_independiente !== '0') {
+        return;
     }
 
     $parent_id = get_post_meta($post_id, GPAI_KEY . '_PARENT', true);
     if (!$parent_id) {
-        return $content;
+        return;
     }
 
     $parent_post = get_post($parent_id);
     if (!$parent_post) {
-        return $content;
+        return;
     }
     
-    return $parent_post->post_content;
-}
-add_filter('the_content', 'GPAI_inherit_parent_content', 10);
-
-add_filter('the_content', 'GPAI_replace_custom_vars',20);
-
-/*
-|--------------------------------------------------------------------------
-| INTERCEPTAR _elementor_data PARA PÁGINAS EN MODO HEREDADO
-|--------------------------------------------------------------------------
-*/
-
-add_filter('get_post_metadata', function ($value, $object_id, $meta_key, $single) {
-    if ($meta_key !== '_elementor_data') {
-        return $value;
-    }
-
-    static $recursing = false;
-    if ($recursing) {
-        return $value;
-    }
-    $recursing = true;
-
-    $content_independiente = get_post_meta($object_id, GPAI_CONTENT_INDEPENDIENTE_META, true);
-    if ($content_independiente === '0') {
-        $parent_id = get_post_meta($object_id, GPAI_KEY . '_PARENT', true);
-        if ($parent_id) {
-            $parent_value = get_post_meta($parent_id, $meta_key, true);
-            if (!empty($parent_value)) {
-                $recursing = false;
-                return $single ? $parent_value : [$parent_value];
-            }
-        }
-    }
-
-    $recursing = false;
-    return $value;
-}, 50, 4);
+    $url = get_permalink($parent_id) . "?GPAI_CUSTOM_FIELDS_DISABLE&STPA_DISABLE";
+    $html = file_get_contents($url);
+    echo GPAI_replace_custom_vars($html);
+    exit;
+}, 2);
