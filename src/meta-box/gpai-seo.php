@@ -408,7 +408,11 @@ function GPAI_SEO_import_ajax()
     if (!empty($import['camposGpaiSeo'])) {
         $gf = [];
         foreach ($import['camposGpaiSeo'] as $campo) {
-            $gf[sanitize_text_field($campo['key'])] = wp_kses_post($campo['valor']);
+            $key = sanitize_text_field($campo['key']);
+            $val = $campo['valor'];
+            $gf[$key] = ($key === 'gpai_wpseo_schema_extra_json')
+                ? sanitize_textarea_field($val)
+                : wp_kses_post($val);
         }
         GPAI_SEO::SET($post_id, $gf);
     }

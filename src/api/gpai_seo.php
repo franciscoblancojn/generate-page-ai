@@ -65,6 +65,8 @@ class GPAI_SEO
             $original = $value;
             if (is_array($value)) {
                 $value = wp_json_encode($value, JSON_UNESCAPED_UNICODE);
+            } elseif ($key === 'gpai_wpseo_schema_extra_json') {
+                $value = sanitize_textarea_field($value);
             } else {
                 $value = wp_kses_post($value);
             }

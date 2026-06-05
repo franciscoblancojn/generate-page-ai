@@ -163,12 +163,15 @@ function GPAI_SEO_output_jsonld($post_id, $post, $values, $title, $desc, $canoni
 
     // --- Additional Schema Blocks from Extra JSON ---
     if (!empty($values['gpai_wpseo_schema_extra_json'])) {
-        $extra_json = $values['gpai_wpseo_schema_extra_json'];
-        if (function_exists('GPAI_replace_custom_vars')) {
-            $extra_json = GPAI_replace_custom_vars($extra_json);
-        }
-        $extra = json_decode($extra_json, true);
+        $extra = json_decode($values['gpai_wpseo_schema_extra_json'], true);
         if (is_array($extra)) {
+            if (function_exists('GPAI_replace_custom_vars')) {
+                array_walk_recursive($extra, function (&$value) {
+                    if (is_string($value)) {
+                        $value = GPAI_replace_custom_vars($value);
+                    }
+                });
+            }
             foreach ($extra as $block) {
                 if (isset($block['@type'])) {
                     $graph[] = $block;
