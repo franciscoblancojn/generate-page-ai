@@ -15,4 +15,5 @@ return array(
     'franciscoblancojn\\wordpress_utils\\FWURespond' => $vendorDir . '/franciscoblancojn/wordpress_utils/src/FWURespond.php',
     'franciscoblancojn\\wordpress_utils\\FWUSystemLog' => $vendorDir . '/franciscoblancojn/wordpress_utils/src/FWUSystemLog.php',
     'franciscoblancojn\\wordpress_utils\\FWUTooltip' => $vendorDir . '/franciscoblancojn/wordpress_utils/src/FWUTooltip.php',
+    'franciscoblancojn\\wordpress_utils\\FWUUpdate' => $vendorDir . '/franciscoblancojn/wordpress_utils/src/FWUUpdate.php',
 );

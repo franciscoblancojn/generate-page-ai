@@ -37,8 +37,9 @@ function GPAI_get_version()
     $plugin_version = $plugin_data['Version'];
     return $plugin_version;
 }
-require_once GPAI_DIR . 'update.php';
-github_updater_plugin_wordpress_v1([
+use franciscoblancojn\wordpress_utils\FWUUpdate;
+
+FWUUpdate::init([
     'basename' => GPAI_BASENAME,
     'dir' => GPAI_DIR,
     'file' => "index.php",

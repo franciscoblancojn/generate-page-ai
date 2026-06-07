@@ -17,6 +17,22 @@ if (!class_exists("FWUPage") && function_exists("add_action")) {
             echo static::html(...$args);
         }
 
+        public static function tabs($tags, $defaultTag): void
+        {
+?>
+            <div class="nav-tab-wrapper woo-nav-tab-wrapper">
+                <?php foreach ($tags as $tag): ?>
+                    <a
+                        class="nav-tab <?= $tag['key'] === $defaultTag ? 'nav-tab-active' : '' ?>"
+                        data-tab="<?= $tag['key'] ?>"
+                        href="#tag-<?= $tag['key'] ?>">
+                        <?= $tag['title'] ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+<?php
+        }
+
         public static function html(...$args): string
         {
             $pageKey = $args[0] ?? '';
@@ -51,24 +67,6 @@ if (!class_exists("FWUPage") && function_exists("add_action")) {
             </div>
 <?php
             return ob_get_clean();
-        }
-
-        public static function tabs($tags, $defaultTag = ''): void
-        {
-            if (empty($tags)) return;
-            $defaultTag = $defaultTag ?: ($tags[0]['key'] ?? '');
-?>
-            <div class="nav-tab-wrapper woo-nav-tab-wrapper">
-                <?php foreach ($tags as $tag): ?>
-                    <a
-                        class="nav-tab <?= $tag['key'] === $defaultTag ? 'nav-tab-active' : '' ?>"
-                        data-tab="<?= $tag['key'] ?>"
-                        href="#tag-<?= $tag['key'] ?>">
-                        <?= $tag['title'] ?>
-                    </a>
-                <?php endforeach; ?>
-            </div>
-<?php
         }
 
         public static function css(): string
@@ -117,8 +115,9 @@ if (!class_exists("FWUPage") && function_exists("add_action")) {
             return ob_get_clean();
         }
 
-        public static function js($pageKey = ''): string
+        public static function js(...$args): string
         {
+            $pageKey = $args[0] ?? '';
             ob_start();
 ?>
             <script>
