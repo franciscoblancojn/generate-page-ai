@@ -1,6 +1,8 @@
 <?php
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUTooltip;
 
 
 if (isset($_POST['save']) && $_POST['save'] == "config") {
@@ -29,12 +31,12 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
 
 ?>
 <form method="post">
-    <?= GPAI_Respond($respond_config) ?>
+    <?php FWURespond::render($respond_config) ?>
     <input type="hidden" name="save" value="config">
     <table class="form-table">
         <tr>
             <th scope="row">
-                <?= GPAI_Tooltip("API KEY", "Api key de Gemini para generar contenido con IA.") ?>
+                <?php FWUTooltip::render("API KEY", "Api key de Gemini para generar contenido con IA.") ?>
             </th>
             <td>
                 <input
@@ -55,7 +57,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
         ?>
             <tr>
                 <th scope="row">
-                    <?= GPAI_Tooltip("Modelo", "Modelo de IA que se usa.") ?>
+                    <?php FWUTooltip::render("Modelo", "Modelo de IA que se usa.") ?>
                 </th>
                 <td>
                     <select id="modelo" name="modelo" class="regular-text">
@@ -76,7 +78,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
 
         <!-- <tr>
             <th scope="row">
-                <?= GPAI_Tooltip("Generar images.", "Permitir que Gemini genere la imagen principal para tus duplicados.") ?>
+                <?php FWUTooltip::render("Generar images.", "Permitir que Gemini genere la imagen principal para tus duplicados.") ?>
             </th>
             <td>
                 <input
@@ -94,7 +96,7 @@ if (isset($_POST['save']) && $_POST['save'] == "config") {
         </tr> -->
         <tr>
             <th scope="row">
-                <?= GPAI_Tooltip("Contenido independiente", "Si está activo, las páginas generadas guardan su propio contenido (comportamiento actual). Si está desactivado, las páginas heredan el contenido de la página base, ahorrando espacio en base de datos y permitiendo que cambios de estilo en la página base se reflejen automáticamente en todas sus variaciones.") ?>
+                <?php FWUTooltip::render("Contenido independiente", "Si está activo, las páginas generadas guardan su propio contenido (comportamiento actual). Si está desactivado, las páginas heredan el contenido de la página base, ahorrando espacio en base de datos y permitiendo que cambios de estilo en la página base se reflejen automáticamente en todas sus variaciones.") ?>
             </th>
             <td>
                 <input

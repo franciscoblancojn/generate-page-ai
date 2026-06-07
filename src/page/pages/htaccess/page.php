@@ -1,17 +1,11 @@
 <?php
-require_once GPAI_DIR . 'src/css/global.php';
+
+use franciscoblancojn\wordpress_utils\FWUPage;
+
+echo FWUPage::css();
 
 $GPAI_USE_DATA_HTACCESS = new GPAI_USE_DATA_HTACCESS();
 $HTACCESS = $GPAI_USE_DATA_HTACCESS->get();
-
-$TAGS = [
-    [
-        'key' => 'htaccess',
-        'title' => '.htaccess',
-    ],
-];
-
-$defaultTag = $TAGS[0]['key'];
 
 ?>
 <div id="page-<?= GPAI_KEY ?>" class="wrap">
@@ -22,4 +16,4 @@ $defaultTag = $TAGS[0]['key'];
 </div>
 <?php
 
-require_once GPAI_DIR . 'src/js/global.php';
+echo FWUPage::js(GPAI_KEY);

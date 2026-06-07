@@ -1,6 +1,17 @@
 <?php
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUTooltip;
+use franciscoblancojn\wordpress_utils\FWUCollapse;
+use franciscoblancojn\wordpress_utils\FWUExportImport;
+use franciscoblancojn\wordpress_utils\FWUModal;
+
+static $fwueAssets = false;
+if (!$fwueAssets) {
+    echo FWUModal::css() . FWUModal::js() . FWUExportImport::css() . FWUExportImport::js();
+    $fwueAssets = true;
+}
 
 $template_id = $TEMPLATE_CONFIG['template_id'] ?? null;
 $globalFields = [];
@@ -104,12 +115,12 @@ if (isset($template_id)) {
 
 ?>
 <form method="post">
-    <?= GPAI_Respond($respond_plantilla ?? null) ?>
+    <?php FWURespond::render($respond_plantilla ?? null) ?>
     <input type="hidden" name="save" value="template_fields">
     <table class="form-table">
         <tr>
             <th scope="row">
-                <?= GPAI_Tooltip("Plantilla Elementor", "Selecciona una plantilla Elementor para gestionar sus variables globales {g{variable}}.") ?>
+                <?php FWUTooltip::render("Plantilla Elementor", "Selecciona una plantilla Elementor para gestionar sus variables globales {g{variable}}.") ?>
             </th>
             <td>
                 <div class="content-btn">
@@ -157,7 +168,7 @@ if (isset($template_id)) {
     <?php
     if (isset($template_id) && !empty($globalFields)) {
     ?>
-        <?= GPAI_Collapse(
+        <?php FWUCollapse::render(
             "Variables Globales <code>{g{...}}</code>",
             GPAI_Table_Fields("globalFields", [
                 "Variable Global",
@@ -176,12 +187,8 @@ if (isset($template_id)) {
                 class="button">
                 Guardar Variables y Prompts
             </button>
-            <button type="button" class="button" onclick="gpaiExport('gpai_export_template',{template_id:'<?= $template_id ?>'},'plantilla-<?= $template_id ?>-campos.json')">
-                Exportar JSON
-            </button>
-            <button type="button" class="button" onclick="gpaiOpenModal('gpai-modal-template')">
-                Importar JSON
-            </button>
+            <?= FWUExportImport::exportButtonHtml('gpai_export_template', ['template_id' => $template_id], 'plantilla-' . $template_id . '-campos.json') ?>
+            <?= FWUExportImport::importButtonHtml('gpai-modal-template') ?>
         </div>
 
         <h3>Prompt para generar contenido global</h3>
@@ -218,18 +225,5 @@ if (isset($template_id)) {
     ?>
 </form>
 
-<div id="gpai-modal-template" class="gpai-modal">
-    <div class="gpai-modal-content">
-        <span class="gpai-modal-close" onclick="gpaiCloseModal('gpai-modal-template')">&times;</span>
-        <h3>Importar JSON &mdash; Plantilla</h3>
-        <p>
-            <input type="file" class="gpai-import-file" accept=".json">
-        </p>
-        <textarea class="gpai-import-data" rows="12" placeholder="Pega el JSON aquí o selecciona un archivo..."></textarea>
-        <div class="gpai-modal-actions">
-            <button type="button" class="button button-primary gpai-import-btn" onclick="gpaiImport('gpai_import_template',{template_id:'<?= $template_id ?? '' ?>'},'gpai-modal-template',true)">Importar</button>
-            <button type="button" class="button" onclick="gpaiCloseModal('gpai-modal-template')">Cancelar</button>
-        </div>
-    </div>
-</div>
+<?= FWUExportImport::html('gpai-modal-template', 'Importar JSON &mdash; Plantilla', 'gpai_import_template', ['template_id' => $template_id ?? ''], true) ?>
 <?php

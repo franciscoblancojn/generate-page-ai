@@ -1,5 +1,8 @@
 <?php
 
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUTooltip;
+
 $CONFIG ??= [];
 $key_post_id = 'post_id_by_html';
 $post_id = isset($_POST[$key_post_id]) ? intval($_POST[$key_post_id]) : ($CONFIG[$key_post_id] ?? 0);
@@ -33,12 +36,12 @@ if (isset($post_id)) {
 
 ?>
 <form method="post">
-    <?= GPAI_Respond($respond_content ?? null) ?>
+    <?php FWURespond::render($respond_content ?? null) ?>
     <input type="hidden" name="save" value="html">
     <table class="form-table">
         <tr>
             <th scope="row">
-                <?= GPAI_Tooltip("Página Estática", "Selecciona un post para verificar si tiene página estática generada por Static Page.") ?>
+                <?php FWUTooltip::render("Página Estática", "Selecciona un post para verificar si tiene página estática generada por Static Page.") ?>
             </th>
             <td>
                 <div class="content-btn">

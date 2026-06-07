@@ -1,5 +1,9 @@
 <?php
 
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUTooltip;
+use franciscoblancojn\wordpress_utils\FWUCollapse;
+
 $types = [
     'content' => 'Generar contenido (getPrompt)',
     // 'content_img' => 'Generar imagen (getPromptImg)', //de momento no esta disponible
@@ -104,7 +108,7 @@ function getContentCollapsePromptBase($type, $currentValue, $placeholders)
             <strong>Placeholders disponibles:</strong>
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
                 <?php foreach ($placeholders[$type] as $ph => $desc):
-                    echo GPAI_Tooltip(
+                    FWUTooltip::render(
                         ' <code style="background:#f1f3f5;padding:2px 8px;border-radius:3px;font-size:12px">' .
                             esc_html($ph) .
                             '</code>',
@@ -122,7 +126,7 @@ function getContentCollapsePromptBase($type, $currentValue, $placeholders)
 }
 ?>
 <form method="POST">
-    <?= GPAI_Respond($respond_prompts_base) ?>
+    <?php FWURespond::render($respond_prompts_base) ?>
     <div class="notice notice-warning">
         <p>
             <strong>⚠️ Aviso:</strong> Esta secci&oacute;n es de <strong>alto nivel</strong>.
@@ -136,7 +140,7 @@ function getContentCollapsePromptBase($type, $currentValue, $placeholders)
     <?php
     foreach ($types as $type => $label):
         $currentValue = $storedPrompts[$type] ?? getBasePromptDefaultForType($type);
-        echo GPAI_Collapse(
+        FWUCollapse::render(
             esc_html($label),
             getContentCollapsePromptBase($type, $currentValue, $placeholders),
             true

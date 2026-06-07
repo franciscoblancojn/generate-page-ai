@@ -1,6 +1,9 @@
 <?php
+
+use franciscoblancojn\wordpress_utils\FWUPage;
+
 try {
-    require_once GPAI_DIR . 'src/css/global.php';
+    echo FWUPage::css();
 
     $GPAI_USE_DATA_CONFIG = new GPAI_USE_DATA_CONFIG();
     $GPAI_USE_DATA_DUPLICADOS = new GPAI_USE_DATA_DUPLICADOS();
@@ -23,20 +26,7 @@ try {
 ?>
     <div id="page-<?= GPAI_KEY ?>" class="wrap">
         <h1>Generate Page AI</h1>
-        <div class="nav-tab-wrapper woo-nav-tab-wrapper">
-            <?php
-            foreach ($TAGS  as $key => $value) {
-            ?>
-                <a
-                    class="nav-tab <?= $value['key'] == $defaultTag ? "nav-tab-active" : "" ?>"
-                    data-tab="<?= $value['key'] ?>"
-                    href="#tag-<?= $value['key'] ?>">
-                    <?= $value['title'] ?>
-                </a>
-            <?php
-            }
-            ?>
-        </div>
+        <?php FWUPage::tabs($TAGS, $defaultTag); ?>
         <?php
         foreach ($TAGS  as $key => $value) {
         ?>
@@ -51,7 +41,7 @@ try {
     </div>
 <?php
 
-    require_once GPAI_DIR . 'src/js/global.php';
+    echo FWUPage::js(GPAI_KEY);
 } catch (\Throwable $th) {
     $error = [
         "status" => "error",

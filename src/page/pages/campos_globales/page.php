@@ -1,5 +1,8 @@
 <?php
-require_once GPAI_DIR . 'src/css/global.php';
+
+use franciscoblancojn\wordpress_utils\FWUPage;
+
+echo FWUPage::css();
 
 $TAGS = [
     [
@@ -13,20 +16,7 @@ $defaultTag = $TAGS[0]['key'];
 ?>
 <div id="page-<?= GPAI_KEY ?>" class="wrap">
     <h1>Campos Globales</h1>
-    <div class="nav-tab-wrapper woo-nav-tab-wrapper">
-        <?php
-        foreach ($TAGS as $key => $value) {
-        ?>
-            <a
-                class="nav-tab <?= $value['key'] == $defaultTag ? "nav-tab-active" : "" ?>"
-                data-tab="<?= $value['key'] ?>"
-                href="#tag-<?= $value['key'] ?>">
-                <?= $value['title'] ?>
-            </a>
-        <?php
-        }
-        ?>
-    </div>
+    <?php FWUPage::tabs($TAGS, $defaultTag); ?>
     <?php
     foreach ($TAGS as $key => $value) {
     ?>
@@ -41,4 +31,4 @@ $defaultTag = $TAGS[0]['key'];
 </div>
 <?php
 
-require_once GPAI_DIR . 'src/js/global.php';
+echo FWUPage::js(GPAI_KEY);

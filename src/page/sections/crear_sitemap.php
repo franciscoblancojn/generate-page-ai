@@ -1,6 +1,8 @@
 <?php
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUTooltip;
 
 $respond_crear = null;
 
@@ -49,14 +51,14 @@ if (isset($_POST['save']) && $_POST['save'] == "crear_sitemap") {
 }
 
 ?>
-<?= GPAI_Respond($respond_crear) ?>
+<?php FWURespond::render($respond_crear) ?>
 
 <form method="post">
     <input type="hidden" name="save" value="crear_sitemap">
     <table class="form-table">
         <tr>
             <th scope="row">
-                <?= GPAI_Tooltip("Nombre", "Nombre del archivo XML. Ej: sitemap-posts, sitemap-pages. Se agregara .xml automaticamente.") ?>
+                <?php FWUTooltip::render("Nombre", "Nombre del archivo XML. Ej: sitemap-posts, sitemap-pages. Se agregara .xml automaticamente.") ?>
             </th>
             <td>
                 <input
@@ -71,7 +73,7 @@ if (isset($_POST['save']) && $_POST['save'] == "crear_sitemap") {
         </tr>
         <tr>
             <th scope="row">
-                <?= GPAI_Tooltip("Contenido XML", "Contenido XML del Site Map. Deja vacio para llenarlo despues con generar.") ?>
+                <?php FWUTooltip::render("Contenido XML", "Contenido XML del Site Map. Deja vacio para llenarlo despues con generar.") ?>
             </th>
             <td>
                 <textarea
@@ -84,7 +86,7 @@ if (isset($_POST['save']) && $_POST['save'] == "crear_sitemap") {
         </tr>
         <tr>
             <th scope="row">
-                <?= GPAI_Tooltip("Prompt personalizado", "Instrucciones adicionales para la IA al generar el contenido XML.") ?>
+                <?php FWUTooltip::render("Prompt personalizado", "Instrucciones adicionales para la IA al generar el contenido XML.") ?>
             </th>
             <td>
                 <textarea

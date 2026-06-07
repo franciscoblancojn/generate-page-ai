@@ -1,6 +1,9 @@
 <?php
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUTooltip;
+use franciscoblancojn\wordpress_utils\FWUCollapse;
 
 /**
  * Encode button value to safely pass template_id + prompt + index
@@ -191,7 +194,7 @@ function getHeadCollapseTemplate($DATA, $template_id, $prompt, $v)
 
 ?>
 <form method="post">
-    <?= GPAI_Respond($respond_procesar_plantilla ?? null) ?>
+    <?php FWURespond::render($respond_procesar_plantilla ?? null) ?>
     <input type="hidden" name="save" value="template_pendding">
 
     <?php if (count($T_CONTENT) == 0) { ?>
@@ -217,7 +220,7 @@ function getHeadCollapseTemplate($DATA, $template_id, $prompt, $v)
             ?>
                 <tr>
                     <th scope="row">
-                        <?= GPAI_Tooltip("Plantilla", "Nombre de la plantilla Elementor.") ?>
+                        <?php FWUTooltip::render("Plantilla", "Nombre de la plantilla Elementor.") ?>
                     </th>
                     <td>
                         <strong><?= get_the_title($template_id) ?></strong>
@@ -225,7 +228,7 @@ function getHeadCollapseTemplate($DATA, $template_id, $prompt, $v)
                 </tr>
                 <tr>
                     <th scope="row">
-                        <?= GPAI_Tooltip("Variaciones", "Variaciones de contenido generadas.") ?>
+                        <?php FWUTooltip::render("Variaciones", "Variaciones de contenido generadas.") ?>
                     </th>
                 </tr>
                 <tr>
@@ -249,7 +252,7 @@ function getHeadCollapseTemplate($DATA, $template_id, $prompt, $v)
                                             $displayData = $DATA;
                                             unset($displayData['title']);
                                         ?>
-                                            <?= GPAI_Collapse(
+                                            <?php FWUCollapse::render(
                                                 getHeadCollapseTemplate($DATA, $template_id, $prompt, $v),
                                                 GPAI_Custom_Fields($displayData, false),
                                                 true

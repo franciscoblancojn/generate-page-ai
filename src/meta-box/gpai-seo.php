@@ -1,6 +1,8 @@
 <?php
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
+use franciscoblancojn\wordpress_utils\FWUExportImport;
+use franciscoblancojn\wordpress_utils\FWUModal;
 
 function GPAI_SEO_MetaBox_register()
 {
@@ -46,6 +48,12 @@ add_action('add_meta_boxes', 'GPAI_SEO_MetaBox_register');
 
 function GPAI_SEO_MetaBox_render($post)
 {
+    static $fwueAssets = false;
+    if (!$fwueAssets) {
+        echo FWUModal::css() . FWUModal::js() . FWUExportImport::css() . FWUExportImport::js();
+        $fwueAssets = true;
+    }
+
     wp_nonce_field('gpai_seo_save', 'gpai_seo_nonce');
 
     $allFields = GPAI_SEO::getFields();
@@ -124,25 +132,14 @@ function GPAI_SEO_MetaBox_render($post)
     echo '<button type="button" id="gpai-seo-save-btn" class="button button-primary">Guardar SEO</button>';
     echo '<button type="button" id="gpai-seo-generate-btn" class="button button-primary" data-post-id="' . esc_attr($post->ID) . '" data-nonce="' . esc_attr($generate_nonce) . '">Generar SEO con IA</button>';
     echo '<a href="https://validator.schema.org/#url=' . urlencode(get_permalink($post->ID)) . '" target="_blank" class="button">Validar SEO</a>';
-    echo '<button type="button" class="button" onclick="gpaiExport(\'gpai_seo_export\',{post_id:' . $post->ID . '},\'seo-' . $post->ID . '.json\')">Exportar SEO</button>';
-    echo '<button type="button" class="button" onclick="gpaiOpenModal(\'gpai-modal-seo\')">Importar SEO</button>';
+    echo FWUExportImport::exportButtonHtml('gpai_seo_export', ['post_id' => $post->ID], 'seo-' . $post->ID . '.json');
+    echo FWUExportImport::importButtonHtml('gpai-modal-seo');
     echo '<span id="gpai-seo-save-status" style="font-style:italic;font-size:13px;"></span>';
     echo '</div>';
 
     echo '</div>';
 
-    echo '<div id="gpai-modal-seo" class="gpai-modal">';
-    echo '    <div class="gpai-modal-content">';
-    echo '        <span class="gpai-modal-close" onclick="gpaiCloseModal(\'gpai-modal-seo\')">&times;</span>';
-    echo '        <h3>Importar JSON &mdash; GPAI SEO</h3>';
-    echo '        <p><input type="file" class="gpai-import-file" accept=".json"></p>';
-    echo '        <textarea class="gpai-import-data" rows="12" placeholder="Pega el JSON aquí o selecciona un archivo..."></textarea>';
-    echo '        <div class="gpai-modal-actions">';
-    echo '            <button type="button" class="button button-primary gpai-import-btn" onclick="gpaiImport(\'gpai_seo_import\',{post_id:' . $post->ID . '},\'gpai-modal-seo\',true)">Importar</button>';
-    echo '            <button type="button" class="button" onclick="gpaiCloseModal(\'gpai-modal-seo\')">Cancelar</button>';
-    echo '        </div>';
-    echo '    </div>';
-    echo '</div>';
+    echo FWUExportImport::html('gpai-modal-seo', 'Importar JSON &mdash; GPAI SEO', 'gpai_seo_import', ['post_id' => $post->ID], true);
 
     static $script_registered = false;
     if (!$script_registered) {

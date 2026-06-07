@@ -1,6 +1,8 @@
 <?php
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUCollapse;
 
 $respond_sitemaps = null;
 
@@ -53,7 +55,7 @@ if (isset($_POST['save']) && $_POST['save'] == "sitemap_delete") {
 }
 
 ?>
-<?= GPAI_Respond($respond_sitemaps) ?>
+<?php FWURespond::render($respond_sitemaps) ?>
 
 <?php if (empty($SITEMAPS)): ?>
     <p>No hay archivos XML de Site Maps en la raiz de WordPress. Ve a la pestaña "Crear Site Map" para crear uno.</p>
@@ -105,7 +107,7 @@ if (isset($_POST['save']) && $_POST['save'] == "sitemap_delete") {
             </div>
         </form>';
 
-        echo GPAI_Collapse($collapse_title, $collapse_content, false);
+        FWUCollapse::render($collapse_title, $collapse_content, false);
         ?>
     <?php endforeach; ?>
 <?php endif; ?>

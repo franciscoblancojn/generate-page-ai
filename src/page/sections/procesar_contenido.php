@@ -1,4 +1,8 @@
 <?php
+
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUTooltip;
+use franciscoblancojn\wordpress_utils\FWUCollapse;
 // var_dump([
 //     "is_user_admin" => current_user_can( 'manage_options' )
 // ]);
@@ -144,14 +148,14 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
 
 ?>
 <form method="post">
-    <?= GPAI_Respond($respond_duplicates_pendding) ?>
+    <?php FWURespond::render($respond_duplicates_pendding) ?>
     <?php
     if (isset($respond_duplicates_pendding_all)) {
         if ($respond_duplicates_pendding_all['status'] == 'error') {
-            echo GPAI_Respond($respond_duplicates_pendding_all);
+            FWURespond::render($respond_duplicates_pendding_all);
         } else {
             foreach ($respond_duplicates_pendding_all['data'] as $key => $respond) {
-                echo GPAI_Respond($respond);
+                FWURespond::render($respond);
             }
         }
     }
@@ -226,7 +230,7 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
         ?>
             <tr>
                 <th scope="row">
-                    <?= GPAI_Tooltip(" Post Name", "Nombre de la pagina a generar.") ?>
+                    <?php FWUTooltip::render(" Post Name", "Nombre de la pagina a generar.") ?>
                 </th>
                 <td>
                     <?= get_the_title($post_id); ?>
@@ -234,7 +238,7 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
             </tr>
             <tr>
                 <th scope="row">
-                    <?= GPAI_Tooltip("Variaciones", "Variacion de pagina a generar.") ?>
+                    <?php FWUTooltip::render("Variaciones", "Variacion de pagina a generar.") ?>
                 </th>
             </tr>
             <tr>
@@ -263,21 +267,21 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                                         $yoastFields = $value['yoastFields'];
                                         $gpaiSeoFields = $value['gpaiSeoFields'] ?? [];
                                     ?>
-                                        <?= GPAI_Collapse(
+                                        <?php FWUCollapse::render(
                                             getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v),
                                             "" .
-                                                GPAI_Collapse(
+                                                FWUCollapse::html(
                                                     "Custom Fields",
                                                     GPAI_Custom_Fields($customFields, false),
                                                     true
                                                 ) .
-                                                GPAI_Collapse(
+                                                FWUCollapse::html(
                                                     "Custom SEO",
                                                     GPAI_Custom_Gpai_Seo($gpaiSeoFields, false),
                                                     true
                                                 ) .
                                                 (
-                                                    function_exists('YoastSEO') ?  GPAI_Collapse(
+                                                    function_exists('YoastSEO') ?  FWUCollapse::html(
                                                         "Yoast Seo",
                                                         GPAI_Custom_Fields($yoastFields, false),
                                                         true

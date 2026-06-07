@@ -1,5 +1,8 @@
 <?php
 
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUCollapse;
+
 $all_configs = get_option('GPAI_SITEMAP_CONFIGS', []);
 
 $selected_sitemap = '';
@@ -108,7 +111,7 @@ foreach ($posts_by_type['Paginas'] ?? [] as $page) {
 ksort($pages_by_segment);
 
 ?>
-<?= GPAI_Respond($respond_urls ?? null) ?>
+<?php FWURespond::render($respond_urls ?? null) ?>
 
 <form method="post">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;padding:12px;background:#f0f0f1;border-radius:6px;">
@@ -207,19 +210,19 @@ ksort($pages_by_segment);
                         <strong style="padding-left:1rem;">Raíz</strong>
                         <span style="font-weight:400;font-size:12px;color:#666;">' . count($root_pages) . ' páginas</span>
                     </div>';
-                    $inner .= GPAI_Collapse($sub_title, GPAI_Table_Post_By_Url($root_pages, $enabled_posts), false);
+                    $inner .= FWUCollapse::html($sub_title, GPAI_Table_Post_By_Url($root_pages, $enabled_posts), false);
                 }
                 foreach ($pages_by_segment as $segment => $segment_pages) {
                     $sub_title = '<div class="content-title-btn" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding-right:2rem;">
                         <strong style="padding-left:1rem;">' . esc_html($segment) . '</strong>
                         <span style="font-weight:400;font-size:12px;color:#666;">' . count($segment_pages) . ' páginas</span>
                     </div>';
-                    $inner .= GPAI_Collapse($sub_title, GPAI_Table_Post_By_Url($segment_pages, $enabled_posts), false);
+                    $inner .= FWUCollapse::html($sub_title, GPAI_Table_Post_By_Url($segment_pages, $enabled_posts), false);
                 }
-                echo GPAI_Collapse($collapse_title, $inner, false);
+                FWUCollapse::render($collapse_title, $inner, false);
             } else {
                 $table = GPAI_Table_Post_By_Url($posts, $enabled_posts);
-                echo GPAI_Collapse($collapse_title, $table, false);
+                FWUCollapse::render($collapse_title, $table, false);
             }
             ?>
         <?php endforeach; ?>

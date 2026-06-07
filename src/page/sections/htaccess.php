@@ -1,6 +1,7 @@
 <?php
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
+use franciscoblancojn\wordpress_utils\FWURespond;
 
 $respond_htaccess = null;
 
@@ -41,7 +42,7 @@ if (isset($_POST['save']) && $_POST['save'] === 'htaccess_update') {
 }
 
 ?>
-<?= GPAI_Respond($respond_htaccess) ?>
+<?php FWURespond::render($respond_htaccess) ?>
 
 <div class="gpai-section">
     <form method="post">

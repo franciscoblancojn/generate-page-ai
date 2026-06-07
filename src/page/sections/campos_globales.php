@@ -1,6 +1,7 @@
 <?php
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
+use franciscoblancojn\wordpress_utils\FWURespond;
 
 $GPAI_USE_DATA_GLOBAL_FIELDS = new GPAI_USE_DATA_GLOBAL_FIELDS();
 $GLOBAL_FIELDS = $GPAI_USE_DATA_GLOBAL_FIELDS->getAll();
@@ -55,7 +56,7 @@ if (isset($_POST['delete']) && $_POST['delete'] === 'campo_global') {
 
 ?>
 
-<?= GPAI_Respond($respond) ?>
+<?php FWURespond::render($respond) ?>
 
 <form method="post">
     <input type="hidden" name="save" value="campo_global">

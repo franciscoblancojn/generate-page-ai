@@ -1,6 +1,17 @@
 <?php
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
+use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUTooltip;
+use franciscoblancojn\wordpress_utils\FWUCollapse;
+use franciscoblancojn\wordpress_utils\FWUExportImport;
+use franciscoblancojn\wordpress_utils\FWUModal;
+
+static $fwueAssets = false;
+if (!$fwueAssets) {
+    echo FWUModal::css() . FWUModal::js() . FWUExportImport::css() . FWUExportImport::js();
+    $fwueAssets = true;
+}
 
 $CONFIG ??= [];
 $post_id = $CONFIG['post_id'];
@@ -204,12 +215,12 @@ if (isset($post_id)) {
 
 ?>
 <form method="post">
-    <?= GPAI_Respond($respond_content) ?>
+    <?php FWURespond::render($respond_content) ?>
     <input type="hidden" name="save" value="duplication">
     <table class="form-table">
         <tr>
             <th scope="row">
-                <?= GPAI_Tooltip("Post", "Selecciona la página a duplicar.") ?>
+                <?php FWUTooltip::render("Post", "Selecciona la página a duplicar.") ?>
             </th>
             <td>
                 <div class="content-btn">
@@ -294,7 +305,7 @@ if (isset($post_id)) {
     if (isset($post_id)) {
         $post = get_post_meta($post_id);
     ?>
-        <?= GPAI_Collapse(
+        <?php FWUCollapse::render(
             "Custom Fields <code>{{...}}</code>",
             GPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt']),
             true
@@ -309,24 +320,22 @@ if (isset($post_id)) {
         $gpaiSeoContent .= '<span class="gpai-seo-generate-status" style="margin-left:8px;font-style:italic;"></span>';
         $gpaiSeoContent .= '</div>';
         ?>
-        <?= GPAI_Collapse("Gpai SEO", $gpaiSeoContent, true) ?>
+        <?php FWUCollapse::render("Gpai SEO", $gpaiSeoContent, true) ?>
         <?php foreach ($template_ids_detected as $tpl_id) {
             $fields = $globalFieldsByTemplate[$tpl_id] ?? [];
             if (empty($fields)) continue;
         ?>
-            <?= GPAI_Collapse(
+            <?php FWUCollapse::render(
                 "Campos Globales <code>{g{...}}</code> (" . get_the_title($tpl_id) . ")",
                 GPAI_Global_Fields($fields, $globalPromptsByTemplate[$tpl_id], $globalOverridesByTemplate[$tpl_id], 'tpl_' . $tpl_id),
                 true
             )
             ?>
         <?php } ?>
-        <?= function_exists('YoastSEO') ?  GPAI_Collapse(
+        <?php if (function_exists('YoastSEO')) FWUCollapse::render(
             "Yoast Seo",
             GPAI_Custom_Fields($yoastFields, $CONFIG['yoastFields_prompt'])
-        )
-            : ""
-        ?>
+        ) ?>
         <div class="content-btn">
             <button
                 type="submit"
@@ -336,12 +345,8 @@ if (isset($post_id)) {
                 Guardar Campos y Prompts Personalisados
             </button>
             <?php if ($post_id) { ?>
-                <button type="button" class="button" onclick="gpaiExport('gpai_export_post',{post_id:'<?= $post_id ?>'},'post-<?= $post_id ?>-campos.json')">
-                    Exportar JSON
-                </button>
-                <button type="button" class="button" onclick="gpaiOpenModal('gpai-modal-post')">
-                    Importar JSON
-                </button>
+                <?= FWUExportImport::exportButtonHtml('gpai_export_post', ['post_id' => $post_id], 'post-' . $post_id . '-campos.json') ?>
+                <?= FWUExportImport::importButtonHtml('gpai-modal-post') ?>
             <?php } ?>
         </div>
         <h3>Prompt para generar Contenido</h3>
@@ -376,18 +381,5 @@ if (isset($post_id)) {
 
 </form>
 
-<div id="gpai-modal-post" class="gpai-modal">
-    <div class="gpai-modal-content">
-        <span class="gpai-modal-close" onclick="gpaiCloseModal('gpai-modal-post')">&times;</span>
-        <h3>Importar JSON &mdash; Post</h3>
-        <p>
-            <input type="file" class="gpai-import-file" accept=".json">
-        </p>
-        <textarea class="gpai-import-data" rows="12" placeholder="Pega el JSON aquí o selecciona un archivo..."></textarea>
-        <div class="gpai-modal-actions">
-            <button type="button" class="button button-primary gpai-import-btn" onclick="gpaiImport('gpai_import_post',{post_id:'<?= $post_id ?? '' ?>'},'gpai-modal-post',true)">Importar</button>
-            <button type="button" class="button" onclick="gpaiCloseModal('gpai-modal-post')">Cancelar</button>
-        </div>
-    </div>
-</div>
+<?= FWUExportImport::html('gpai-modal-post', 'Importar JSON &mdash; Post', 'gpai_import_post', ['post_id' => $post_id ?? ''], true) ?>
 <?php
