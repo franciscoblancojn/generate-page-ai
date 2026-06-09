@@ -1,6 +1,6 @@
 # Generate Page AI — Contexto para IAs
 
-> Plug-in WordPress v1.14.1 — Generado automáticamente para que IAs entren en contexto rápido.
+> Plug-in WordPress v1.15.1 — Generado automáticamente para que IAs entren en contexto rápido.
 
 ---
 
@@ -31,15 +31,19 @@ Genera páginas y contenido usando Google Gemini. Permite:
 | `GPAI_CONTENT_INDEPENDIENTE_META` | `'GPAI_CONTENT_INDEPENDIENTE'` | `post_meta` → flag contenido independiente |
 | `GPAI_TEMPLATES_CONFIG` | `'GPAI_TEMPLATES_CONFIG'` | `wp_options` → config de plantillas |
 | `GPAI_TEMPLATES_CONTENT` | `'GPAI_TEMPLATES_CONTENT'` | `wp_options` → variaciones de plantillas |
+| `GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE` | `'GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE'` | `wp_options` → flag generar páginas con contenido independiente |
+| `GPAI_LOG` | `true` | Habilita logs del plugin |
+| `GPAI_LOG_KEY` | `'GPAI_LOG'` | Clave para opción de logs |
+| `GPAI_LOG_COUNT` | `100` | Máximo de entradas de log |
+| `GPAI_BASENAME` | `plugin_basename(__FILE__)` | Base name del plugin |
 
 ---
 
 ## Estructura de archivos
 
 ```
-index.php               → Plugin header, constantes, auto-updater GitHub
+index.php               → Plugin header, constantes, auto-updater GitHub (vía Composer)
 libs/                   → Composer vendor (franciscoblancojn/wordpress_utils)
-update.php              → GitHub updater
 src/
   _.php                 → Cargador maestro (require de todos los módulos)
   ai/
@@ -53,6 +57,9 @@ src/
     cf_template.php     → GPAI_CF_TEMPLATE: API variables {g{...}}
     export_import.php   → GPAI_EXPORT_IMPORT: Export/Import JSON
     sitemaps.php        → GPAI_SITEMAPS_API: Generación sitemaps con IA
+  css/
+    global.php          → Estilos admin inline
+    elementor-editor.css → Estilos panel flotante Elementor
   data/
     base.php            → GPAI_USE_DATA_BASE: CRUD genérico wp_options
     config.php          → GPAI_USE_DATA_CONFIG: Config plugin
@@ -68,8 +75,11 @@ src/
     gpai-seo-output.php → Salida <head>: meta tags, JSON-LD, anulación Yoast
   hook/
     content.php         → GPAI_replace_custom_vars(): reemplazo en frontend
+  js/
+    global.php          → JS admin: tabs, modales, export/import, SEO generate, HTML optimize/swap
+    elementor-editor.js → Panel flotante de campos personalizados en Elementor
   meta-box/
-    gpai-seo.php        → Meta box GPAI SEO (5 grupos, 24 campos, guardado AJAX)
+    gpai-seo.php        → Meta box GPAI SEO (5 grupos, 27 campos, guardado AJAX)
   page/
     add.php             → add_menu_page('Generate Page AI')
     page.php            → Layout con tabs (Config, Post, Prompts Base, etc.)
@@ -96,24 +106,20 @@ src/
       test.php          → Pruebas (solo dev mode)
       htaccess.php      → Editor .htaccess
   prompts/
-    content-v2.txt      → Prompt para generar contenido
+    content-v1.txt      → Prompt legacy para contenido
+    content-v2.txt      → Prompt para generar contenido (incluye GPAI SEO)
     content_img-v1.txt  → Prompt para generar imágenes
     template-v1.txt     → Prompt para variables globales
     seo-v1.txt          → Prompt para datos SEO
     html-v1.txt         → Prompt para optimizar HTML
     sitemap-v1.txt      → Prompt para sitemaps XML
   templates/
-    respond.php         → GPAI_Respond(): mensajes de estado
-    tooltip.php         → GPAI_Tooltip(): tooltips
-    collapse.php        → GPAI_Collapse(): acordeones
     table_fields.php    → GPAI_Table_Fields(): tabla genérica
     custom_fields.php   → GPAI_Custom_Fields(): campos personalizados
     custom_yoast.php    → GPAI_Custom_Yoast(): campos Yoast
     custom_gpai_seo.php → GPAI_Custom_Gpai_Seo(): campos GPAI SEO
     global_fields.php   → GPAI_Global_Fields(): {g{...}}
     table_post_by_url.php → GPAI_Table_Post_By_Url(): posts con checkbox
-  css/global.php        → Estilos admin inline
-  js/global.php         → JS admin: tabs, modales, export/import, SEO generate, HTML optimize/swap
 ```
 
 ---
@@ -142,7 +148,7 @@ src/
 ### GPAI_SEO (`src/api/gpai_seo.php`)
 | Método | Descripción |
 |---|---|
-| `getFields()` | Retorna array `[key => label]` de 25 campos SEO |
+| `getFields()` | Retorna array `[key => label]` de 27 campos SEO |
 | `GET($post_id)` | Lee todos los campos SEO del post como `[key => value]` |
 | `SET($post_id, $data)` | Guarda campos SEO (sanitiza con `wp_kses_post` o `wp_json_encode`) |
 | `getGroups()` | Retorna grupos: Principales, Robots, Open Graph, Twitter, Schema |
@@ -202,7 +208,7 @@ src/
 
 ## Post Meta Keys usados
 
-### Sistema GPAI SEO (25 campos)
+### Sistema GPAI SEO (27 campos)
 ```
 gpai_wpseo_active              → '1'/'0'
 gpai_wpseo_title               → string

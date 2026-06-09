@@ -18,7 +18,7 @@ Generate Page AI es un plugin de WordPress que potencia tus páginas con **intel
 - 🖌️ **Crear Plantilla desde Variación** — Convierte una variación de contenido en una nueva plantilla de Elementor independiente.
 - 🔍 **Vista Previa** — Previsualiza variaciones directamente en el editor de Elementor con los valores inyectados como parámetros.
 - 🧠 **Prompts Base Editables** — Personaliza los prompts base que usa la IA para generar contenido, SEO, optimización HTML y variables globales. Acceso desde Configuración > Prompts Base.
-- 🏷️ **GPAI SEO** — Sistema completo de SEO con 25 campos en 5 grupos (Principales, Robots, Open Graph, Twitter, Schema). Meta box en el editor de posts, salida de etiquetas `<head>`, Schema JSON-LD con soporte para **bloques adicionales** (`gpai_wpseo_schema_extra_json` generado por IA), **anulación de Yoast SEO**, y botón **Validar SEO** que abre Schema.org validator con la URL del post.
+- 🏷️ **GPAI SEO** — Sistema completo de SEO con 27 campos en 5 grupos (Principales, Robots, Open Graph, Twitter, Schema). Meta box en el editor de posts, salida de etiquetas `<head>`, Schema JSON-LD con soporte para **bloques adicionales** (`gpai_wpseo_schema_extra_json` generado por IA), **anulación de Yoast SEO**, y botón **Validar SEO** que abre Schema.org validator con la URL del post.
 - 🔄 **Auto-Update vía GitHub** — El plugin se actualiza automáticamente desde GitHub Releases cuando hay una nueva versión.
 - 📋 **Sistema de Logs** — Registro de actividad del plugin accesible desde la barra de administración.
 - 🧹 **Optimización HTML** — Subpágina "Optimización HTML" (visible solo si **Static Page** está activo). Selecciona un post (con selección persistente entre cargas), verifica si tiene HTML estático generado por Static Page, y permite **mejorar el HTML con IA** usando Gemini para optimizarlo (más liviano, misma apariencia). Guarda el resultado como `page-{id}-optimize.html` y registra la ruta en `STPA_PAGE_STATIC_HTML_FILE_OPTIMIZE`. Incluye un botón para **alternar entre HTML normal y optimizado** intercambiando la ruta activa.
@@ -53,20 +53,17 @@ Generate Page AI es un plugin de WordPress que potencia tus páginas con **intel
 
 ```
 generate-page-ai/
-├── index.php                     # Archivo principal (plugin header, constantes, updater)
-├── update.php                    # Auto-actualizador vía GitHub
+├── index.php                     # Archivo principal (plugin header, constantes, updater vía Composer)
 ├── composer.json                 # Dependencias Composer
 ├── package.json                  # Scripts de release/versionado
 ├── libs/                         # Dependencias (Composer vendor renombrado)
 ├── src/
 │   ├── _.php                     # Cargador maestro
 │   ├── ai/                       # Capa de IA (cliente Gemini, generación de contenido)
-│   │   ├── _.php
 │   │   ├── ai.php                # GPAI_AI - Cliente HTTP para Gemini
 │   │   ├── content.php           # GPAI_CONTENT - Orquestador de generación con templates editables
 │   │   └── prompt.php            # GPAI_PROMPT - Mejora de prompts vía IA
 │   ├── api/                      # API REST y handlers AJAX
-│   │   ├── _.php
 │   │   ├── cf.php                # GPAI_CF - CRUD de campos personalizados (incl. endpoints Elementor)
 │   │   ├── yoast.php             # GPAI_YOAST - API para metadatos Yoast SEO
 │   │   ├── gpai_seo.php          # GPAI_SEO - API para campos SEO personalizados
@@ -77,7 +74,6 @@ generate-page-ai/
 │   │   ├── global.php            # Estilos generales del admin
 │   │   └── elementor-editor.css  # Estilos del panel flotante en editor Elementor
 │   ├── data/                     # Persistencia de datos (opciones de WP)
-│   │   ├── _.php
 │   │   ├── base.php              # GPAI_USE_DATA_BASE - CRUD genérico con wp_options
 │   │   ├── config.php            # GPAI_USE_DATA_CONFIG - Configuración del plugin
 │   │   ├── duplicados.php        # GPAI_USE_DATA_DUPLICADOS - Variaciones de posts
@@ -86,73 +82,57 @@ generate-page-ai/
 │   │   ├── global_fields_data.php# GPAI_USE_DATA_GLOBAL_FIELDS - Campos globales {g{key}}
 │   │   └── htaccess_data.php     # GPAI_USE_DATA_HTACCESS - CRUD de archivos .htaccess
 │   ├── elementor/                # Integración con Elementor
-│   │   ├── _.php                 # Cargador condicional
 │   │   ├── editor.php            # Encola assets en el editor de Elementor
 │   │   └── frontend.php          # Filtros de reemplazo {{key}} en frontend de Elementor
 │   ├── frontend/                 # Salida en frontend
 │   │   └── gpai-seo-output.php   # GPAI_SEO_output - Etiquetas <head>, JSON-LD, anulación Yoast
 │   ├── hook/                     # Hooks de WordPress
-│   │   ├── _.php
 │   │   └── content.php           # GPAI_replace_custom_vars() - filtro the_content
 │   ├── js/                       # JavaScript
 │   │   ├── global.php            # JS general del admin (tabs, modales, export/import)
 │   │   └── elementor-editor.js   # Panel flotante de campos personalizados en Elementor
 │   ├── meta-box/                 # Meta boxes en el editor de posts
-│   │   └── gpai-seo.php          # GPAI SEO meta box (5 grupos, 25 campos, guardado AJAX)
+│   │   └── gpai-seo.php          # GPAI SEO meta box (5 grupos, 27 campos, guardado AJAX)
 │   ├── page/                     # Páginas del admin
-│   │   ├── _.php
 │   │   ├── add.php               # Registro del menú principal
 │   │   ├── page.php              # (no usado)
-│   │   └── pages/
-│   │       ├── _.php
-│   │       ├── config/           # Página de configuración
-│   │       │   ├── add.php       # Submenú "Configuración"
-│   │       │   └── page.php      # Layout con tabs: IA, Prompts Base, Pruebas
-│   │       ├── post/             # Página de posts
-│   │       │   ├── add.php       # Submenú "Post"
-│   │       │   └── page.php      # Layout con tabs
-│   │       ├── plantillas/       # Página de plantillas
-│   │       │   ├── add.php       # Submenú "Plantillas"
-│   │       │   └── page.php      # Layout con tabs
-│   │       ├── html/             # Página de optimización HTML
-│   │       │   ├── add.php       # Submenú "Optimización HTML" (solo si Static Page activo)
-│   │       │   └── page.php      # Layout con tabs
-│   │       ├── sitemaps/         # Página de Site Maps
-│   │       │   ├── add.php       # Submenú "Site Maps"
-│   │       │   └── page.php      # Layout con tabs
-│   │       ├── htaccess/         # Página de .htaccess
-│   │       │   ├── add.php       # Submenú ".htaccess"
-│   │       │   └── page.php      # Layout
-│   │       └── campos_globales/  # Página de Campos Globales
-│   │           ├── add.php       # Submenú "Campos Globales"
-│   │           └── page.php      # Layout
-│   ├── prompts/                  # Archivos de texto con templates de prompts por defecto
-│   │   ├── content-v1.txt        # Prompt original para contenido
-│   │   ├── content-v2.txt        # Prompt actualizado para contenido (incluye GPAI SEO)
-│   │   ├── content_img-v1.txt    # Prompt para generación de imágenes
-│   │   ├── template-v1.txt       # Prompt para variables globales de plantillas
-│   │   ├── seo-v1.txt            # Prompt para generación de datos GPAI SEO con IA
-│   │   ├── html-v1.txt           # Prompt para optimización de HTML estático con IA
-│   │   └── sitemap-v1.txt        # Prompt para generación de sitemaps XML con IA
-│   ├── sections/                 # Secciones de cada página
-│   │   ├── config.php            # API Key, modelo, toggle de imágenes
-│   │   ├── prompts_base.php      # Editor de prompts base (templates editables)
-│   │   ├── test.php              # Pruebas (dev mode)
-│   │   ├── post.php              # Gestión de posts
-│   │   ├── procesar_contenido.php# Variaciones de contenido
-│   │   ├── plantillas.php        # Gestión de plantillas
-│   │   ├── procesar_plantillas.php# Variaciones de plantillas
-│   │   ├── html.php              # Optimización HTML (selector de post, estado static, mejora con IA)
-│   │   ├── sitemaps.php          # Site Maps: listado de archivos XML con edición y generación IA
-│   │   ├── config-sitemaps.php   # Site Maps: configuración de URLs por tipo de contenido
-│   │   ├── crear_sitemap.php     # Site Maps: formulario para crear nuevos archivos XML
-│   │   ├── campos_globales.php   # CRUD de campos globales
-│   │   └── htaccess.php          # Editor de archivos .htaccess
+│   │   ├── pages/
+│   │   │   ├── config/           # Página de configuración
+│   │   │   │   ├── add.php       # Submenú "Configuración"
+│   │   │   │   └── page.php      # Layout con tabs: IA, Prompts Base, Pruebas
+│   │   │   ├── post/             # Página de posts
+│   │   │   │   ├── add.php       # Submenú "Post"
+│   │   │   │   └── page.php      # Layout con tabs
+│   │   │   ├── plantillas/       # Página de plantillas
+│   │   │   │   ├── add.php       # Submenú "Plantillas"
+│   │   │   │   └── page.php      # Layout con tabs
+│   │   │   ├── html/             # Página de optimización HTML
+│   │   │   │   ├── add.php       # Submenú "Optimización HTML" (solo si Static Page activo)
+│   │   │   │   └── page.php      # Layout con tabs
+│   │   │   ├── sitemaps/         # Página de Site Maps
+│   │   │   │   ├── add.php       # Submenú "Site Maps"
+│   │   │   │   └── page.php      # Layout con tabs
+│   │   │   ├── htaccess/         # Página de .htaccess
+│   │   │   │   ├── add.php       # Submenú ".htaccess"
+│   │   │   │   └── page.php      # Layout
+│   │   │   └── campos_globales/  # Página de Campos Globales
+│   │   │       ├── add.php       # Submenú "Campos Globales"
+│   │   │       └── page.php      # Layout
+│   │   └── sections/             # Secciones de cada página
+│   │       ├── config.php        # API Key, modelo, toggle de imágenes
+│   │       ├── prompts_base.php  # Editor de prompts base (templates editables)
+│   │       ├── test.php          # Pruebas (dev mode)
+│   │       ├── post.php          # Gestión de posts
+│   │       ├── procesar_contenido.php# Variaciones de contenido
+│   │       ├── plantillas.php    # Gestión de plantillas
+│   │       ├── procesar_plantillas.php# Variaciones de plantillas
+│   │       ├── html.php          # Optimización HTML (selector de post, estado static, mejora con IA)
+│   │       ├── sitemaps.php      # Site Maps: listado de archivos XML con edición y generación IA
+│   │       ├── config-sitemaps.php# Site Maps: configuración de URLs por tipo de contenido
+│   │       ├── crear_sitemap.php # Site Maps: formulario para crear nuevos archivos XML
+│   │       ├── campos_globales.php# CRUD de campos globales
+│   │       └── htaccess.php      # Editor de archivos .htaccess
 │   └── templates/                # Helpers de renderizado
-│       ├── _.php
-│       ├── respond.php           # GPAI_Respond() - Mensajes de estado
-│       ├── tooltip.php           # GPAI_Tooltip() - Tooltips
-│       ├── collapse.php          # GPAI_Collapse() - Acordeones
 │       ├── table_fields.php      # GPAI_Table_Fields() - Tabla genérica clave/valor
 │       ├── custom_fields.php     # GPAI_Custom_Fields() - Campos personalizados
 │       ├── custom_yoast.php      # GPAI_Custom_Yoast() - Campos Yoast
@@ -172,7 +152,7 @@ generate-page-ai/
 | `GPAI_PROMPT` | `src/ai/prompt.php` | 💡 Mejora de prompts existentes vía IA |
 | `GPAI_CF` | `src/api/cf.php` | 📦 API para campos personalizados de posts. Incluye endpoints AJAX para el editor de Elementor |
 | `GPAI_YOAST` | `src/api/yoast.php` | 🔍 API para metadatos Yoast SEO |
-| `GPAI_SEO` | `src/api/gpai_seo.php` | 🏷️ API para 25 campos SEO personalizados en 5 grupos |
+| `GPAI_SEO` | `src/api/gpai_seo.php` | 🏷️ API para 27 campos SEO personalizados en 5 grupos |
 | `GPAI_USE_DATA_GLOBAL_FIELDS` | `src/data/global_fields_data.php` | 🌐 Campos globales `{g{key}}` almacenados en opciones |
 | `GPAI_USE_DATA_HTACCESS` | `src/data/htaccess_data.php` | 🔒 CRUD de archivos .htaccess |
 | `GPAI_CF_TEMPLATE` | `src/api/cf_template.php` | 🧩 API para variables globales `{g{...}}` de plantillas |
@@ -230,7 +210,7 @@ El plugin incluye un **sistema completo de SEO** propio que puede funcionar junt
 
 ### Meta Box en el Editor
 
-Se agrega una meta box **"Gpai SEO"** en todos los post types públicos con 25 campos organizados en 5 grupos:
+Se agrega una meta box **"Gpai SEO"** en todos los post types públicos con 27 campos organizados en 5 grupos:
 
 | Grupo | Campos |
 |-------|--------|
@@ -505,7 +485,7 @@ El submenú **.htaccess** permite gestionar archivos `.htaccess` desde el admin:
 
 ## 🗄️ Post Meta Keys
 
-### Sistema GPAI SEO (25 campos)
+### Sistema GPAI SEO (27 campos)
 ```
 gpai_wpseo_active                 → '1'/'0'
 gpai_wpseo_title                  → string
