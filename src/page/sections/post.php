@@ -287,14 +287,39 @@ if (isset($post_id)) {
     </table>
     <?php
     if (isset($post_id)) {
-        $post = get_post_meta($post_id);
+        $parent_id = get_post_meta($post_id, GPAI_KEY . '_PARENT', true);
+        $GPAI_USE_DATA_GLOBAL_FIELDS = new GPAI_USE_DATA_GLOBAL_FIELDS();
+        $siteGlobalFields = $GPAI_USE_DATA_GLOBAL_FIELDS->getAll();
     ?>
+        <?php if (!empty($parent_id)) { ?>
+            <table class="form-table">
+                <tr>
+                    <th scope="row">GPAI Parent</th>
+                    <td>
+                        <a href="<?= get_edit_post_link($parent_id) ?>" target="_blank" class="button">
+                            Editar Padre (#<?= $parent_id ?> - <?= esc_html(get_the_title($parent_id)) ?>)
+                        </a>
+                        <a href="<?= get_permalink($parent_id) ?>" target="_blank" class="button">
+                            Ver Padre
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        <?php } ?>
         <?php FWUCollapse::render(
             "Custom Fields <code>{{...}}</code>",
             GPAI_Custom_Fields($customFields, $CONFIG['customFields_prompt']),
             true
         )
         ?>
+        <?php if (!empty($siteGlobalFields)) { ?>
+            <?php FWUCollapse::render(
+                "Campos Globales del Sitio <code>{{...}}</code>",
+                GPAI_Custom_Fields($siteGlobalFields, false),
+                true
+            )
+            ?>
+        <?php } ?>
         <?php
         $gpaiSeoContent = GPAI_Custom_Gpai_Seo_Grouped($gpaiSeoFields, $CONFIG['gpaiSeoFields_prompt'] ?? []);
         $gpaiSeoContent .= '<div class="content-btn" style="padding:12px 0 0;">';
