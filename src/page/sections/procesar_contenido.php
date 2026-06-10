@@ -64,7 +64,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
             GPAI_CF::SET($post_id, $customFields);
             $respond_duplicates_pendding = [
                 "status" => "ok",
-                "message" => "Campos personalisados Guardados.",
+                "message" => "Campos guardados.",
                 'data' => [],
             ];
         }
@@ -73,7 +73,29 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
             GPAI_SEO::SET($post_id, $gpaiSeoFields);
             $respond_duplicates_pendding = [
                 "status" => "ok",
-                "message" => "Campos personalisados Guardados.",
+                "message" => "Campos guardados.",
+                'data' => [],
+            ];
+        }
+        $globalFieldsPost = $DATA['globalFields'] ?? [];
+        if (!empty($globalFieldsPost)) {
+            foreach ($globalFieldsPost as $key => $value) {
+                update_post_meta($post_id, $key, wp_kses_post($value));
+            }
+            $respond_duplicates_pendding = [
+                "status" => "ok",
+                "message" => "Campos guardados.",
+                'data' => [],
+            ];
+        }
+        $templateFieldsPost = $DATA['templateFields'] ?? [];
+        if (!empty($templateFieldsPost)) {
+            foreach ($templateFieldsPost as $key => $value) {
+                update_post_meta($post_id, 'global_' . $key, wp_kses_post($value));
+            }
+            $respond_duplicates_pendding = [
+                "status" => "ok",
+                "message" => "Campos guardados.",
                 'data' => [],
             ];
         }
