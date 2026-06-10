@@ -30,7 +30,7 @@ class GPAI_CONTENT
         return file_get_contents($file);
     }
 
-    public static function getPromptImg($post_id, $customFields, $yoastFields, $gpaiSeoFields = [])
+    public static function getPromptImg($post_id, $customFields, $gpaiSeoFields = [])
     {
         $title = get_the_title($post_id);
         $imageUrl = get_the_post_thumbnail_url($post_id, 'full') ?? "no tiene";
@@ -40,7 +40,6 @@ class GPAI_CONTENT
         $replacements = [
             '{{title}}' => $title,
             '{{customFields}}' => json_encode($customFields, JSON_UNESCAPED_UNICODE),
-            '{{yoastFields}}' => json_encode($yoastFields, JSON_UNESCAPED_UNICODE),
             '{{gpaiSeoFields}}' => json_encode($gpaiSeoFields, JSON_UNESCAPED_UNICODE),
             '{{imageUrl}}' => $imageUrl,
         ];
@@ -55,8 +54,6 @@ class GPAI_CONTENT
             "prompt" => $prompt,
             "customFields" => $customFields,
             "customFields_prompt" => $customFields_prompt,
-            "yoastFields" => $yoastFields,
-            "yoastFields_prompt" => $yoastFields_prompt,
         ] = $CONFIG;
 
         $gpaiSeoFields = $CONFIG['gpaiSeoFields'] ?? [];
@@ -72,9 +69,7 @@ class GPAI_CONTENT
             '{{title}}' => $title,
             '{{customFields}}' => json_encode($customFields, JSON_UNESCAPED_UNICODE),
             '{{customFields_prompt}}' => json_encode(array_filter($customFields_prompt, 'strlen'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-            '{{yoastFields}}' => json_encode($yoastFields, JSON_UNESCAPED_UNICODE),
-            '{{yoastFields_prompt}}' => json_encode(array_filter($yoastFields_prompt, 'strlen'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-            '{{gpaiSeoFields}}' => json_encode($gpaiSeoFields, JSON_UNESCAPED_UNICODE),
+             '{{gpaiSeoFields}}' => json_encode($gpaiSeoFields, JSON_UNESCAPED_UNICODE),
             '{{gpaiSeoFields_prompt}}' => json_encode(array_filter($gpaiSeoFields_prompt, 'strlen'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             '{{globalFields}}' => json_encode($globalFields, JSON_UNESCAPED_UNICODE),
             '{{templateFields}}' => json_encode($templateFields, JSON_UNESCAPED_UNICODE),
@@ -84,8 +79,6 @@ class GPAI_CONTENT
         $sections = [
             '----CAMPOS PERSONALIZADOS----' => '{{customFields}}',
             '----PROMPTS PARA CAMPOS PERSONALIZADOS----' => '{{customFields_prompt}}',
-            '----DATOS DE YOAST SEO----' => '{{yoastFields}}',
-            '----PROMPTS PARA DATOS DE YOAST SEO----' => '{{yoastFields_prompt}}',
             '----DATOS DE GPAI SEO----' => '{{gpaiSeoFields}}',
             '----PROMPTS PARA DATOS DE GPAI SEO----' => '{{gpaiSeoFields_prompt}}',
             '----CAMPOS GLOBALES----' => '{{globalFields}}',
@@ -161,7 +154,6 @@ class GPAI_CONTENT
                 $result['data'][$key] = self::normalizeFields(
                     $item,
                     $CONFIG['customFields'],
-                    $CONFIG['yoastFields']
                 );
             }
             FWUSystemLog::add(GPAI_KEY, [
@@ -172,7 +164,7 @@ class GPAI_CONTENT
             ]);
             if ($CONFIG['generate_img']) {
                 foreach ($result['data'] as $key => $value) {
-                    $PROMPTBYIMG = self::getPromptImg($CONFIG['post_id'], $value['customFields'], $value['yoastFields'], $value['gpaiSeoFields'] ?? []);
+                    $PROMPTBYIMG = self::getPromptImg($CONFIG['post_id'], $value['customFields'], $value['gpaiSeoFields'] ?? []);
                     $result_img = GPAI_AI::sendPrompt($PROMPTBYIMG);
                     if ($result_img['status'] == 'ok') {
                         $result_img['data'] = GPAI_AI::parseJson($result_img['data']);
@@ -205,24 +197,16 @@ class GPAI_CONTENT
         }
     }
 
-    public static function normalizeFields($item, $customFields, $yoastFields)
+    public static function normalizeFields($item, $customFields)
     {
         $allowedCustomFields = array_keys($customFields);
-        $allowedYoastFields = array_keys($yoastFields);
         $allowedGpaiSeoFields = array_keys(GPAI_SEO::getFields());
 
         $normalizedCustomFields = [];
-        $normalizedYoastFields = [];
         $normalizedGpaiSeoFields = [];
 
         if (!empty($item['customFields']) && is_array($item['customFields'])) {
             foreach ($item['customFields'] as $key => $value) {
-                if (strpos($key, '_yoast_wpseo_') === 0) {
-                    if (in_array($key, $allowedYoastFields)) {
-                        $normalizedYoastFields[$key] = $value;
-                    }
-                    continue;
-                }
                 if (strpos($key, 'gpai_wpseo_') === 0) {
                     if (in_array($key, $allowedGpaiSeoFields)) {
                         $normalizedGpaiSeoFields[$key] = $value;
@@ -231,26 +215,6 @@ class GPAI_CONTENT
                 }
                 if (in_array($key, $allowedCustomFields)) {
                     $normalizedCustomFields[$key] = $value;
-                }
-            }
-        }
-
-        if (!empty($item['yoastFields']) && is_array($item['yoastFields'])) {
-            foreach ($item['yoastFields'] as $key => $value) {
-                if (strpos($key, '_yoast_wpseo_') !== 0) {
-                    if (strpos($key, 'gpai_wpseo_') === 0) {
-                        if (in_array($key, $allowedGpaiSeoFields)) {
-                            $normalizedGpaiSeoFields[$key] = $value;
-                        }
-                        continue;
-                    }
-                    if (in_array($key, $allowedCustomFields)) {
-                        $normalizedCustomFields[$key] = $value;
-                    }
-                    continue;
-                }
-                if (in_array($key, $allowedYoastFields)) {
-                    $normalizedYoastFields[$key] = $value;
                 }
             }
         }
@@ -264,7 +228,6 @@ class GPAI_CONTENT
         }
 
         $item['customFields'] = $normalizedCustomFields;
-        $item['yoastFields'] = $normalizedYoastFields;
         $item['gpaiSeoFields'] = $normalizedGpaiSeoFields;
 
         return $item;

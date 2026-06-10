@@ -16,7 +16,6 @@ if (!$fwueAssets) {
 $CONFIG ??= [];
 $post_id = $CONFIG['post_id'];
 $customFields = [];
-$yoastFields = [];
 $gpaiSeoFields = [];
 $respond_content = null;
 
@@ -33,8 +32,6 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             if ($CONFIG['post_id'] != $post_id) {
                 $CONFIG['customFields'] = [];
                 $CONFIG['customFields_prompt'] = [];
-                $CONFIG['yoastFields'] = [];
-                $CONFIG['yoastFields_prompt'] = [];
                 $CONFIG['gpaiSeoFields'] = [];
                 $CONFIG['gpaiSeoFields_prompt'] = [];
             }
@@ -55,29 +52,16 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                     'data' => [],
                 ];
             }
-            $yoastFields = $_POST['yoastFields'] ?? [];
-            if (!empty($yoastFields)) {
-                GPAI_YOAST::SET($post_id, $yoastFields);
-                $respond_content = [
-                    "status" => "ok",
-                    "message" => "Campos personalisados Guardados.",
-                    'data' => [],
-                ];
-            }
             $gpaiSeoFields = $_POST['gpaiSeoFields'] ?? [];
             if (!empty($gpaiSeoFields)) {
                 GPAI_SEO::SET($post_id, $gpaiSeoFields);
             }
             $CONFIG['customFields'] = $_POST['customFields'] ?? [];
-            $CONFIG['yoastFields'] = $_POST['yoastFields'] ?? [];
             $CONFIG['gpaiSeoFields'] = $_POST['gpaiSeoFields'] ?? [];
             $CONFIG['customFields_prompt'] = array_map(function ($v) {
                 return GPAI_CONTENT::cleanPromptText($v);
             }, $_POST['customFields_prompt'] ?? []);
 
-            $CONFIG['yoastFields_prompt'] = array_map(function ($v) {
-                return GPAI_CONTENT::cleanPromptText($v);
-            }, $_POST['yoastFields_prompt'] ?? []);
             $CONFIG['gpaiSeoFields_prompt'] = array_map(function ($v) {
                 return GPAI_CONTENT::cleanPromptText($v);
             }, $_POST['gpaiSeoFields_prompt'] ?? []);
@@ -115,7 +99,6 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                 "campos" => [
                     "PROMP BASE",
                     "PROMPTS PARA CAMPOS PERSONALIZADOS",
-                    "PROMPTS PARA DATOS DE YOAST SEO",
                     "PROMPTS PARA DATOS DE GPAI SEO"
                 ],
             ]);
@@ -128,13 +111,6 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                     foreach ($data["PROMPTS PARA CAMPOS PERSONALIZADOS"] as $key => $value) {
                         if ((isset($value) && !empty($value) && isset($CONFIG['customFields_prompt'][$key]))) {
                             $CONFIG['customFields_prompt'][$key] = $value;
-                        }
-                    }
-                }
-                if (isset($data["PROMPTS PARA DATOS DE YOAST SEO"])) {
-                    foreach ($data["PROMPTS PARA DATOS DE YOAST SEO"] as $key => $value) {
-                        if ((isset($value) && !empty($value) && isset($CONFIG['yoastFields_prompt'][$key]))) {
-                            $CONFIG['yoastFields_prompt'][$key] = $value;
                         }
                     }
                 }
@@ -152,10 +128,8 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             if (isset($prompt)) {
                 $CONFIG['prompt'] = $prompt;
                 $customFields = GPAI_CF::GET($post_id);
-                $yoastFields = GPAI_YOAST::GET($post_id);
                 $gpaiSeoFields = GPAI_SEO::GET($post_id);
                 $CONFIG['customFields'] = $customFields;
-                $CONFIG['yoastFields'] = $yoastFields;
                 $CONFIG['gpaiSeoFields'] = $gpaiSeoFields;
 
                 $GPAI_USE_DATA_GLOBAL_FIELDS = new GPAI_USE_DATA_GLOBAL_FIELDS();
@@ -174,7 +148,6 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                     $POST_DATA = $DUPLICADOS[$post_id] ?? [];
                     $POST_DATA['post_id'] = $post_id;
                     $POST_DATA['customFields'] = $customFields;
-                    $POST_DATA['yoastFields'] = $yoastFields;
                     $POST_DATA['gpaiSeoFields'] = $gpaiSeoFields;
                     $POST_DATA['variations'] ??= [];
                     $POST_DATA['variations'][$prompt] = $respond_content['data'];
@@ -191,7 +164,6 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
 }
 if (isset($post_id)) {
     $customFields = GPAI_CF::GET($post_id);
-    $yoastFields = GPAI_YOAST::GET($post_id);
     $gpaiSeoFields = GPAI_SEO::GET($post_id);
 }
 
@@ -344,10 +316,6 @@ if (isset($post_id)) {
             )
             ?>
         <?php } ?>
-        <?php if (function_exists('YoastSEO')) FWUCollapse::render(
-            "Yoast Seo",
-            GPAI_Custom_Fields($yoastFields, $CONFIG['yoastFields_prompt'])
-        ) ?>
         <div class="content-btn">
             <button
                 type="submit"
