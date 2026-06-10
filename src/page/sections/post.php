@@ -157,6 +157,18 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                 $CONFIG['customFields'] = $customFields;
                 $CONFIG['yoastFields'] = $yoastFields;
                 $CONFIG['gpaiSeoFields'] = $gpaiSeoFields;
+
+                $GPAI_USE_DATA_GLOBAL_FIELDS = new GPAI_USE_DATA_GLOBAL_FIELDS();
+                $CONFIG['globalFields'] = $GPAI_USE_DATA_GLOBAL_FIELDS->getAll();
+
+                $template_ids_detected = GPAI_CF_TEMPLATE::getPostTemplates($post_id);
+                $templateFields = [];
+                foreach ($template_ids_detected as $template_id) {
+                    $templateVars = GPAI_CF_TEMPLATE::GET($template_id);
+                    $templateFields[get_the_title($template_id)] = $templateVars;
+                }
+                $CONFIG['templateFields'] = $templateFields;
+
                 $respond_content = GPAI_CONTENT::getContent($CONFIG);
                 if ($respond_content['status'] == 'ok') {
                     $POST_DATA = $DUPLICADOS[$post_id] ?? [];

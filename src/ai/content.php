@@ -61,6 +61,8 @@ class GPAI_CONTENT
 
         $gpaiSeoFields = $CONFIG['gpaiSeoFields'] ?? [];
         $gpaiSeoFields_prompt = $CONFIG['gpaiSeoFields_prompt'] ?? [];
+        $globalFields = $CONFIG['globalFields'] ?? [];
+        $templateFields = $CONFIG['templateFields'] ?? [];
 
         $title = get_the_title($post_id);
 
@@ -74,6 +76,8 @@ class GPAI_CONTENT
             '{{yoastFields_prompt}}' => json_encode($yoastFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             '{{gpaiSeoFields}}' => json_encode($gpaiSeoFields, JSON_UNESCAPED_UNICODE),
             '{{gpaiSeoFields_prompt}}' => json_encode($gpaiSeoFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            '{{globalFields}}' => json_encode($globalFields, JSON_UNESCAPED_UNICODE),
+            '{{templateFields}}' => json_encode($templateFields, JSON_UNESCAPED_UNICODE),
             '{{prompt}}' => $prompt,
         ];
 

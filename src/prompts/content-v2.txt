@@ -19,6 +19,12 @@
 ----PROMPTS PARA DATOS DE GPAI SEO----
 {{gpaiSeoFields_prompt}}
 
+----CAMPOS GLOBALES----
+{{globalFields}}
+
+----CAMPOS DE PLANTILLAS----
+{{templateFields}}
+
 ----PROMPT BASE----
 {{prompt}}
 
