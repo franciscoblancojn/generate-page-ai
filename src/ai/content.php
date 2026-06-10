@@ -249,9 +249,12 @@ class GPAI_CONTENT
         }
 
         if (!empty($item['templateFields']) && is_array($item['templateFields'])) {
-            foreach ($item['templateFields'] as $key => $value) {
-                if (in_array($key, $allowedTemplateFields)) {
-                    $normalizedTemplateFields[$key] = $value;
+            foreach ($item['templateFields'] as $tplName => $tplFields) {
+                if (!is_array($tplFields)) continue;
+                foreach ($tplFields as $key => $value) {
+                    if (in_array($key, $allowedTemplateFields)) {
+                        $normalizedTemplateFields[$key] = $value;
+                    }
                 }
             }
         }
