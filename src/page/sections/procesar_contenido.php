@@ -256,6 +256,8 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                                     foreach ($variation as $v => $value) {
                                         $customFields = $value['customFields'];
                                         $gpaiSeoFields = $value['gpaiSeoFields'] ?? [];
+                                        $globalFields = $value['globalFields'] ?? [];
+                                        $templateFields = $value['templateFields'] ?? [];
                                     ?>
                                         <?php FWUCollapse::render(
                                             getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v),
@@ -269,8 +271,17 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                                                     "Custom SEO",
                                                     GPAI_Custom_Gpai_Seo($gpaiSeoFields, false),
                                                     true
-                                                ) 
-                                                ,
+                                                ) .
+                                                FWUCollapse::html(
+                                                    "Global Fields",
+                                                    GPAI_Custom_Fields($globalFields, false),
+                                                    true
+                                                ) .
+                                                FWUCollapse::html(
+                                                    "Template Fields",
+                                                    GPAI_Custom_Fields($templateFields, false),
+                                                    true
+                                                ),
                                             true
                                         )
                                         ?>

@@ -44,7 +44,9 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
         $title,
         $custom_fields = [],
         $yoastFields = [],
-        $gpaiSeoFields = []
+        $gpaiSeoFields = [],
+        $globalFields = [],
+        $templateFields = []
     ) {
 
         $post = get_post($post_id);
@@ -176,6 +178,34 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
 
         /*
         |--------------------------------------------------------------------------
+        | GLOBAL FIELDS ({{key}})
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($globalFields as $key => $value) {
+            update_post_meta(
+                $new_post_id,
+                $key,
+                $value
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TEMPLATE FIELDS ({g{key}})
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($templateFields as $key => $value) {
+            update_post_meta(
+                $new_post_id,
+                'global_' . $key,
+                $value
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | RELACIÓN PADRE
         |--------------------------------------------------------------------------
         */
@@ -219,6 +249,8 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
                     $DATA['customFields'],
                     $DATA['yoastFields'],
                     $DATA['gpaiSeoFields'] ?? [],
+                    $DATA['globalFields'] ?? [],
+                    $DATA['templateFields'] ?? [],
                 );
                 $this->deleteVariation($post_id, $prompt, $v);
                 return [
@@ -259,6 +291,8 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
                 $DATA['customFields'],
                 $DATA['yoastFields'],
                 $DATA['gpaiSeoFields'] ?? [],
+                $DATA['globalFields'] ?? [],
+                $DATA['templateFields'] ?? [],
             );
             return [
                 "status" => "ok",

@@ -154,6 +154,8 @@ class GPAI_CONTENT
                 $result['data'][$key] = self::normalizeFields(
                     $item,
                     $CONFIG['customFields'],
+                    $CONFIG['globalFields'] ?? [],
+                    $CONFIG['templateFields'] ?? [],
                 );
             }
             FWUSystemLog::add(GPAI_KEY, [
@@ -197,13 +199,24 @@ class GPAI_CONTENT
         }
     }
 
-    public static function normalizeFields($item, $customFields)
+    public static function normalizeFields($item, $customFields, $globalFields = [], $templateFields = [])
     {
         $allowedCustomFields = array_keys($customFields);
         $allowedGpaiSeoFields = array_keys(GPAI_SEO::getFields());
+        $allowedGlobalFields = array_keys($globalFields);
+
+        $allowedTemplateFields = [];
+        foreach ($templateFields as $tplVars) {
+            if (is_array($tplVars)) {
+                $allowedTemplateFields = array_merge($allowedTemplateFields, array_keys($tplVars));
+            }
+        }
+        $allowedTemplateFields = array_unique($allowedTemplateFields);
 
         $normalizedCustomFields = [];
         $normalizedGpaiSeoFields = [];
+        $normalizedGlobalFields = [];
+        $normalizedTemplateFields = [];
 
         if (!empty($item['customFields']) && is_array($item['customFields'])) {
             foreach ($item['customFields'] as $key => $value) {
@@ -227,8 +240,26 @@ class GPAI_CONTENT
             }
         }
 
+        if (!empty($item['globalFields']) && is_array($item['globalFields'])) {
+            foreach ($item['globalFields'] as $key => $value) {
+                if (in_array($key, $allowedGlobalFields)) {
+                    $normalizedGlobalFields[$key] = $value;
+                }
+            }
+        }
+
+        if (!empty($item['templateFields']) && is_array($item['templateFields'])) {
+            foreach ($item['templateFields'] as $key => $value) {
+                if (in_array($key, $allowedTemplateFields)) {
+                    $normalizedTemplateFields[$key] = $value;
+                }
+            }
+        }
+
         $item['customFields'] = $normalizedCustomFields;
         $item['gpaiSeoFields'] = $normalizedGpaiSeoFields;
+        $item['globalFields'] = $normalizedGlobalFields;
+        $item['templateFields'] = $normalizedTemplateFields;
 
         return $item;
     }
