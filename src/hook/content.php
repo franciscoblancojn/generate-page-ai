@@ -183,8 +183,36 @@ add_action('template_redirect', function () {
         return;
     }
     
-    $url = get_permalink($parent_id) . "?GPAI_CUSTOM_FIELDS_DISABLE&STPA_DISABLE";
-    $html = file_get_contents($url);
-    echo GPAI_replace_custom_vars($html);
+    $url = get_permalink($parent_id) . "?GPAI_CUSTOM_FIELDS_DISABLE&STPA_DISABLE&GPAI_DISABLE";
+    $html = @file_get_contents($url);
+    if ($html === false) {
+        return;
+    }
+
+    $html = GPAI_replace_custom_vars($html);
+
+    $html = preg_replace(
+        '/\s*<!-- GPAI SEO Meta Tags -->.*?<!-- \/GPAI SEO Meta Tags -->\s*/s',
+        "\n",
+        $html
+    );
+
+    $html = preg_replace(
+        '/<script\b[^>]*class="yoast-schema-graph"[^>]*>.*?<\/script>\s*\n?/is',
+        '',
+        $html
+    );
+
+    $child_title = wp_get_document_title();
+    $html = preg_replace('/<title>.*?<\/title>/is', '<title>' . esc_html($child_title) . '</title>', $html, 1);
+
+    ob_start();
+    GPAI_SEO_output();
+    $child_seo = ob_get_clean();
+    if ($child_seo) {
+        $html = str_replace('</head>', $child_seo . "\n</head>", $html);
+    }
+
+    echo $html;
     exit;
 }, 2);
