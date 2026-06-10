@@ -15,6 +15,7 @@ class GPAI_SEO
             'gpai_wpseo_canonical' => 'URL Canónica',
             'gpai_wpseo_bctitle' => 'Título de Breadcrumb',
             'gpai_wpseo_redirect' => 'Redirección',
+            'gpai_wpseo_post_name' => 'Post Name (Slug)',
             'gpai_wpseo_is_cornerstone' => 'Contenido Cornerstone',
             'gpai_wpseo_meta-robots-noindex' => 'No Index',
             'gpai_wpseo_meta-robots-nofollow' => 'No Follow',
@@ -42,11 +43,15 @@ class GPAI_SEO
         $fields = self::getFields();
         $values = [];
         foreach ($fields as $key => $label) {
-            $value = get_post_meta($post_id, $key, true);
-            if ($value !== '') {
+            if ($key === 'gpai_wpseo_post_name') {
+                $value = get_post_meta($post_id, $key, true);
+                if ($value === '') {
+                    $value = get_post_field('post_name', $post_id);
+                }
                 $values[$key] = $value;
             } else {
-                $values[$key] = '';
+                $value = get_post_meta($post_id, $key, true);
+                $values[$key] = $value !== '' ? $value : '';
             }
         }
         return $values;
@@ -67,11 +72,18 @@ class GPAI_SEO
                 $value = wp_json_encode($value, JSON_UNESCAPED_UNICODE);
             } elseif ($key === 'gpai_wpseo_schema_extra_json') {
                 $value = sanitize_textarea_field($value);
+            } elseif ($key === 'gpai_wpseo_post_name') {
+                $value = sanitize_title($value);
             } else {
                 $value = wp_kses_post($value);
             }
             if ($value !== '') {
                 update_post_meta($post_id, $key, $value);
+                if ($key === 'gpai_wpseo_post_name') {
+                    global $wpdb;
+                    $wpdb->update($wpdb->posts, ['post_name' => $value], ['ID' => $post_id]);
+                    clean_post_cache($post_id);
+                }
                 $saved[$key] = $value;
             } else {
                 delete_post_meta($post_id, $key);
@@ -97,6 +109,7 @@ class GPAI_SEO
                 'gpai_wpseo_canonical',
                 'gpai_wpseo_bctitle',
                 'gpai_wpseo_redirect',
+                'gpai_wpseo_post_name',
                 'gpai_wpseo_is_cornerstone',
             ],
             'Robots' => [

@@ -37,6 +37,7 @@ Retorna únicamente un JSON válido con esta estructura exacta:
     "gpai_wpseo_focuskeywords": "string",
     "gpai_wpseo_canonical": "string",
     "gpai_wpseo_bctitle": "string",
+    "gpai_wpseo_post_name": "string",
     "gpai_wpseo_redirect": "",
     "gpai_wpseo_is_cornerstone": "0",
     "gpai_wpseo_meta-robots-noindex": "0",

@@ -71,15 +71,41 @@ class GPAI_CONTENT
         $replacements = [
             '{{title}}' => $title,
             '{{customFields}}' => json_encode($customFields, JSON_UNESCAPED_UNICODE),
-            '{{customFields_prompt}}' => json_encode($customFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            '{{customFields_prompt}}' => json_encode(array_filter($customFields_prompt, 'strlen'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             '{{yoastFields}}' => json_encode($yoastFields, JSON_UNESCAPED_UNICODE),
-            '{{yoastFields_prompt}}' => json_encode($yoastFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            '{{yoastFields_prompt}}' => json_encode(array_filter($yoastFields_prompt, 'strlen'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             '{{gpaiSeoFields}}' => json_encode($gpaiSeoFields, JSON_UNESCAPED_UNICODE),
-            '{{gpaiSeoFields_prompt}}' => json_encode($gpaiSeoFields_prompt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            '{{gpaiSeoFields_prompt}}' => json_encode(array_filter($gpaiSeoFields_prompt, 'strlen'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             '{{globalFields}}' => json_encode($globalFields, JSON_UNESCAPED_UNICODE),
             '{{templateFields}}' => json_encode($templateFields, JSON_UNESCAPED_UNICODE),
             '{{prompt}}' => $prompt,
         ];
+
+        $sections = [
+            '----CAMPOS PERSONALIZADOS----' => '{{customFields}}',
+            '----PROMPTS PARA CAMPOS PERSONALIZADOS----' => '{{customFields_prompt}}',
+            '----DATOS DE YOAST SEO----' => '{{yoastFields}}',
+            '----PROMPTS PARA DATOS DE YOAST SEO----' => '{{yoastFields_prompt}}',
+            '----DATOS DE GPAI SEO----' => '{{gpaiSeoFields}}',
+            '----PROMPTS PARA DATOS DE GPAI SEO----' => '{{gpaiSeoFields_prompt}}',
+            '----CAMPOS GLOBALES----' => '{{globalFields}}',
+            '----CAMPOS DE PLANTILLAS----' => '{{templateFields}}',
+        ];
+
+        $isEmpty = function ($v) {
+            return in_array($v, ['{}', '[]', '""', 'null', ''], true);
+        };
+
+        foreach ($sections as $heading => $placeholder) {
+            if ($isEmpty($replacements[$placeholder])) {
+                $template = preg_replace(
+                    '/' . preg_quote($heading, '/') . '\n' . preg_quote($placeholder, '/') . '\n*/',
+                    '',
+                    $template
+                );
+                unset($replacements[$placeholder]);
+            }
+        }
 
         return str_replace(array_keys($replacements), array_values($replacements), $template);
     }

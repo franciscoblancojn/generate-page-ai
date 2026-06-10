@@ -313,6 +313,7 @@ function GPAI_SEO_MetaBox_getFieldType($key)
         'gpai_wpseo_canonical',
         'gpai_wpseo_bctitle',
         'gpai_wpseo_redirect',
+        'gpai_wpseo_post_name',
         'gpai_wpseo_meta-robots-adv',
         'gpai_wpseo_opengraph-title',
         'gpai_wpseo_opengraph-image',
