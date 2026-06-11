@@ -6,6 +6,8 @@ class GPAI_EXPORT_IMPORT
     {
         add_action('wp_ajax_gpai_export_post', [self::class, 'exportPost']);
         add_action('wp_ajax_gpai_import_post', [self::class, 'importPost']);
+        add_action('wp_ajax_gpai_export_global_fields', [self::class, 'exportGlobalFields']);
+        add_action('wp_ajax_gpai_import_global_fields', [self::class, 'importGlobalFields']);
     }
 
     public static function exportPost()
@@ -77,6 +79,34 @@ class GPAI_EXPORT_IMPORT
         }
 
         wp_send_json_success(['message' => 'Importación completada. Recarga la página para ver los cambios.']);
+    }
+
+    public static function exportGlobalFields()
+    {
+        if (!current_user_can('manage_options')) wp_die(-1);
+
+        $data = new GPAI_USE_DATA_GLOBAL_FIELDS();
+        $fields = $data->getAll();
+
+        wp_send_json($fields);
+    }
+
+    public static function importGlobalFields()
+    {
+        if (!current_user_can('manage_options')) wp_die(-1);
+
+        $raw = wp_unslash($_POST['data'] ?? '');
+        $import = json_decode($raw, true);
+        if (!$import) wp_send_json_error(['message' => 'JSON inválido.']);
+
+        $data = new GPAI_USE_DATA_GLOBAL_FIELDS();
+        $count = 0;
+        foreach ($import as $key => $value) {
+            $data->setField(sanitize_key($key), wp_kses_post($value));
+            $count++;
+        }
+
+        wp_send_json_success(['message' => "{$count} campos globales importados correctamente. Recarga la página para ver los cambios."]);
     }
 }
 

@@ -2,6 +2,8 @@
 
 use franciscoblancojn\wordpress_utils\FWUSystemLog;
 use franciscoblancojn\wordpress_utils\FWURespond;
+use franciscoblancojn\wordpress_utils\FWUExportImport;
+use franciscoblancojn\wordpress_utils\FWUModal;
 
 $GPAI_USE_DATA_GLOBAL_FIELDS = new GPAI_USE_DATA_GLOBAL_FIELDS();
 $GLOBAL_FIELDS = $GPAI_USE_DATA_GLOBAL_FIELDS->getAll();
@@ -54,6 +56,11 @@ if (isset($_POST['delete']) && $_POST['delete'] === 'campo_global') {
     }
 }
 
+static $fwueAssets = false;
+if (!$fwueAssets) {
+    echo FWUModal::css() . FWUModal::js() . FWUExportImport::css() . FWUExportImport::js();
+    $fwueAssets = true;
+}
 ?>
 
 <?php FWURespond::render($respond) ?>
@@ -155,4 +162,10 @@ if (isset($_POST['delete']) && $_POST['delete'] === 'campo_global') {
             <?php endforeach; ?>
         </tbody>
     </table>
+
+    <div class="content-btn" style="margin-top:16px;display:flex;gap:8px;align-items:center;">
+        <?= FWUExportImport::exportButtonHtml('gpai_export_global_fields', [], 'campos-globales.json') ?>
+        <?= FWUExportImport::importButtonHtml('gpai-modal-global-fields') ?>
+    </div>
+    <?= FWUExportImport::html('gpai-modal-global-fields', 'Importar JSON &mdash; Campos Globales', 'gpai_import_global_fields', [], true) ?>
 <?php endif; ?>
