@@ -8,7 +8,7 @@
 
 Genera páginas y contenido usando Google Gemini. Permite:
 - Crear variaciones de posts/páginas con IA
-- Gestionar campos personalizados (`{{key}}`) y variables globales de plantillas Elementor (`{g{key}}`)
+- Gestionar campos personalizados (`{{key}}`)
 - SEO completo con meta tags, Open Graph, Twitter Cards, Schema JSON-LD (sistema propio `gpai_wpseo_*`)
 - Sitemaps XML generados por IA
 - Optimización de HTML estático con IA
@@ -29,8 +29,6 @@ Genera páginas y contenido usando Google Gemini. Permite:
 | `GPAI_URL` | `plugin_dir_url(__FILE__)` | URL base del plugin |
 | `GPAI_KEY_SEPARETE` | `'____GPAI____'` | Separador en valores de formularios |
 | `GPAI_CONTENT_INDEPENDIENTE_META` | `'GPAI_CONTENT_INDEPENDIENTE'` | `post_meta` → flag contenido independiente |
-| `GPAI_TEMPLATES_CONFIG` | `'GPAI_TEMPLATES_CONFIG'` | `wp_options` → config de plantillas |
-| `GPAI_TEMPLATES_CONTENT` | `'GPAI_TEMPLATES_CONTENT'` | `wp_options` → variaciones de plantillas |
 | `GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE` | `'GPAI_GENERACION_PAGINAS_CON_CONTENT_INDEPENDIENTE'` | `wp_options` → flag generar páginas con contenido independiente |
 | `GPAI_LOG` | `true` | Habilita logs del plugin |
 | `GPAI_LOG_KEY` | `'GPAI_LOG'` | Clave para opción de logs |
@@ -54,7 +52,6 @@ src/
     cf.php              → GPAI_CF: CRUD custom fields + AJAX Elementor
     yoast.php           → GPAI_YOAST: API metadatos Yoast
     gpai_seo.php        → GPAI_SEO: API campos SEO personalizados
-    cf_template.php     → GPAI_CF_TEMPLATE: API variables {g{...}}
     export_import.php   → GPAI_EXPORT_IMPORT: Export/Import JSON
     sitemaps.php        → GPAI_SITEMAPS_API: Generación sitemaps con IA
   css/
@@ -64,7 +61,6 @@ src/
     base.php            → GPAI_USE_DATA_BASE: CRUD genérico wp_options
     config.php          → GPAI_USE_DATA_CONFIG: Config plugin
     duplicados.php      → GPAI_USE_DATA_DUPLICADOS: Variaciones posts
-    templates_data.php  → GPAI_USE_DATA_TEMPLATES: Variaciones plantillas
     sitemaps_data.php   → GPAI_USE_DATA_SITEMAPS: CRUD archivos XML
     htaccess_data.php   → GPAI_USE_DATA_HTACCESS: CRUD .htaccess
     global_fields_data.php → GPAI_USE_DATA_GLOBAL_FIELDS: Campos globales (opciones)
@@ -86,7 +82,6 @@ src/
     pages/
       config/           → Submenú "Configuración"
       post/             → Submenú "Post"
-      plantillas/       → Submenú "Plantillas"
       html/             → Submenú "Optimización HTML"
       sitemaps/         → Submenú "Site Maps"
       htaccess/         → Submenú ".htaccess"
@@ -94,9 +89,7 @@ src/
     sections/
       config.php        → API Key, modelo Gemini, toggle contenido independiente
       post.php          → Gestión de posts (campos, prompts, generar)
-      plantillas.php    → Gestión de plantillas Elementor
       procesar_contenido.php → Revisar/generar variaciones de posts
-      procesar_plantillas.php → Revisar/crear variaciones de plantillas
       html.php          → Optimización HTML estático
       sitemaps.php      → Lista/edita sitemaps XML
       config-sitemaps.php → Configurar URLs para sitemaps
@@ -109,7 +102,6 @@ src/
     content-v1.txt      → Prompt legacy para contenido
     content-v2.txt      → Prompt para generar contenido (incluye GPAI SEO)
     content_img-v1.txt  → Prompt para generar imágenes
-    template-v1.txt     → Prompt para variables globales
     seo-v1.txt          → Prompt para datos SEO
     html-v1.txt         → Prompt para optimizar HTML
     sitemap-v1.txt      → Prompt para sitemaps XML
@@ -118,7 +110,6 @@ src/
     custom_fields.php   → GPAI_Custom_Fields(): campos personalizados
     custom_yoast.php    → GPAI_Custom_Yoast(): campos Yoast
     custom_gpai_seo.php → GPAI_Custom_Gpai_Seo(): campos GPAI SEO
-    global_fields.php   → GPAI_Global_Fields(): {g{...}}
     table_post_by_url.php → GPAI_Table_Post_By_Url(): posts con checkbox
 ```
 
@@ -139,7 +130,6 @@ src/
 |---|---|
 | `getPrompt($CONFIG)` | Construye prompt reemplazando `{{title}}`, `{{customFields}}`, `{{yoastFields}}`, `{{gpaiSeoFields}}`, `{{prompt}}` |
 | `getContent($CONFIG)` | Genera contenido: envía prompt, parsea JSON, normaliza campos |
-| `getContentTemplate($CONFIG)` | Genera contenido para variables globales de plantillas |
 | `getPromptImg($post_id, ...)` | Genera prompt para imágenes |
 | `getBasePromptTemplate($type)` | Obtiene prompt base (guardado en opciones o archivo default) |
 | `normalizeFields($item, $customFields, $yoastFields)` | Filtra campos generados por IA contra los permitidos |
@@ -171,16 +161,6 @@ src/
 | `SET($post_id, $data)` | Guarda múltiples custom fields |
 | `save_from_elementor_ajax()` | Guarda un campo desde Elementor |
 | `list_custom_fields_ajax()` | Lista todos los custom fields del post |
-| `save_global_field_ajax()` | Guarda `global_{key}` para herencia de plantillas |
-
-### GPAI_CF_TEMPLATE (`src/api/cf_template.php`)
-| Método | Descripción |
-|---|---|
-| `getTemplates()` | Lista todas las plantillas Elementor publicadas |
-| `GET($template_id)` | Escanea `_elementor_data` buscando `{g{key}}`, devuelve valores `_g_{key}` |
-| `SET($template_id, $data)` | Guarda valores default `_g_{key}` de la plantilla |
-| `getPostTemplates($post_id)` | Detecta qué plantillas Elementor usa un post |
-
 ### GPAI_USE_DATA_DUPLICADOS (`src/data/duplicados.php`)
 | Método | Descripción |
 |---|---|
@@ -191,10 +171,8 @@ src/
 ### GPAI_EXPORT_IMPORT (`src/api/export_import.php`)
 | Método | Descripción |
 |---|---|
-| `exportPost()` | Exporta custom fields + Yoast + GPAI SEO + plantillas a JSON |
+| `exportPost()` | Exporta custom fields + Yoast + GPAI SEO a JSON |
 | `importPost()` | Importa JSON a un post |
-| `exportTemplate()` | Exporta variables globales de plantilla |
-| `importTemplate()` | Importa JSON a una plantilla |
 
 ### GPAI_SITEMAPS_API (`src/api/sitemaps.php`)
 | Método | Descripción |
@@ -239,14 +217,6 @@ gpai_wpseo_schema_extra_json   → string (JSON con bloques Schema.org adicional
 gpai_wpseo_remove_other_jsonld → '1'/'0'
 ```
 
-### Sistema de Plantillas/Herencias
-```
-_g_{key}        → Valor default de variable global en plantilla Elementor
-global_{key}    → Valor sobrescrito en un post específico
-GPAI_PARENT     → ID del post padre (para contenido independiente)
-GPAI_CONTENT_INDEPENDIENTE → '1'=tiene contenido propio, '0'=hereda
-```
-
 ### Static Page Integration
 ```
 STPA_PAGE_STATIC_HTML_FILE          → Ruta al HTML estático activo
@@ -262,8 +232,6 @@ STPA_KEY_CONFIG                     → Config de Static Page
 |---|---|---|
 | `GPAI_CONFIG` | `GPAI_USE_DATA_CONFIG` | Config global: apikey, modelo, flags, prompts_base |
 | `GPAI_CONTENT` | `GPAI_USE_DATA_DUPLICADOS` | Variaciones de posts pendientes de generar |
-| `GPAI_TEMPLATES_CONFIG` | `GPAI_USE_DATA_TEMPLATES` | Config de plantillas: prompts, campos |
-| `GPAI_TEMPLATES_CONTENT` | `GPAI_USE_DATA_TEMPLATES_CONTENT` | Variaciones de plantillas pendientes |
 | `GPAI_SITEMAP_CONFIGS` | `GPAI_SITEMAPS_API` | Config de sitemaps: enabled_posts, changefreq, priority |
 | `GPAI_SITEMAP_URLS` | (legacy) | URLs habilitadas para sitemap (reemplazado por GPAI_SITEMAP_CONFIGS) |
 | `GPAI_GLOBAL_FIELDS_INDEX` | `GPAI_USE_DATA_GLOBAL_FIELDS` | Índice de campos globales |
@@ -277,8 +245,6 @@ STPA_KEY_CONFIG                     → Config de Static Page
 |---|---|---|
 | `gpai_export_post` | `GPAI_EXPORT_IMPORT::exportPost()` | Exporta post completo a JSON |
 | `gpai_import_post` | `GPAI_EXPORT_IMPORT::importPost()` | Importa JSON a post |
-| `gpai_export_template` | `GPAI_EXPORT_IMPORT::exportTemplate()` | Exporta plantilla a JSON |
-| `gpai_import_template` | `GPAI_EXPORT_IMPORT::importTemplate()` | Importa JSON a plantilla |
 | `gpai_seo_save` | `GPAI_SEO_save_ajax()` | Guarda campos SEO desde meta box |
 | `gpai_seo_generate` | `GPAI_SEO::generateSEO_ajax()` | Genera SEO con IA |
 | `gpai_seo_export` | `GPAI_SEO_export_ajax()` | Exporta campos SEO a JSON |
@@ -286,8 +252,6 @@ STPA_KEY_CONFIG                     → Config de Static Page
 | `gpai_save_custom_field` | `GPAI_CF::save_from_elementor_ajax()` | Guarda custom field (desde Elementor) |
 | `gpai_list_custom_fields` | `GPAI_CF::list_custom_fields_ajax()` | Lista custom fields del post |
 | `gpai_delete_custom_field` | `GPAI_CF::delete_custom_field_ajax()` | Elimina custom field |
-| `gpai_list_template_fields` | `GPAI_CF::list_template_fields_ajax()` | Lista variables {g{...}} del post |
-| `gpai_save_global_field` | `GPAI_CF::save_global_field_ajax()` | Guarda `global_{key}` para post |
 | `gpai_html_generate` | `GPAI_SEO::generateHTML_ajax()` | Optimiza HTML estático con IA |
 | `gpai_html_swap` | `GPAI_SEO::swapHTML_ajax()` | Alterna entre HTML normal/optimizado |
 | `gpai_sitemap_generate` | `GPAI_SITEMAPS_API::generate()` | Genera XML de sitemap con IA |
@@ -314,7 +278,7 @@ add_action('admin_init', ['GPAI_EXPORT_IMPORT', 'init'])
 
 ### Filtros
 ```php
-add_filter('the_content', 'GPAI_replace_custom_vars', 20)  → Reemplaza {{key}}/__key__/{g{key}}
+add_filter('the_content', 'GPAI_replace_custom_vars', 20)  → Reemplaza {{key}}/__key__
 add_filter('wpseo_title', 'GPAI_SEO_override_yoast_title', 20)
 add_filter('wpseo_metadesc', 'GPAI_SEO_override_yoast_metadesc', 20)
 add_filter('wpseo_canonical', 'GPAI_SEO_override_yoast_canonical', 20)
