@@ -136,7 +136,7 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, 
                 'gpaiSeoFields' => $gpaiSeoFields,
                 'globalFields' => $globalFields,
             ], HOUR_IN_SECONDS);
-            $url = add_query_arg('GPAI_preview_variation', $uuid, get_permalink($post_id));
+            $url = add_query_arg('GPAI_preview_variation', $uuid, get_permalink($post_id)) . "&STPA_DISABLE&GPAI_DISABLE";
             ?>
 
             <a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer" class="button delete">
