@@ -37,10 +37,6 @@ function GPAI_SEO_output()
     $twDesc = $values['gpai_wpseo_twitter-description'] ?: $ogDesc;
     $twImage = $values['gpai_wpseo_twitter-image'] ?: $ogImage;
 
-    if ($values['gpai_wpseo_canonical']) {
-        ob_start('GPAI_SEO_remove_other_canonical');
-    }
-
     echo "\n<!-- GPAI SEO Meta Tags -->\n";
 
     if ($desc) {
@@ -79,6 +75,22 @@ function GPAI_SEO_output()
     echo "<!-- /GPAI SEO Meta Tags -->\n\n";
 }
 add_action('wp_head', 'GPAI_SEO_output', 20);
+
+function GPAI_SEO_maybe_start_canonical_buffer()
+{
+    if (!is_singular() && !is_front_page()) return;
+    $post_id = get_queried_object_id();
+    if (is_front_page() && 'page' === get_option('show_on_front')) {
+        $post_id = get_option('page_on_front');
+    }
+    if (!$post_id) return;
+    if (!GPAI_SEO_is_active($post_id)) return;
+    $canonical = get_post_meta($post_id, 'gpai_wpseo_canonical', true);
+    if ($canonical) {
+        ob_start('GPAI_SEO_remove_other_canonical');
+    }
+}
+add_action('wp_head', 'GPAI_SEO_maybe_start_canonical_buffer', 0);
 
 function GPAI_SEO_output_jsonld($post_id, $post, $values, $title, $desc, $canonical, $ogImage)
 {
