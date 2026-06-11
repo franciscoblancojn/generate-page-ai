@@ -22,6 +22,24 @@ function GPAI_replace_custom_vars($content, $depth = 0)
 
     $original_content = $content;
 
+    // Cargar datos de preview por UUID (evita URL demasiado larga)
+    $previewMap = [];
+    if (isset($_GET['GPAI_preview_variation'])) {
+        $uuid = sanitize_key($_GET['GPAI_preview_variation']);
+        $data = get_transient('gpai_pv_' . $uuid);
+        if (is_array($data)) {
+            foreach (['customFields', 'gpaiSeoFields', 'globalFields'] as $group) {
+                if (isset($data[$group]) && is_array($data[$group])) {
+                    foreach ($data[$group] as $k => $v) {
+                        $previewMap[$k] = $v;
+                    }
+                }
+            }
+        } else {
+            return "URL EXPIRED";
+        }
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Reemplazo {{x}} y __x__
@@ -35,7 +53,9 @@ function GPAI_replace_custom_vars($content, $depth = 0)
 
         $value = null;
 
-        if (
+        if (array_key_exists($key, $previewMap)) {
+            $value = $previewMap[$key];
+        } elseif (
             current_user_can('manage_options') &&
             isset($_GET[$key]) &&
             $_GET[$key] !== ''
@@ -139,7 +159,7 @@ add_action('template_redirect', function () {
     if (!$parent_post) {
         return;
     }
-    
+
     $url = get_permalink($parent_id) . "?GPAI_CUSTOM_FIELDS_DISABLE&STPA_DISABLE&GPAI_DISABLE";
     $html = @file_get_contents($url);
     if ($html === false) {

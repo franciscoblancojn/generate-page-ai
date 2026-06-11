@@ -120,7 +120,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
     }
 }
 
-function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
+function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, $gpaiSeoFields = [], $globalFields = [])
 {
     ob_start();
 ?>
@@ -130,7 +130,13 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
         </strong>
         <div style="margin-left: auto;margin-right:2rem;">
             <?php
-            $url = add_query_arg($customFields, get_permalink($post_id));
+            $uuid = wp_generate_uuid4();
+            set_transient('gpai_pv_' . $uuid, [
+                'customFields' => $customFields,
+                'gpaiSeoFields' => $gpaiSeoFields,
+                'globalFields' => $globalFields,
+            ], HOUR_IN_SECONDS);
+            $url = add_query_arg('GPAI_preview_variation', $uuid, get_permalink($post_id));
             ?>
 
             <a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer" class="button delete">
@@ -287,7 +293,7 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                                         $globalFields = $value['globalFields'] ?? [];
                                     ?>
                                         <?php FWUCollapse::render(
-                                            getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v),
+                                            getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, $gpaiSeoFields, $globalFields),
                                             "" .
                                                 FWUCollapse::html(
                                                     "Custom Fields",
