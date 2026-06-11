@@ -128,12 +128,6 @@ class GPAI_EXPORT_IMPORT
                 $tpl_id = intval($tplData['id']);
                 if (!get_post($tpl_id)) continue;
 
-                $tpl_values = [];
-                foreach ($tplData['campos'] as $campo) {
-                    $tpl_values[sanitize_text_field($campo['key'])] = wp_kses_post($campo['valor']);
-                }
-                GPAI_CF_TEMPLATE::SET($tpl_id, $tpl_values);
-
                 foreach ($tplData['campos'] as $campo) {
                     $key = sanitize_text_field($campo['key']);
                     if (!empty($campo['sobreescribir'])) {

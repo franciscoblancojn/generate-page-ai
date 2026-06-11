@@ -13,6 +13,8 @@
   var templateFieldsLoaded = false;
   var editingTemplateKey = null;
   var editingTemplateDefault = null;
+  var editingType = null;
+  var editingPrefix = null;
 
   function getPostId() {
     try {
@@ -301,9 +303,13 @@
           key +
           '" data-type="' +
           fieldType +
+          '" data-prefix="' +
+          (field.prefix || '') +
           '" title="Editar">\u270E</button>' +
           '<button class="gpai-cf-field-delete" data-key="' +
           key +
+          '" data-prefix="' +
+          (field.prefix || '') +
           '" title="Eliminar">\u2715</button>';
       }
 
@@ -327,17 +333,21 @@
 
       $row.find(".gpai-cf-field-edit").on("click", function () {
         var k = $(this).data("key");
+        var t = $(this).data("type");
+        var p = $(this).data("prefix");
         var v = "";
         fieldsData.forEach(function (f) {
           if (f.key === k) v = f.value;
         });
-        showForm(k, v);
+        showForm(k, v, t, p);
       });
 
       $row.find(".gpai-cf-field-delete").on("click", function () {
         var k = $(this).data("key");
-        if (confirm("\u00BFEliminar el campo {{" + k + "}}?")) {
-          deleteField(k);
+        var p = $(this).data("prefix") || "";
+        var displayConfirm = p ? "{g{" + k + "}}" : "{{" + k + "}}";
+        if (confirm("\u00BFEliminar el campo " + displayConfirm + "?")) {
+          deleteField(k, p);
         }
       });
 
@@ -350,9 +360,11 @@
     });
   }
 
-  function showForm(key, value) {
+  function showForm(key, value, type, prefix) {
     currentView = "form";
     editingKey = key || null;
+    editingType = type || "custom";
+    editingPrefix = prefix || null;
 
     var $panel = $("#gpai-cf-panel");
     $panel.find(".gpai-cf-panel-list-view").hide();
@@ -372,10 +384,20 @@
   }
 
   function handleSave() {
-    var key = $("#gpai-cf-form-key").val().trim();
+    var rawKey = $("#gpai-cf-form-key").val().trim();
     var value = $("#gpai-cf-form-value").val().trim();
 
-    key = key.replace(/[{}]/g, '').trim();
+    var key, detectedPrefix, detectedType;
+    var globalMatch = rawKey.match(/^\{g\{(\w+)\}\}$/);
+    if (globalMatch) {
+      key = globalMatch[1];
+      detectedPrefix = "_g_";
+      detectedType = "global";
+    } else {
+      key = rawKey.replace(/[{}]/g, '').trim();
+      detectedPrefix = null;
+      detectedType = "custom";
+    }
 
     if (!key) {
       alert("Por favor ingresa una clave.");
@@ -388,18 +410,27 @@
       return;
     }
 
+    var useType = editingType || detectedType;
+    var usePrefix = editingPrefix || detectedPrefix;
+
+    var saveData = {
+      action: "gpai_save_custom_field",
+      post_id: postId,
+      key: key,
+      value: value,
+    };
+
+    if (useType === "global" && usePrefix) {
+      saveData.prefix = usePrefix;
+    }
+
     var $saveBtn = $("#gpai-cf-panel .gpai-cf-form-save");
     $saveBtn.prop("disabled", true).text("Guardando...");
 
     $.ajax({
       url: gpaiEditor.ajaxurl,
       type: "POST",
-      data: {
-        action: "gpai_save_custom_field",
-        post_id: postId,
-        key: key,
-        value: value,
-      },
+      data: saveData,
       success: function (response) {
         $saveBtn
           .prop("disabled", false)
@@ -419,7 +450,7 @@
     });
   }
 
-  function deleteField(key) {
+  function deleteField(key, prefix) {
     $.ajax({
       url: gpaiEditor.ajaxurl,
       type: "POST",
@@ -427,6 +458,7 @@
         action: "gpai_delete_custom_field",
         post_id: postId,
         key: key,
+        prefix: prefix,
       },
       success: function (response) {
         if (response.success) {

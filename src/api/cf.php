@@ -147,6 +147,7 @@ class GPAI_CF
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         $key = isset($_POST['key']) ? sanitize_key($_POST['key']) : '';
         $value = isset($_POST['value']) ? wp_kses_post($_POST['value']) : '';
+        $prefix = isset($_POST['prefix']) ? sanitize_key($_POST['prefix']) : '';
 
         if (!$post_id || !$key) {
             wp_send_json_error('Datos inválidos. post_id y key son requeridos.');
@@ -156,17 +157,18 @@ class GPAI_CF
             wp_send_json_error('El post no existe.');
         }
 
-        update_post_meta($post_id, $key, $value);
+        $meta_key = $prefix ? $prefix . $key : $key;
+        update_post_meta($post_id, $meta_key, $value);
 
         FWUSystemLog::add(GPAI_KEY, [
             'type' => 'GPAI_CF_ELEMENTOR',
             'post_id' => $post_id,
-            'key' => $key,
+            'key' => $meta_key,
             'value' => $value,
         ]);
 
         wp_send_json_success([
-            'key' => $key,
+            'key' => $meta_key,
             'value' => $value,
             'message' => 'Campo personalizado guardado correctamente.'
         ]);
@@ -239,6 +241,7 @@ class GPAI_CF
     {
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         $key = isset($_POST['key']) ? sanitize_key($_POST['key']) : '';
+        $prefix = isset($_POST['prefix']) ? sanitize_key($_POST['prefix']) : '';
 
         if (!$post_id || !$key) {
             wp_send_json_error('post_id y key son requeridos.');
@@ -248,7 +251,8 @@ class GPAI_CF
             wp_send_json_error('El post no existe.');
         }
 
-        delete_post_meta($post_id, $key);
+        $meta_key = $prefix ? $prefix . $key : $key;
+        delete_post_meta($post_id, $meta_key);
 
         FWUSystemLog::add(GPAI_KEY, [
             'type' => 'GPAI_CF_DELETE',
