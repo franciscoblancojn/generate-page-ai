@@ -1,0 +1,569 @@
+.gpai-edit-toggle-btn {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 999999;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #93003c;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+    line-height: 1;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.gpai-edit-toggle-btn:hover {
+    background: #7a0030;
+}
+
+.gpai-edit-toggle-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.gpai-edit-toggle-btn span {
+    white-space: nowrap;
+}
+
+.gpai-edit-panel {
+    display: none;
+    position: fixed;
+    z-index: 999999;
+    width: 340px;
+    max-height: 480px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    animation: gpaiEditPanelIn 0.2s ease;
+}
+
+@keyframes gpaiEditPanelIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.gpai-edit-panel-open {
+    display: flex !important;
+    flex-direction: column;
+    top: 60px;
+    right: 20px;
+}
+
+.gpai-edit-panel-dragging {
+    user-select: none;
+    opacity: 0.95;
+    transition: none !important;
+    animation: none !important;
+}
+
+.gpai-edit-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    background: #93003c;
+    color: #fff;
+    border-radius: 8px 8px 0 0;
+    flex-shrink: 0;
+}
+
+.gpai-edit-panel-header-drag {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: move;
+    user-select: none;
+}
+
+.gpai-edit-panel-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px 14px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.gpai-edit-panel-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.gpai-edit-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 100px;
+}
+
+.gpai-edit-panel-items {
+    padding: 4px 0;
+}
+
+.gpai-edit-panel-loading,
+.gpai-edit-panel-error {
+    padding: 24px 16px;
+    text-align: center;
+    color: #a4afb7;
+    font-size: 12px;
+}
+
+.gpai-edit-panel-error {
+    color: #d72b3f;
+}
+
+.gpai-edit-panel-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: #a4afb7;
+    font-size: 12px;
+}
+
+.gpai-edit-field-row {
+    display: flex;
+    align-items: stretch;
+    padding: 8px 16px;
+    border-bottom: 1px solid #f1f3f5;
+    transition: background 0.15s ease;
+}
+
+.gpai-edit-field-row:hover {
+    background: #f8f9fa;
+}
+
+.gpai-edit-field-row:last-child {
+    border-bottom: none;
+}
+
+.gpai-edit-field-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+}
+
+.gpai-edit-field-key {
+    font-size: 12px;
+    font-weight: 600;
+    color: #495157;
+    background: #f1f3f5;
+    padding: 1px 6px;
+    border-radius: 3px;
+    display: inline-block;
+    align-self: flex-start;
+    font-family: monospace;
+    word-break: break-all;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.gpai-edit-field-key-global {
+    background: #e8f0fe;
+    color: #1a73e8;
+}
+
+.gpai-edit-field-value {
+    font-size: 11px;
+    color: #6d7882;
+    line-height: 1.4;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.gpai-edit-field-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.gpai-edit-field-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    font-size: 13px;
+    color: #a4afb7;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+    line-height: 1;
+}
+
+.gpai-edit-field-edit:hover {
+    color: #93003c;
+    background: #fce8f0;
+}
+
+.gpai-edit-field-delete:hover {
+    color: #d72b3f;
+    background: #fde8e8;
+}
+
+.gpai-edit-field-create {
+    font-weight: bold;
+    font-size: 16px !important;
+}
+
+.gpai-edit-field-create:hover {
+    color: #4caf50;
+    background: #e8f5e9;
+}
+
+.gpai-edit-panel-form-view {
+    padding: 16px;
+}
+
+.gpai-edit-form-group {
+    margin-bottom: 14px;
+}
+
+.gpai-edit-form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6d7882;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gpai-edit-key-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid #d5dadf;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.gpai-edit-form-group textarea,
+.gpai-edit-form-group input {
+    color: #343b42;
+}
+
+.gpai-edit-key-input-wrapper:focus-within {
+    border-color: #a4afb7;
+    box-shadow: 0 0 0 1px #a4afb7;
+}
+
+.gpai-edit-key-input-wrapper .gpai-edit-brace {
+    padding: 6px 7px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #6d7882;
+    background: #f1f3f5;
+    font-family: monospace;
+    user-select: none;
+    line-height: 1;
+}
+
+.gpai-edit-key-input-wrapper input {
+    flex: 1;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    font-family: monospace !important;
+    box-shadow: none !important;
+    outline: none !important;
+    min-height: auto !important;
+    background: transparent !important;
+}
+
+.gpai-edit-key-input-wrapper input:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.gpai-edit-form-group textarea {
+    width: 100%;
+    border: 1px solid #d5dadf;
+    border-radius: 4px;
+    padding: 7px 9px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    resize: vertical;
+    box-shadow: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+    background: #fff;
+    min-height: 60px;
+}
+
+.gpai-edit-form-group textarea:focus {
+    border-color: #a4afb7;
+    box-shadow: 0 0 0 1px #a4afb7;
+    outline: none;
+}
+
+.gpai-edit-form-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.gpai-edit-form-actions .gpai-edit-btn {
+    padding: 6px 16px;
+    font-size: 11px;
+    line-height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.gpai-edit-form-actions .gpai-edit-btn-primary {
+    background: #93003c;
+    color: #fff;
+}
+
+.gpai-edit-form-actions .gpai-edit-btn-primary:hover {
+    background: #7a0030;
+}
+
+.gpai-edit-form-actions .gpai-edit-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.gpai-edit-form-actions .gpai-edit-btn-default {
+    background: #f1f3f5;
+    color: #6d7882;
+}
+
+.gpai-edit-form-actions .gpai-edit-btn-default:hover {
+    background: #e8e8e8;
+}
+
+.gpai-edit-search {
+    width: 100%;
+    padding: 7px 10px;
+    font-size: 12px;
+    border: 1px solid #d5dadf;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background: #fff;
+    color: #343b42;
+    outline: none;
+    transition: border-color 0.2s ease;
+    margin-bottom: 6px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.gpai-edit-search:focus {
+    border-color: #a4afb7;
+    box-shadow: 0 0 0 1px #a4afb7;
+}
+
+.gpai-edit-search::placeholder {
+    color: #a4afb7;
+}
+
+.gpai-edit-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #e0e1e3;
+}
+
+.gpai-edit-tab {
+    flex: 1;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    background: #f8f9fa;
+    color: #6d7882;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.gpai-edit-tab:hover {
+    background: #e8e8e8;
+}
+
+.gpai-edit-tab-active {
+    background: #93003c;
+    color: #fff;
+}
+
+.gpai-edit-tab-active:hover {
+    background: #7a0030;
+}
+
+.gpai-edit-panel-toolbar {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e0e1e3;
+    display: flex;
+    flex-direction: column;
+}
+
+.gpai-edit-btn-create {
+    width: 100%;
+    text-align: center;
+}
+
+.gpai-edit-template-default {
+    font-size: 11px;
+    color: #a4afb7;
+    line-height: 1.4;
+    margin-top: 2px;
+}
+
+.gpai-edit-template-default-label {
+    font-weight: 500;
+}
+
+.gpai-edit-template-default-value {
+    color: #6d7882;
+    word-break: break-word;
+}
+
+.gpai-edit-template-current {
+    font-size: 11px;
+    line-height: 1.4;
+    margin-top: 2px;
+}
+
+.gpai-edit-template-current-label {
+    font-weight: 500;
+    color: #a4afb7;
+}
+
+.gpai-edit-template-current-value {
+    color: #6d7882;
+    word-break: break-word;
+}
+
+.gpai-edit-template-current-placeholder {
+    color: #c2cbd2;
+    font-style: italic;
+    word-break: break-word;
+}
+
+.gpai-edit-panel-template-form-view {
+    display: block;
+    padding: 16px;
+}
+
+.gpai-edit-template-form-key {
+    flex: 1;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    font-family: monospace !important;
+    box-shadow: none !important;
+    outline: none !important;
+    min-height: auto !important;
+    background: #f8f9fa !important;
+    color: #6d7882 !important;
+    cursor: default;
+}
+
+.gpai-edit-template-form-default {
+    padding: 8px 10px;
+    font-size: 12px;
+    color: #6d7882;
+    background: #f8f9fa;
+    border: 1px solid #d5dadf;
+    border-radius: 4px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.gpai-edit-template-form-value {
+    width: 100%;
+    border: 1px solid #d5dadf;
+    border-radius: 4px;
+    padding: 7px 9px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    resize: vertical;
+    box-shadow: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+    background: #fff;
+    color: #343b42;
+    min-height: 80px;
+}
+
+.gpai-edit-template-form-value:focus {
+    border-color: #a4afb7;
+    box-shadow: 0 0 0 1px #a4afb7;
+    outline: none;
+}
+
+.gpai-edit-template-form-value::placeholder {
+    color: #c2cbd2;
+    font-style: italic;
+}
+
+.gpai-edit-highlight {
+    outline: 2px dashed #93003c !important;
+    outline-offset: 2px !important;
+}
+
+.gpai-edit-toast {
+    position: fixed;
+    bottom: 60px;
+    right: 20px;
+    z-index: 999999;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    animation: gpaiEditToastIn 0.3s ease;
+    pointer-events: none;
+}
+
+.gpai-edit-toast-success {
+    background: #4caf50;
+}
+
+.gpai-edit-toast-error {
+    background: #d72b3f;
+}
+
+@keyframes gpaiEditToastIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

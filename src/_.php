@@ -8,6 +8,7 @@ require_once GPAI_DIR . 'src/templates/_.php';
 require_once GPAI_DIR . 'src/meta-box/gpai-seo.php';
 require_once GPAI_DIR . 'src/meta-box/gpai-parent.php';
 require_once GPAI_DIR . 'src/frontend/gpai-seo-output.php';
+require_once GPAI_DIR . 'src/frontend/gpai-edit.php';
 require_once GPAI_DIR . 'src/page/_.php';
 
 

@@ -128,6 +128,9 @@ add_action('template_redirect', function () {
     if (isset($_GET['GPAI_DISABLE'])) {
         return;
     }
+    if (isset($_GET['GPAI_EDIT'])) {
+        return;
+    }
     if (isset($_GET['preview']) && $_GET['preview'] == 'true') {
         return;
     }
