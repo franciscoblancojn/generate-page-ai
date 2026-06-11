@@ -37,6 +37,10 @@ function GPAI_SEO_output()
     $twDesc = $values['gpai_wpseo_twitter-description'] ?: $ogDesc;
     $twImage = $values['gpai_wpseo_twitter-image'] ?: $ogImage;
 
+    if ($values['gpai_wpseo_canonical']) {
+        ob_start('GPAI_SEO_remove_other_canonical');
+    }
+
     echo "\n<!-- GPAI SEO Meta Tags -->\n";
 
     if ($desc) {
@@ -411,6 +415,20 @@ function GPAI_SEO_remove_other_jsonld_callback($buffer)
         '/<script\b[^>]*type="application\/ld\+json"[^>]*>.*?<\/script>/is',
         function ($matches) {
             if (strpos($matches[0], 'gpai-seo-schema') !== false) {
+                return $matches[0];
+            }
+            return '';
+        },
+        $buffer
+    );
+}
+
+function GPAI_SEO_remove_other_canonical($buffer)
+{
+    return preg_replace_callback(
+        '/<link\b[^>]*\brel=["\']canonical["\'][^>]*>/is',
+        function ($matches) {
+            if (strpos($matches[0], 'gpai-seo-meta-tag') !== false) {
                 return $matches[0];
             }
             return '';
