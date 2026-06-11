@@ -43,10 +43,8 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
         $post_id,
         $title,
         $custom_fields = [],
-        $yoastFields = [],
         $gpaiSeoFields = [],
-        $globalFields = [],
-        $templateFields = []
+        $globalFields = []
     ) {
 
         $post = get_post($post_id);
@@ -148,21 +146,6 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
 
         /*
         |--------------------------------------------------------------------------
-        | YOAST FIELDS
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($yoastFields as $key => $value) {
-
-            update_post_meta(
-                $new_post_id,
-                $key,
-                $value
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
         | GPAI SEO FIELDS
         |--------------------------------------------------------------------------
         */
@@ -186,20 +169,6 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
             update_post_meta(
                 $new_post_id,
                 $key,
-                $value
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEMPLATE FIELDS ({g{key}})
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($templateFields as $key => $value) {
-            update_post_meta(
-                $new_post_id,
-                'global_' . $key,
                 $value
             );
         }
@@ -247,10 +216,8 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
                     $post_id,
                     $DATA['title'],
                     $DATA['customFields'],
-                    $DATA['yoastFields'],
                     $DATA['gpaiSeoFields'] ?? [],
                     $DATA['globalFields'] ?? [],
-                    $DATA['templateFields'] ?? [],
                 );
                 $this->deleteVariation($post_id, $prompt, $v);
                 return [
@@ -289,10 +256,8 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
                 $post_id,
                 $DATA['title'],
                 $DATA['customFields'],
-                $DATA['yoastFields'],
                 $DATA['gpaiSeoFields'] ?? [],
                 $DATA['globalFields'] ?? [],
-                $DATA['templateFields'] ?? [],
             );
             return [
                 "status" => "ok",

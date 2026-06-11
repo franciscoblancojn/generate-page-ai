@@ -9,12 +9,6 @@
   var currentElementKeysCustom = [];
   var currentTab = "all";
   var searchQuery = "";
-  var templateFieldsData = [];
-  var templateFieldsLoaded = false;
-  var editingTemplateKey = null;
-  var editingTemplateDefault = null;
-  var editingType = null;
-  var editingPrefix = null;
 
   function getPostId() {
     try {
@@ -65,7 +59,6 @@
       '        <div class="gpai-cf-tabs">' +
       '          <button class="gpai-cf-tab gpai-cf-tab-active" data-tab="all">Todos</button>' +
       '          <button class="gpai-cf-tab" data-tab="section">Secci\u00f3n actual</button>' +
-      '          <button class="gpai-cf-tab" data-tab="templates">Plantillas</button>' +
       "        </div>" +
       '        <button class="gpai-cf-btn-create elementor-button elementor-button-primary elementor-size-xs">+ Nuevo</button>' +
       "      </div>" +
@@ -141,7 +134,6 @@
     createPanelHTML();
     $("#gpai-cf-panel").addClass("gpai-cf-panel-open");
     setupPreviewClickHandler();
-    templateFieldsLoaded = false;
     showList();
   }
 
@@ -152,11 +144,8 @@
   }
 
   function showList() {
-    hideTemplateForm();
     currentView = "list";
     editingKey = null;
-
-    console.log("[GPAI CF] showList", { postId: postId, ajaxurl: gpaiEditor.ajaxurl });
 
     var $panel = $("#gpai-cf-panel");
     $panel.find(".gpai-cf-panel-list-view").show();
@@ -195,18 +184,8 @@
   }
 
   function renderList() {
-    hideTemplateForm();
     var $items = $("#gpai-cf-panel .gpai-cf-panel-items");
     var $empty = $("#gpai-cf-panel .gpai-cf-panel-empty");
-
-    if (currentTab === "templates") {
-      if (!templateFieldsLoaded) {
-        loadTemplateFields();
-      } else {
-        renderTemplateList();
-      }
-      return;
-    }
 
     var filtered = fieldsData;
 
@@ -274,22 +253,12 @@
     filtered.forEach(function (field) {
       var key = field.key;
       var value = field.value || "";
-      var fieldType = field.type || "custom";
       var isMissing = field._missing === true;
       var displayValue = isMissing
         ? "No creado"
         : value.length > 80
           ? value.substring(0, 80) + "..."
           : value;
-
-      var displayKey, keyClass;
-      if (fieldType === "global") {
-        displayKey = "{g{" + key + "}}";
-        keyClass = "gpai-cf-field-key gpai-cf-field-key-global";
-      } else {
-        displayKey = "{{" + key + "}}";
-        keyClass = "gpai-cf-field-key";
-      }
 
       var actionsHtml;
       if (isMissing) {
@@ -301,25 +270,19 @@
         actionsHtml =
           '<button class="gpai-cf-field-edit" data-key="' +
           key +
-          '" data-type="' +
-          fieldType +
-          '" data-prefix="' +
-          (field.prefix || '') +
           '" title="Editar">\u270E</button>' +
           '<button class="gpai-cf-field-delete" data-key="' +
           key +
-          '" data-prefix="' +
-          (field.prefix || '') +
           '" title="Eliminar">\u2715</button>';
       }
 
       var $row = $(
         '<div class="gpai-cf-field-row">' +
           '  <div class="gpai-cf-field-info">' +
-          '    <code class="' +
-          keyClass +
-          '">' +
-          escapeHtml(displayKey) +
+          '    <code class="gpai-cf-field-key">' +
+          "{{" +
+          escapeHtml(key) +
+          "}}" +
           "</code>" +
           '    <span class="gpai-cf-field-value">' +
           escapeHtml(displayValue) +
@@ -333,21 +296,17 @@
 
       $row.find(".gpai-cf-field-edit").on("click", function () {
         var k = $(this).data("key");
-        var t = $(this).data("type");
-        var p = $(this).data("prefix");
         var v = "";
         fieldsData.forEach(function (f) {
           if (f.key === k) v = f.value;
         });
-        showForm(k, v, t, p);
+        showForm(k, v);
       });
 
       $row.find(".gpai-cf-field-delete").on("click", function () {
         var k = $(this).data("key");
-        var p = $(this).data("prefix") || "";
-        var displayConfirm = p ? "{g{" + k + "}}" : "{{" + k + "}}";
-        if (confirm("\u00BFEliminar el campo " + displayConfirm + "?")) {
-          deleteField(k, p);
+        if (confirm("\u00BFEliminar el campo {{" + k + "}}?")) {
+          deleteField(k);
         }
       });
 
@@ -360,11 +319,9 @@
     });
   }
 
-  function showForm(key, value, type, prefix) {
+  function showForm(key, value) {
     currentView = "form";
     editingKey = key || null;
-    editingType = type || "custom";
-    editingPrefix = prefix || null;
 
     var $panel = $("#gpai-cf-panel");
     $panel.find(".gpai-cf-panel-list-view").hide();
@@ -384,20 +341,10 @@
   }
 
   function handleSave() {
-    var rawKey = $("#gpai-cf-form-key").val().trim();
+    var key = $("#gpai-cf-form-key").val().trim();
     var value = $("#gpai-cf-form-value").val().trim();
 
-    var key, detectedPrefix, detectedType;
-    var globalMatch = rawKey.match(/^\{g\{(\w+)\}\}$/);
-    if (globalMatch) {
-      key = globalMatch[1];
-      detectedPrefix = "_g_";
-      detectedType = "global";
-    } else {
-      key = rawKey.replace(/[{}]/g, '').trim();
-      detectedPrefix = null;
-      detectedType = "custom";
-    }
+    key = key.replace(/[{}]/g, '').trim();
 
     if (!key) {
       alert("Por favor ingresa una clave.");
@@ -410,27 +357,18 @@
       return;
     }
 
-    var useType = editingType || detectedType;
-    var usePrefix = editingPrefix || detectedPrefix;
-
-    var saveData = {
-      action: "gpai_save_custom_field",
-      post_id: postId,
-      key: key,
-      value: value,
-    };
-
-    if (useType === "global" && usePrefix) {
-      saveData.prefix = usePrefix;
-    }
-
     var $saveBtn = $("#gpai-cf-panel .gpai-cf-form-save");
     $saveBtn.prop("disabled", true).text("Guardando...");
 
     $.ajax({
       url: gpaiEditor.ajaxurl,
       type: "POST",
-      data: saveData,
+      data: {
+        action: "gpai_save_custom_field",
+        post_id: postId,
+        key: key,
+        value: value,
+      },
       success: function (response) {
         $saveBtn
           .prop("disabled", false)
@@ -450,7 +388,7 @@
     });
   }
 
-  function deleteField(key, prefix) {
+  function deleteField(key) {
     $.ajax({
       url: gpaiEditor.ajaxurl,
       type: "POST",
@@ -458,7 +396,6 @@
         action: "gpai_delete_custom_field",
         post_id: postId,
         key: key,
-        prefix: prefix,
       },
       success: function (response) {
         if (response.success) {
@@ -473,255 +410,15 @@
     });
   }
 
-  function loadTemplateFields() {
-    var $items = $("#gpai-cf-panel .gpai-cf-panel-items");
-    var $empty = $("#gpai-cf-panel .gpai-cf-panel-empty");
-    $empty.hide();
-    $items.html(
-      '<div class="gpai-cf-panel-loading">Cargando campos de plantilla...</div>',
-    );
-
-    $.ajax({
-      url: gpaiEditor.ajaxurl,
-      type: "POST",
-      data: {
-        action: "gpai_list_template_fields",
-        post_id: postId,
-      },
-      success: function (response) {
-        if (response.success) {
-          templateFieldsData = response.data || [];
-          templateFieldsLoaded = true;
-          renderTemplateList();
-        } else {
-          $items.html(
-            '<div class="gpai-cf-panel-error">Error: ' +
-              (response.data || "desconocido") +
-              "</div>",
-          );
-        }
-      },
-      error: function () {
-        $items.html(
-          '<div class="gpai-cf-panel-error">Error de conexi\u00f3n.</div>',
-        );
-      },
-    });
-  }
-
-  function renderTemplateList() {
-    var $items = $("#gpai-cf-panel .gpai-cf-panel-items");
-    var $empty = $("#gpai-cf-panel .gpai-cf-panel-empty");
-
-    var filtered = templateFieldsData;
-    if (searchQuery) {
-      filtered = filtered.filter(function (f) {
-        return f.key.toLowerCase().indexOf(searchQuery) !== -1;
-      });
-    }
-
-    if (!filtered.length) {
-      $items.empty();
-      if (searchQuery) {
-        $empty
-          .show()
-          .text(
-            'No se encontraron campos con "' + searchQuery + '".',
-          );
-      } else {
-        $empty
-          .show()
-          .text(
-            "No hay campos de plantilla disponibles.",
-          );
-      }
-      return;
-    }
-
-    $empty.hide();
-    $items.empty();
-
-    filtered.forEach(function (field) {
-      var key = field.key;
-      var defaultVal = field.default_value || "";
-      var currentVal = field.current_value || "";
-      var displayVal = currentVal || defaultVal;
-      var displayClass = currentVal
-        ? "gpai-cf-template-current-value"
-        : "gpai-cf-template-current-placeholder";
-
-      var $row = $(
-        '<div class="gpai-cf-field-row gpai-cf-template-row">' +
-          '  <div class="gpai-cf-field-info">' +
-          '    <code class="gpai-cf-field-key gpai-cf-field-key-global">{g{' +
-          escapeHtml(key) +
-          "}}</code>" +
-          '    <div class="gpai-cf-template-default"><span class="gpai-cf-template-default-label">Valor plantilla:</span> <span class="gpai-cf-template-default-value">' +
-          escapeHtml(defaultVal) +
-          "</span></div>" +
-          '    <div class="gpai-cf-template-current"><span class="gpai-cf-template-current-label">Valor actual:</span> <span class="' +
-          displayClass +
-          '">' +
-          escapeHtml(displayVal) +
-          "</span></div>" +
-          "  </div>" +
-          '  <div class="gpai-cf-field-actions">' +
-          '    <button class="gpai-cf-field-edit" data-key="' +
-          key +
-          '" data-default="' +
-          escapeHtml(defaultVal) +
-          '" data-current="' +
-          escapeHtml(currentVal) +
-          '" title="Editar">\u270E</button>' +
-          "  </div>" +
-          "</div>",
-      );
-
-      $row.find(".gpai-cf-field-edit").on("click", function () {
-        var k = $(this).data("key");
-        var d = $(this).data("default");
-        var c = $(this).data("current");
-        showTemplateForm(k, d, c);
-      });
-
-      $items.append($row);
-    });
-  }
-
-  function showTemplateForm(key, defaultVal, currentVal) {
-    editingTemplateKey = key;
-    editingTemplateDefault = defaultVal;
-
-    var $panel = $("#gpai-cf-panel");
-    $panel.find(".gpai-cf-panel-list-view").hide();
-    $panel.find(".gpai-cf-panel-template-form-view").remove();
-
-    var $form = $(
-      '<div class="gpai-cf-panel-template-form-view">' +
-        '    <div class="gpai-cf-form-group">' +
-        "      <label>Clave</label>" +
-        '      <div class="gpai-cf-key-input-wrapper">' +
-        '        <span class="gpai-cf-brace">{g{</span>' +
-        '        <input type="text" value="' +
-        escapeHtml(key) +
-        '" readonly class="gpai-cf-template-form-key" />' +
-        '        <span class="gpai-cf-brace">}}</span>' +
-        "      </div>" +
-        "    </div>" +
-        '    <div class="gpai-cf-form-group">' +
-        "      <label>Valor plantilla</label>" +
-        '      <div class="gpai-cf-template-form-default">' +
-        escapeHtml(defaultVal) +
-        "</div>" +
-        "    </div>" +
-        '    <div class="gpai-cf-form-group">' +
-        "      <label>Valor actual</label>" +
-        '      <textarea class="gpai-cf-template-form-value" placeholder="' +
-        escapeHtml(defaultVal) +
-        '" rows="4">' +
-        escapeHtml(currentVal) +
-        "</textarea>" +
-        "    </div>" +
-        '    <div class="gpai-cf-form-actions">' +
-        '      <button class="gpai-cf-template-form-cancel elementor-button elementor-button-default elementor-size-xs">Cancelar</button>' +
-        '      <button class="gpai-cf-template-form-save elementor-button elementor-button-primary elementor-size-xs">Guardar</button>' +
-        "    </div>" +
-        "</div>",
-    );
-
-    $panel.find(".gpai-cf-panel-body").append($form);
-
-    $form.find(".gpai-cf-template-form-cancel").on("click", cancelTemplateForm);
-    $form.find(".gpai-cf-template-form-save").on("click", handleTemplateSave);
-
-    $form.find(".gpai-cf-template-form-value").on("keydown", function (e) {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleTemplateSave();
-      }
-    });
-
-    $form.find(".gpai-cf-template-form-value").focus();
-  }
-
-  function cancelTemplateForm() {
-    $("#gpai-cf-panel .gpai-cf-panel-template-form-view").remove();
-    editingTemplateKey = null;
-    editingTemplateDefault = null;
-    $("#gpai-cf-panel .gpai-cf-panel-list-view").show();
-    renderTemplateList();
-  }
-
-  function handleTemplateSave() {
-    var value = $("#gpai-cf-panel .gpai-cf-template-form-value").val().trim();
-    var key = editingTemplateKey;
-
-    console.log("[GPAI Template Save] start", { key: key, value: value, postId: postId, ajaxurl: gpaiEditor.ajaxurl });
-
-    if (!key) {
-      console.warn("[GPAI Template Save] no key");
-      return;
-    }
-
-    var $saveBtn = $("#gpai-cf-panel .gpai-cf-template-form-save");
-    $saveBtn.prop("disabled", true).text("Guardando...");
-
-    $.ajax({
-      url: gpaiEditor.ajaxurl,
-      type: "POST",
-      data: {
-        action: "gpai_save_global_field",
-        post_id: postId,
-        key: key,
-        value: value,
-      },
-      success: function (response) {
-        console.log("[GPAI Template Save] response", response);
-        $saveBtn.prop("disabled", false).text("Guardar");
-        if (response.success) {
-          console.log("[GPAI Template Save] success, updating frontend cache");
-          templateFieldsData.forEach(function (f) {
-            if (f.key === key) {
-              f.current_value = value;
-            }
-          });
-          cancelTemplateForm();
-        } else {
-          console.warn("[GPAI Template Save] error response", response.data);
-          alert(
-            "Error: " + (response.data || "No se pudo guardar."),
-          );
-        }
-      },
-      error: function (jqXHR, textStatus, errorThrown) {
-        console.error("[GPAI Template Save] ajax error", { textStatus: textStatus, errorThrown: errorThrown, response: jqXHR.responseText });
-        $saveBtn.prop("disabled", false).text("Guardar");
-        alert("Error de conexi\u00f3n. Intenta de nuevo.");
-      },
-    });
-  }
-
-  function hideTemplateForm() {
-    $("#gpai-cf-panel .gpai-cf-panel-template-form-view").remove();
-    editingTemplateKey = null;
-    editingTemplateDefault = null;
-  }
-
   function findKeysInHtml(html) {
-    var result = { custom: {}, global: {} };
+    var result = {};
     if (!html) return result;
 
     var match;
     var regex = /\{\{(.*?)\}\}/g;
     while ((match = regex.exec(html)) !== null) {
       var k = match[1].trim();
-      if (k) result.custom[k] = true;
-    }
-
-    regex = /\{g\{(.*?)\}\}/g;
-    while ((match = regex.exec(html)) !== null) {
-      var gk = match[1].trim();
-      if (gk) result.global[gk] = true;
+      if (k) result[k] = true;
     }
 
     return result;
@@ -789,8 +486,8 @@
       var html = targetEl.innerHTML;
 
       var foundKeys = findKeysInHtml(html);
-      currentElementKeys = Object.keys(foundKeys.custom).concat(Object.keys(foundKeys.global));
-      currentElementKeysCustom = Object.keys(foundKeys.custom);
+      currentElementKeys = Object.keys(foundKeys);
+      currentElementKeysCustom = Object.keys(foundKeys);
 
       if (currentTab === "section") {
         renderList();

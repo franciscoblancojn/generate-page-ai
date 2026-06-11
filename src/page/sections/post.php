@@ -65,23 +65,6 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
             $CONFIG['gpaiSeoFields_prompt'] = array_map(function ($v) {
                 return GPAI_CONTENT::cleanPromptText($v);
             }, $_POST['gpaiSeoFields_prompt'] ?? []);
-
-            $globalFieldsPost = $_POST['globalFields'] ?? [];
-            if (!empty($globalFieldsPost)) {
-                foreach ($globalFieldsPost as $tpl_key => $fields) {
-                    $template_id = (int)str_replace('tpl_', '', $tpl_key);
-                    if (!get_post($template_id)) continue;
-
-                    foreach ((array)$fields as $key => $value) {
-                        $override = isset($_POST['globalFields_override'][$tpl_key][$key]) && $_POST['globalFields_override'][$tpl_key][$key] == '1';
-                        if ($override) {
-                            update_post_meta($post_id, 'global_' . $key, wp_kses_post($value));
-                        } else {
-                            delete_post_meta($post_id, 'global_' . $key);
-                        }
-                    }
-                }
-            }
         }
         if ($is_save_prompt || $is_upgrade_prompts || $is_generate_content) {
             $prompt = isset($_POST['prompt'])
@@ -135,14 +118,6 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
                 $GPAI_USE_DATA_GLOBAL_FIELDS = new GPAI_USE_DATA_GLOBAL_FIELDS();
                 $CONFIG['globalFields'] = $GPAI_USE_DATA_GLOBAL_FIELDS->getAll();
 
-                $template_ids_detected = GPAI_CF_TEMPLATE::getPostTemplates($post_id);
-                $templateFields = [];
-                foreach ($template_ids_detected as $template_id) {
-                    $templateVars = GPAI_CF_TEMPLATE::GET($template_id);
-                    $templateFields[get_the_title($template_id)] = $templateVars;
-                }
-                $CONFIG['templateFields'] = $templateFields;
-
                 $respond_content = GPAI_CONTENT::getContent($CONFIG);
                 if ($respond_content['status'] == 'ok') {
                     $POST_DATA = $DUPLICADOS[$post_id] ?? [];
@@ -165,36 +140,6 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
 if (isset($post_id)) {
     $customFields = GPAI_CF::GET($post_id);
     $gpaiSeoFields = GPAI_SEO::GET($post_id);
-}
-
-$template_ids_detected = [];
-$globalFieldsByTemplate = [];
-$globalOverridesByTemplate = [];
-$globalPromptsByTemplate = [];
-if (isset($post_id)) {
-    $template_ids_detected = GPAI_CF_TEMPLATE::getPostTemplates($post_id);
-    $TEMPLATE_CONFIG_DATA = get_option(GPAI_TEMPLATES_CONFIG, []);
-
-    foreach ($template_ids_detected as $template_id) {
-        $templateVars = GPAI_CF_TEMPLATE::GET($template_id);
-        $fields = [];
-        $overrides = [];
-
-        foreach ($templateVars as $key => $defaultVal) {
-            $postVal = get_post_meta($post_id, 'global_' . $key, true);
-            if ($postVal !== '') {
-                $fields[$key] = $postVal;
-                $overrides[$key] = '1';
-            } else {
-                $fields[$key] = $defaultVal;
-                $overrides[$key] = '0';
-            }
-        }
-
-        $globalFieldsByTemplate[$template_id] = $fields;
-        $globalOverridesByTemplate[$template_id] = $overrides;
-        $globalPromptsByTemplate[$template_id] = $TEMPLATE_CONFIG_DATA[$template_id]['globalFields_prompt'] ?? [];
-    }
 }
 
 ?>
@@ -330,17 +275,6 @@ if (isset($post_id)) {
         $gpaiSeoContent .= '</div>';
         ?>
         <?php FWUCollapse::render("Gpai SEO", $gpaiSeoContent, true) ?>
-        <?php foreach ($template_ids_detected as $tpl_id) {
-            $fields = $globalFieldsByTemplate[$tpl_id] ?? [];
-            if (empty($fields)) continue;
-        ?>
-            <?php FWUCollapse::render(
-                "Campos Globales <code>{g{...}}</code> (" . get_the_title($tpl_id) . ")",
-                GPAI_Global_Fields($fields, $globalPromptsByTemplate[$tpl_id], $globalOverridesByTemplate[$tpl_id], 'tpl_' . $tpl_id),
-                true
-            )
-            ?>
-        <?php } ?>
         <div class="content-btn">
             <button
                 type="submit"

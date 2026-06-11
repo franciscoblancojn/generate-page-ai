@@ -64,52 +64,6 @@ function GPAI_replace_custom_vars($content, $depth = 0)
 
     /*
     |--------------------------------------------------------------------------
-    | Reemplazo {g{x}}
-    |--------------------------------------------------------------------------
-    */
-    preg_match_all('/\{g\{(.*?)\}\}/', $content, $gmatches);
-
-    foreach ($gmatches[1] as $key) {
-
-        $value = null;
-        $global_key = 'global_' . $key;
-
-        if (
-            current_user_can('manage_options') &&
-            isset($_GET[$global_key]) &&
-            $_GET[$global_key] !== ''
-        ) {
-            $value = sanitize_text_field($_GET[$global_key]);
-        } else {
-            $value = get_post_meta(get_the_ID(), $global_key, true);
-        }
-
-        if (empty($value)) {
-
-            $template_ids = GPAI_CF_TEMPLATE::getPostTemplates(get_the_ID());
-
-            foreach ($template_ids as $template_id) {
-
-                $value = get_post_meta($template_id, '_g_' . $key, true);
-
-                if (!empty($value)) {
-                    break;
-                }
-            }
-        }
-
-        if ($value !== null && $value !== '') {
-
-            $content = str_replace(
-                "{g{{$key}}}",
-                $value,
-                $content
-            );
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
     | Reemplazo recursivo
     |--------------------------------------------------------------------------
     */

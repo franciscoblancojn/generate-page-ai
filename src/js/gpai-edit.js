@@ -7,10 +7,6 @@
   var fieldsData = [];
   var searchQuery = "";
   var currentTab = "all";
-  var templateFieldsData = [];
-  var templateFieldsLoaded = false;
-  var editingTemplateKey = null;
-  var editingTemplateDefault = null;
   var currentElementKeys = [];
   var sectionClickEnabled = false;
 
@@ -52,7 +48,6 @@
       '        <div class="gpai-edit-tabs">' +
       '          <button class="gpai-edit-tab gpai-edit-tab-active" data-tab="all">Todos</button>' +
       '          <button class="gpai-edit-tab" data-tab="section">Secci\u00f3n</button>' +
-      '          <button class="gpai-edit-tab" data-tab="templates">Plantillas</button>' +
       "        </div>" +
       '        <button class="gpai-edit-btn-create gpai-edit-btn gpai-edit-btn-primary">+ Nuevo</button>' +
       "      </div>" +
@@ -98,10 +93,6 @@
 
     $panel.on("click", ".gpai-edit-form-save", handleSave);
 
-    $panel.on("click", ".gpai-edit-template-form-cancel", cancelTemplateForm);
-
-    $panel.on("click", ".gpai-edit-template-form-save", handleTemplateSave);
-
     $panel.on("input", ".gpai-edit-search", function () {
       searchQuery = $(this).val().toLowerCase().trim();
       renderList();
@@ -116,17 +107,11 @@
 
     $panel.on("click", ".gpai-edit-field-edit", function () {
       var k = $(this).data("key");
-      if (currentTab === "templates") {
-        var d = $(this).data("default") || "";
-        var c = $(this).data("current") || "";
-        showTemplateForm(k, d, c);
-      } else {
-        var v = "";
-        fieldsData.forEach(function (f) {
-          if (f.key === k) v = f.value;
-        });
-        showForm(k, v);
-      }
+      var v = "";
+      fieldsData.forEach(function (f) {
+        if (f.key === k) v = f.value;
+      });
+      showForm(k, v);
     });
 
     $panel.on("click", ".gpai-edit-field-delete", function () {
@@ -162,7 +147,6 @@
     createPanelHTML();
     bindPanelEvents();
     $("#gpai-edit-panel").addClass("gpai-edit-panel-open");
-    templateFieldsLoaded = false;
     showList();
   }
 
@@ -173,7 +157,6 @@
   }
 
   function showList() {
-    hideTemplateForm();
     currentView = "list";
     editingKey = null;
 
@@ -214,18 +197,8 @@
   }
 
   function renderList() {
-    hideTemplateForm();
     var $items = $("#gpai-edit-panel .gpai-edit-panel-items");
     var $empty = $("#gpai-edit-panel .gpai-edit-panel-empty");
-
-    if (currentTab === "templates") {
-      if (!templateFieldsLoaded) {
-        loadTemplateFields();
-      } else {
-        renderTemplateList();
-      }
-      return;
-    }
 
     var filtered = fieldsData;
 
@@ -283,28 +256,18 @@
     filtered.forEach(function (field) {
       var key = field.key;
       var value = field.value || "";
-      var fieldType = field.type || "custom";
       var displayValue =
         value.length > 80
           ? value.substring(0, 80) + "..."
           : value;
 
-      var displayKey, keyClass;
-      if (fieldType === "global") {
-        displayKey = "{g{" + key + "}}";
-        keyClass = "gpai-edit-field-key gpai-edit-field-key-global";
-      } else {
-        displayKey = "{{" + key + "}}";
-        keyClass = "gpai-edit-field-key";
-      }
-
       var $row = $(
         '<div class="gpai-edit-field-row">' +
           '  <div class="gpai-edit-field-info">' +
-          '    <code class="' +
-          keyClass +
-          '">' +
-          escapeHtml(displayKey) +
+          '    <code class="gpai-edit-field-key">' +
+          "{{" +
+          escapeHtml(key) +
+          "}}" +
           "</code>" +
           '    <span class="gpai-edit-field-value">' +
           escapeHtml(displayValue) +
@@ -313,8 +276,6 @@
           '  <div class="gpai-edit-field-actions">' +
           '    <button class="gpai-edit-field-edit" data-key="' +
           key +
-          '" data-type="' +
-          fieldType +
           '" title="Editar">\u270E</button>' +
           '    <button class="gpai-edit-field-delete" data-key="' +
           key +
@@ -420,218 +381,6 @@
     });
   }
 
-  function loadTemplateFields() {
-    var $items = $("#gpai-edit-panel .gpai-edit-panel-items");
-    var $empty = $("#gpai-edit-panel .gpai-edit-panel-empty");
-    $empty.hide();
-    $items.html(
-      '<div class="gpai-edit-panel-loading">Cargando campos de plantilla...</div>',
-    );
-
-    $.ajax({
-      url: gpaiEdit.ajaxurl,
-      type: "POST",
-      data: {
-        action: "gpai_list_template_fields",
-        post_id: postId,
-      },
-      success: function (response) {
-        if (response.success) {
-          templateFieldsData = response.data || [];
-          templateFieldsLoaded = true;
-          renderTemplateList();
-        } else {
-          $items.html(
-            '<div class="gpai-edit-panel-error">Error: ' +
-              (response.data || "desconocido") +
-              "</div>",
-          );
-        }
-      },
-      error: function () {
-        $items.html(
-          '<div class="gpai-edit-panel-error">Error de conexi\u00f3n.</div>',
-        );
-      },
-    });
-  }
-
-  function renderTemplateList() {
-    var $items = $("#gpai-edit-panel .gpai-edit-panel-items");
-    var $empty = $("#gpai-edit-panel .gpai-edit-panel-empty");
-
-    var filtered = templateFieldsData;
-    if (searchQuery) {
-      filtered = filtered.filter(function (f) {
-        return f.key.toLowerCase().indexOf(searchQuery) !== -1;
-      });
-    }
-
-    if (!filtered.length) {
-      $items.empty();
-      if (searchQuery) {
-        $empty
-          .show()
-          .text(
-            'No se encontraron campos con "' + searchQuery + '".',
-          );
-      } else {
-        $empty
-          .show()
-          .text("No hay campos de plantilla disponibles.");
-      }
-      return;
-    }
-
-    $empty.hide();
-    $items.empty();
-
-    filtered.forEach(function (field) {
-      var key = field.key;
-      var defaultVal = field.default_value || "";
-      var currentVal = field.current_value || "";
-      var displayVal = currentVal || defaultVal;
-      var displayClass = currentVal
-        ? "gpai-edit-template-current-value"
-        : "gpai-edit-template-current-placeholder";
-
-      var $row = $(
-        '<div class="gpai-edit-field-row">' +
-          '  <div class="gpai-edit-field-info">' +
-          '    <code class="gpai-edit-field-key gpai-edit-field-key-global">{g{' +
-          escapeHtml(key) +
-          "}}</code>" +
-          '    <div class="gpai-edit-template-default"><span class="gpai-edit-template-default-label">Valor plantilla:</span> <span class="gpai-edit-template-default-value">' +
-          escapeHtml(defaultVal) +
-          "</span></div>" +
-          '    <div class="gpai-edit-template-current"><span class="gpai-edit-template-current-label">Valor actual:</span> <span class="' +
-          displayClass +
-          '">' +
-          escapeHtml(displayVal) +
-          "</span></div>" +
-          "  </div>" +
-          '  <div class="gpai-edit-field-actions">' +
-          '    <button class="gpai-edit-field-edit" data-key="' +
-          key +
-          '" data-default="' +
-          escapeHtml(defaultVal) +
-          '" data-current="' +
-          escapeHtml(currentVal) +
-          '" title="Editar">\u270E</button>' +
-          "  </div>" +
-          "</div>",
-      );
-
-      $items.append($row);
-    });
-  }
-
-  function showTemplateForm(key, defaultVal, currentVal) {
-    editingTemplateKey = key;
-    editingTemplateDefault = defaultVal;
-
-    var $panel = $("#gpai-edit-panel");
-    $panel.find(".gpai-edit-panel-list-view").hide();
-    $panel.find(".gpai-edit-panel-template-form-view").remove();
-
-    var $form = $(
-      '<div class="gpai-edit-panel-template-form-view">' +
-        '    <div class="gpai-edit-form-group">' +
-        "      <label>Clave</label>" +
-        '      <div class="gpai-edit-key-input-wrapper">' +
-        '        <span class="gpai-edit-brace">{g{</span>' +
-        '        <input type="text" value="' +
-        escapeHtml(key) +
-        '" readonly class="gpai-edit-template-form-key" />' +
-        '        <span class="gpai-edit-brace">}}</span>' +
-        "      </div>" +
-        "    </div>" +
-        '    <div class="gpai-edit-form-group">' +
-        "      <label>Valor plantilla</label>" +
-        '      <div class="gpai-edit-template-form-default">' +
-        escapeHtml(defaultVal) +
-        "</div>" +
-        "    </div>" +
-        '    <div class="gpai-edit-form-group">' +
-        "      <label>Valor actual</label>" +
-        '      <textarea class="gpai-edit-template-form-value" placeholder="' +
-        escapeHtml(defaultVal) +
-        '" rows="4">' +
-        escapeHtml(currentVal) +
-        "</textarea>" +
-        "    </div>" +
-        '    <div class="gpai-edit-form-actions">' +
-        '      <button class="gpai-edit-template-form-cancel gpai-edit-btn gpai-edit-btn-default">Cancelar</button>' +
-        '      <button class="gpai-edit-template-form-save gpai-edit-btn gpai-edit-btn-primary">Guardar</button>' +
-        "    </div>" +
-        "</div>",
-    );
-
-    $panel.find(".gpai-edit-panel-body").append($form);
-
-    $form.find(".gpai-edit-template-form-value").on("keydown", function (e) {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleTemplateSave();
-      }
-    });
-
-    $form.find(".gpai-edit-template-form-value").focus();
-  }
-
-  function cancelTemplateForm() {
-    $("#gpai-edit-panel .gpai-edit-panel-template-form-view").remove();
-    editingTemplateKey = null;
-    editingTemplateDefault = null;
-    $("#gpai-edit-panel .gpai-edit-panel-list-view").show();
-    renderTemplateList();
-  }
-
-  function handleTemplateSave() {
-    var value = $("#gpai-edit-panel .gpai-edit-template-form-value").val().trim();
-    var key = editingTemplateKey;
-
-    if (!key) return;
-
-    var $saveBtn = $("#gpai-edit-panel .gpai-edit-template-form-save");
-    $saveBtn.prop("disabled", true).text("Guardando...");
-
-    $.ajax({
-      url: gpaiEdit.ajaxurl,
-      type: "POST",
-      data: {
-        action: "gpai_save_global_field",
-        post_id: postId,
-        key: key,
-        value: value,
-      },
-      success: function (response) {
-        $saveBtn.prop("disabled", false).text("Guardar");
-        if (response.success) {
-          templateFieldsData.forEach(function (f) {
-            if (f.key === key) {
-              f.current_value = value;
-            }
-          });
-          showToast("Campo global guardado", "success");
-          cancelTemplateForm();
-        } else {
-          alert("Error: " + (response.data || "No se pudo guardar."));
-        }
-      },
-      error: function () {
-        $saveBtn.prop("disabled", false).text("Guardar");
-        alert("Error de conexi\u00f3n. Intenta de nuevo.");
-      },
-    });
-  }
-
-  function hideTemplateForm() {
-    $("#gpai-edit-panel .gpai-edit-panel-template-form-view").remove();
-    editingTemplateKey = null;
-    editingTemplateDefault = null;
-  }
-
   function makeDraggable($el) {
     var $handle = $el.find(".gpai-edit-panel-header-drag");
     var startX, startY, origX, origY;
@@ -691,20 +440,14 @@
   }
 
   function findKeysInHtml(html) {
-    var result = { custom: {}, global: {} };
+    var result = {};
     if (!html) return result;
 
     var match;
     var regex = /\{\{(.*?)\}\}/g;
     while ((match = regex.exec(html)) !== null) {
       var k = match[1].trim();
-      if (k) result.custom[k] = true;
-    }
-
-    regex = /\{g\{(.*?)\}\}/g;
-    while ((match = regex.exec(html)) !== null) {
-      var gk = match[1].trim();
-      if (gk) result.global[gk] = true;
+      if (k) result[k] = true;
     }
 
     return result;
@@ -722,7 +465,7 @@
 
       var html = target.innerHTML;
       var foundKeys = findKeysInHtml(html);
-      currentElementKeys = Object.keys(foundKeys.custom).concat(Object.keys(foundKeys.global));
+      currentElementKeys = Object.keys(foundKeys);
 
       $(".gpai-edit-highlight").removeClass("gpai-edit-highlight");
       $(target).addClass("gpai-edit-highlight");

@@ -12,7 +12,6 @@ $default_save_options = [
     'custom_fields' => true,
     'custom_seo' => true,
     'global_fields' => true,
-    'template_fields' => true,
 ];
 $save_options = get_option($GPAI_SAVE_OPTIONS_KEY, $default_save_options);
 if (!is_array($save_options)) {
@@ -98,19 +97,6 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
             if (!empty($globalFieldsPost)) {
                 foreach ($globalFieldsPost as $key => $value) {
                     update_post_meta($post_id, $key, wp_kses_post($value));
-                }
-                $respond_duplicates_pendding = [
-                    "status" => "ok",
-                    "message" => "Campos guardados.",
-                    'data' => [],
-                ];
-            }
-        }
-        if (!empty($save_options['template_fields'])) {
-            $templateFieldsPost = $DATA['templateFields'] ?? [];
-            if (!empty($templateFieldsPost)) {
-                foreach ($templateFieldsPost as $key => $value) {
-                    update_post_meta($post_id, 'global_' . $key, wp_kses_post($value));
                 }
                 $respond_duplicates_pendding = [
                     "status" => "ok",
@@ -299,7 +285,6 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                                         $customFields = $value['customFields'];
                                         $gpaiSeoFields = $value['gpaiSeoFields'] ?? [];
                                         $globalFields = $value['globalFields'] ?? [];
-                                        $templateFields = $value['templateFields'] ?? [];
                                     ?>
                                         <?php FWUCollapse::render(
                                             getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v),
@@ -317,11 +302,6 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
                                                 FWUCollapse::html(
                                                     "Global Fields",
                                                     GPAI_Custom_Fields($globalFields, false),
-                                                    true
-                                                ) .
-                                                FWUCollapse::html(
-                                                    "Template Fields",
-                                                    GPAI_Custom_Fields($templateFields, false),
                                                     true
                                                 ),
                                             true
@@ -364,10 +344,6 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v)
         <label class="gpai-save-content-option">
             <input type="checkbox" class="gpai-save-option" value="global_fields" <?= !empty($save_options['global_fields']) ? 'checked' : '' ?>>
             Global Fields
-        </label>
-        <label class="gpai-save-content-option">
-            <input type="checkbox" class="gpai-save-option" value="template_fields" <?= !empty($save_options['template_fields']) ? 'checked' : '' ?>>
-            Template Fields
         </label>
         <div class="gpai-save-content-modal-actions">
             <button type="button" class="button gpai-save-modal-cancel">Cancelar</button>

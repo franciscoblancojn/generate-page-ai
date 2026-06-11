@@ -4,6 +4,15 @@ function GPAI_Elementor_Editor_Assets()
 {
     if (!defined('ELEMENTOR_VERSION')) return;
 
+    $post_id = 0;
+    try {
+        $post_id = \Elementor\Plugin::$instance->documents->get_current()->get_main_id();
+    } catch (\Throwable $e) {
+        return;
+    }
+
+    if (get_post_type($post_id) === 'elementor_library') return;
+
     wp_enqueue_style(
         'gpai-elementor-editor',
         GPAI_URL . 'src/css/elementor-editor.css',

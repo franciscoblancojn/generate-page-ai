@@ -174,69 +174,6 @@ class GPAI_CF
         ]);
     }
 
-    public static function list_custom_fields_ajax()
-    {
-        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-
-        if (!$post_id) {
-            wp_send_json_error('post_id es requerido.');
-        }
-
-        if (!get_post($post_id)) {
-            wp_send_json_error('El post no existe.');
-        }
-
-        $meta = get_post_meta($post_id);
-        $result = [];
-        $seo_used = [];
-
-        foreach ($meta as $key => $values) {
-            if (strpos($key, '_g_') === 0) {
-                $clean = substr($key, 3);
-                if (!isset($result[$clean])) {
-                    $result[$clean] = [
-                        'key' => $clean,
-                        'value' => $values[0],
-                        'type' => 'global',
-                        'prefix' => '_g_',
-                    ];
-                }
-            } elseif (strpos($key, 'global_') === 0) {
-                $clean = substr($key, 7);
-                if (!isset($result[$clean])) {
-                    $result[$clean] = [
-                        'key' => $clean,
-                        'value' => $values[0],
-                        'type' => 'global',
-                        'prefix' => 'global_',
-                    ];
-                }
-            } elseif (strpos($key, '_') !== 0) {
-                $result[$key] = [
-                    'key' => $key,
-                    'value' => $values[0],
-                    'type' => 'custom',
-                ];
-                if (strpos($key, 'gpai_wpseo_') === 0) {
-                    $seo_used[$key] = true;
-                }
-            }
-        }
-
-        $seo_fields = GPAI_SEO::getFields();
-        foreach ($seo_fields as $key => $label) {
-            if (!isset($seo_used[$key])) {
-                $result[$key] = [
-                    'key' => $key,
-                    'value' => '',
-                    'type' => 'custom',
-                ];
-            }
-        }
-
-        wp_send_json_success(array_values($result));
-    }
-
     public static function delete_custom_field_ajax()
     {
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
@@ -265,7 +202,7 @@ class GPAI_CF
         ]);
     }
 
-    public static function list_template_fields_ajax()
+    public static function list_custom_fields_ajax()
     {
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
 
@@ -277,76 +214,38 @@ class GPAI_CF
             wp_send_json_error('El post no existe.');
         }
 
-        $template_ids = GPAI_CF_TEMPLATE::getPostTemplates($post_id);
+        $meta = get_post_meta($post_id);
         $result = [];
+        $seo_used = [];
 
-        foreach ($template_ids as $template_id) {
-            $template_vars = GPAI_CF_TEMPLATE::GET($template_id);
-            foreach ($template_vars as $key => $default_value) {
-                $current_value = get_post_meta($post_id, 'global_' . $key, true);
-                $result[] = [
+        foreach ($meta as $key => $values) {
+            if (strpos($key, '_') !== 0) {
+                $result[$key] = [
                     'key' => $key,
-                    'default_value' => $default_value,
-                    'current_value' => $current_value !== '' ? $current_value : '',
+                    'value' => $values[0],
+                    'type' => 'custom',
+                ];
+                if (strpos($key, 'gpai_wpseo_') === 0) {
+                    $seo_used[$key] = true;
+                }
+            }
+        }
+
+        $seo_fields = GPAI_SEO::getFields();
+        foreach ($seo_fields as $key => $label) {
+            if (!isset($seo_used[$key])) {
+                $result[$key] = [
+                    'key' => $key,
+                    'value' => '',
+                    'type' => 'custom',
                 ];
             }
         }
 
-        wp_send_json_success($result);
-    }
-
-    public static function save_global_field_ajax()
-    {
-        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        $key = isset($_POST['key']) ? sanitize_key($_POST['key']) : '';
-        $value = isset($_POST['value']) ? $_POST['value'] : '';
-
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => 'save_global_field_ajax_start',
-            'post_id' => $post_id,
-            'key' => $key,
-            'value' => $value,
-        ]);
-
-        if (!$post_id || !$key) {
-            wp_send_json_error('post_id y key son requeridos.');
-        }
-
-        if (!get_post($post_id)) {
-            wp_send_json_error('El post no existe.');
-        }
-
-        $meta_key = 'global_' . $key;
-        $sanitized = wp_kses_post($value);
-
-        if ($sanitized !== '') {
-            update_post_meta($post_id, $meta_key, $sanitized);
-        } else {
-            delete_post_meta($post_id, $meta_key);
-        }
-
-        $after = get_post_meta($post_id, $meta_key, true);
-
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => 'save_global_field_ajax_end',
-            'post_id' => $post_id,
-            'meta_key' => $meta_key,
-            'value_sent' => $value,
-            'value_sanitized' => $sanitized,
-            'value_after_readback' => $after,
-        ]);
-
-        wp_send_json_success([
-            'key' => $key,
-            'value' => $sanitized,
-            'message' => 'Campo global guardado correctamente.'
-        ]);
+        wp_send_json_success(array_values($result));
     }
 }
 
 add_action('wp_ajax_gpai_save_custom_field', ['GPAI_CF', 'save_from_elementor_ajax']);
 add_action('wp_ajax_gpai_list_custom_fields', ['GPAI_CF', 'list_custom_fields_ajax']);
 add_action('wp_ajax_gpai_delete_custom_field', ['GPAI_CF', 'delete_custom_field_ajax']);
-add_action('wp_ajax_gpai_list_template_fields', ['GPAI_CF', 'list_template_fields_ajax']);
-add_action('wp_ajax_gpai_save_global_field', ['GPAI_CF', 'save_global_field_ajax']);
-// add_action('rest_api_init', ['GPAI_CF', 'init']);

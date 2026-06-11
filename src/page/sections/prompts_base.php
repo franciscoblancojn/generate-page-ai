@@ -7,7 +7,6 @@ use franciscoblancojn\wordpress_utils\FWUCollapse;
 $types = [
     'content' => 'Generar contenido (getPrompt)',
     // 'content_img' => 'Generar imagen (getPromptImg)', //de momento no esta disponible
-    'template' => 'Variables globales (getContentTemplate)',
     'seo' => 'SEO (getSEOBasePromptDefault)',
     'html' => 'Optimización HTML (getHTMLBasePromptDefault)',
     'sitemap' => 'Site Maps (getSitemapBasePrompt)',
@@ -30,12 +29,6 @@ $placeholders = [
         '{{yoastFields}}' => 'JSON con datos de Yoast SEO',
         '{{gpaiSeoFields}}' => 'JSON con campos de GPAI SEO',
         '{{imageUrl}}' => 'URL de la imagen destacada',
-    ],
-    'template' => [
-        '{{title}}' => 'Titulo de la plantilla',
-        '{{globalFields}}' => 'JSON con variables globales {g{...}}',
-        '{{globalFields_prompt}}' => 'JSON con prompts por variable global',
-        '{{prompt}}' => 'Prompt base del usuario',
     ],
     'seo' => [
         '{{title}}' => 'Titulo de la pagina',
