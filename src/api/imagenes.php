@@ -110,6 +110,7 @@ class GPAI_IMAGENES
         foreach ($image_ids as $id) {
             $attachment = get_post($id);
             if (!$attachment || $attachment->post_type !== 'attachment') continue;
+            if (strpos($attachment->post_mime_type, 'image/') !== 0) continue;
 
             $src = wp_get_attachment_image_url($id, 'medium');
             $full_src = wp_get_attachment_image_url($id, 'full');
