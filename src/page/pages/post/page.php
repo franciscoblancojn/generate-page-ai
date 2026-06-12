@@ -19,6 +19,10 @@ try {
             'key' => 'procesar_contenido',
             'title' => 'Procesar Contenido',
         ],
+        [
+            'key' => 'imagenes',
+            'title' => 'Ajustes de Imágenes',
+        ],
     ];
 
     $defaultTag =  $TAGS[0]['key'];
