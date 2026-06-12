@@ -65,6 +65,16 @@ function GPAI_replace_custom_vars($content, $depth = 0)
             $value = get_post_meta(get_the_ID(), $key, true);
         }
 
+        if (($value === null || $value === '')) {
+            $parent_id = get_post_meta(get_the_ID(), GPAI_KEY . '_PARENT', true);
+            if ($parent_id) {
+                $parent_value = get_post_meta($parent_id, $key, true);
+                if ($parent_value !== null && $parent_value !== '') {
+                    $value = $parent_value;
+                }
+            }
+        }
+
         if (($value === null || $value === '') && function_exists('GPAI_get_global_field')) {
             $global_value = GPAI_get_global_field($key);
             if ($global_value !== null && $global_value !== '') {
