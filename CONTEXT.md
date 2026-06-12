@@ -15,6 +15,7 @@ Genera páginas y contenido usando Google Gemini. Permite:
 - Panel de campos personalizados dentro del editor Elementor
 - Export/Import de configuraciones en JSON
 - Auto-update vía GitHub
+- Ajustes de imágenes de posts (alt, título, leyenda, descripción, descarga)
 
 ---
 
@@ -54,6 +55,7 @@ src/
     gpai_seo.php        → GPAI_SEO: API campos SEO personalizados
     export_import.php   → GPAI_EXPORT_IMPORT: Export/Import JSON
     sitemaps.php        → GPAI_SITEMAPS_API: Generación sitemaps con IA
+    imagenes.php        → GPAI_IMAGENES: AJAX para obtener/guardar metadatos de imágenes del post
   css/
     global.php          → Estilos admin inline
     elementor-editor.css → Estilos panel flotante Elementor
@@ -90,6 +92,7 @@ src/
       config.php        → API Key, modelo Gemini, toggle contenido independiente
       post.php          → Gestión de posts (campos, prompts, generar)
       procesar_contenido.php → Revisar/generar variaciones de posts
+      imagenes.php       → Ajustes de imágenes del post (alt, título, leyenda, descripción, descarga)
       html.php          → Optimización HTML estático
       sitemaps.php      → Lista/edita sitemaps XML
       config-sitemaps.php → Configurar URLs para sitemaps
@@ -111,6 +114,7 @@ src/
     custom_yoast.php    → GPAI_Custom_Yoast(): campos Yoast
     custom_gpai_seo.php → GPAI_Custom_Gpai_Seo(): campos GPAI SEO
     table_post_by_url.php → GPAI_Table_Post_By_Url(): posts con checkbox
+    imagenes_post.php   → GPAI_Imagenes_Post(): tabla de imágenes con preview, campos editables y descarga
 ```
 
 ---
@@ -181,6 +185,13 @@ src/
 | `saveAndGenerate()` | Guarda configuración + genera XML |
 | `saveXml()` | Escribe archivo XML en la raíz de WordPress |
 | `getPostImages($post_id)` | Extrae imágenes (destacada, contenido, galería producto) |
+
+### GPAI_IMAGENES (`src/api/imagenes.php`)
+| Método | Descripción |
+|---|---|
+| `getImagesAjax()` | AJAX: retorna todas las imágenes del post con metadatos (alt, título, leyenda, descripción, URLs) |
+| `saveImagesAjax()` | AJAX: guarda metadatos de múltiples imágenes (alt, título, leyenda, descripción) |
+| `getPostImages($post_id)` | Escanea post en busca de imágenes (destacada, adjuntas, contenido, Elementor, galería) y retorna array con datos completos |
 
 ---
 
@@ -257,6 +268,8 @@ STPA_KEY_CONFIG                     → Config de Static Page
 | `gpai_sitemap_generate` | `GPAI_SITEMAPS_API::generate()` | Genera XML de sitemap con IA |
 | `gpai_sitemap_save_generate` | `GPAI_SITEMAPS_API::saveAndGenerate()` | Guarda config + genera XML |
 | `gpai_sitemap_save_xml` | `GPAI_SITEMAPS_API::saveXml()` | Escribe archivo XML |
+| `gpai_imagenes_get` | `GPAI_IMAGENES::getImagesAjax()` | Obtiene imágenes del post con metadatos |
+| `gpai_imagenes_save` | `GPAI_IMAGENES::saveImagesAjax()` | Guarda metadatos de imágenes (alt, título, leyenda, descripción) |
 
 ---
 
@@ -274,6 +287,7 @@ add_action('elementor/editor/after_enqueue_scripts', 'GPAI_Elementor_Editor_Asse
 add_action('elementor/editor/after_enqueue_styles', 'GPAI_Elementor_Editor_Assets')
 add_action('wp_ajax_*', ...)                         → Todos los AJAX (ver tabla arriba)
 add_action('admin_init', ['GPAI_EXPORT_IMPORT', 'init'])
+add_action('admin_init', ['GPAI_IMAGENES', 'init'])
 ```
 
 ### Filtros

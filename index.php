@@ -3,7 +3,7 @@
 Plugin Name: Generate Page AI
 Plugin URI: https://github.com/franciscoblancojn/generate-page-ai
 Description: It is an plugin of wordpress, for create custom field and duplicate page.
-Version: 2.1.0
+Version: 2.2.0
 Author: franciscoblancojn
 Author URI: https://franciscoblanco.vercel.app/
 License: GPL2+

@@ -1,6 +1,6 @@
 # Generate Page AI 🚀
 
-**Version:** 2.1.0 | **License:** GPLv2+
+**Version:** 2.2.0 | **License:** GPLv2+
 
 Generate Page AI es un plugin de WordPress que potencia tus páginas con **inteligencia artificial** 🤖. Conéctalo a Google Gemini, gestiona campos personalizados, datos Yoast SEO, datos **GPAI SEO** (con meta box, etiquetas `<head>` y Schema JSON-LD), crea variaciones de contenido en masa para posts, gestiona campos personalizados **directamente desde el editor de Elementor**, optimiza HTML estático generado por **Static Page**, y cuenta con auto-actualizador vía GitHub.
 
@@ -23,6 +23,7 @@ Generate Page AI es un plugin de WordPress que potencia tus páginas con **intel
 - 🗺️ **Site Maps** — Subpágina completa para gestionar archivos XML de sitemaps en la raíz de WordPress. Lectura, edición, creación y eliminación de archivos. Generación de contenido XML con IA usando el prompt base de sitemaps más las URLs reales del sitio.
 - 🔗 **URLs para Sitemaps** — Pestaña dentro de Site Maps que lista todos los posts y páginas publicadas con checkboxes para activar/desactivar su inclusión. Genera XML con `<url><loc><lastmod><changefreq><priority>`. Configuración persistente de frecuencia y prioridad por tipo de contenido.
 - 🖼️ **Imágenes en Sitemaps** — Escaneo automático de imágenes destacadas, contenido y galerías de productos para cada URL. Se inyectan en el prompt de IA para generar `<image:image>` tags en el sitemap.
+- 🖼️ **Ajustes de Imágenes** — Nueva pestaña en la sección Post que carga todas las imágenes del post seleccionado (destacada, contenido, Elementor, galerías) y permite editar **Texto Alternativo, Título, Leyenda y Descripción** con vista previa y botón de descarga.
 - ✅ **Confirmación en Generar SEO** — El botón "Generar SEO con IA" ahora pide confirmación antes de sobrescribir los valores actuales.
 - 🧼 **Limpieza de Schema Yoast** — Filtro automático que remueve propiedades internas no estándar (`description_schema_fallback`) del schema de Yoast antes de renderizar.
 
@@ -66,7 +67,8 @@ generate-page-ai/
 │   │   ├── yoast.php             # GPAI_YOAST - API para metadatos Yoast SEO
 │   │   ├── gpai_seo.php          # GPAI_SEO - API para campos SEO personalizados
 │   │   ├── export_import.php     # GPAI_EXPORT_IMPORT - Exportación/Importación JSON
-│   │   └── sitemaps.php          # GPAI_SITEMAPS_API - AJAX para generar XML de sitemaps con IA
+│   │   ├── sitemaps.php          # GPAI_SITEMAPS_API - AJAX para generar XML de sitemaps con IA
+│   │   └── imagenes.php          # GPAI_IMAGENES - AJAX para gestionar metadatos de imágenes del post
 │   ├── css/                      # Estilos CSS inline
 │   │   ├── global.php            # Estilos generales del admin
 │   │   └── elementor-editor.css  # Estilos del panel flotante en editor Elementor
@@ -116,6 +118,7 @@ generate-page-ai/
 │   │       ├── prompts_base.php  # Editor de prompts base (templates editables)
 │   │       ├── test.php          # Pruebas (dev mode)
 │   │       ├── post.php          # Gestión de posts
+│   │       ├── imagenes.php      # Ajustes de imágenes del post (alt, título, leyenda, descripción, descarga)
 │   │       ├── procesar_contenido.php# Variaciones de contenido
 │   │       ├── html.php          # Optimización HTML (selector de post, estado static, mejora con IA)
 │   │       ├── sitemaps.php      # Site Maps: listado de archivos XML con edición y generación IA
@@ -128,7 +131,8 @@ generate-page-ai/
 │       ├── custom_fields.php     # GPAI_Custom_Fields() - Campos personalizados
 │       ├── custom_yoast.php      # GPAI_Custom_Yoast() - Campos Yoast
 │       ├── custom_gpai_seo.php   # GPAI_Custom_Gpai_Seo() - Campos GPAI SEO
-│       └── table_post_by_url.php # GPAI_Table_Post_By_Url() - Tabla de posts con checkboxes para sitemaps
+│       ├── table_post_by_url.php # GPAI_Table_Post_By_Url() - Tabla de posts con checkboxes para sitemaps
+│       └── imagenes_post.php     # GPAI_Imagenes_Post() - Tabla de imágenes con preview, campos editables y descarga
 ```
 
 ---
@@ -151,6 +155,7 @@ generate-page-ai/
 | `GPAI_USE_DATA_DUPLICADOS` | `src/data/duplicados.php` | 📝 Variaciones de posts pendientes |
 | `GPAI_USE_DATA_SITEMAPS` | `src/data/sitemaps_data.php` | 🗺️ CRUD de archivos XML de sitemaps en la raíz de WordPress |
 | `GPAI_SITEMAPS_API` | `src/api/sitemaps.php` | 🤖 AJAX para generar XML de sitemaps con Gemini, reemplaza `{{URL_BASE}}`, `{{URL_PAGINAS_LIST}}`, `{{URL_POSTS_LIST}}`, `{{PAGINAS_IMAGES}}`, `{{POSTS_IMAGES}}` |
+| `GPAI_IMAGENES` | `src/api/imagenes.php` | 🖼️ AJAX para obtener y guardar metadatos de imágenes del post (alt, título, leyenda, descripción) |
 
 ---
 
@@ -161,7 +166,7 @@ generate-page-ai/
 | ⚙️ **Configuración** | `GPAI_config` | API Key de Gemini, selección de modelo, toggle de generación de imágenes |
 | 🧠 **Prompts Base** | `GPAI_config` (tab) | Editor de templates base para generación de contenido, SEO y optimización HTML |
 | 🧪 **Pruebas** | `GPAI_config` (tab, solo dev) | Pruebas de parseo JSON (solo visible en modo desarrollo) |
-| 📄 **Post** | `GPAI_post` | Gestión de posts: campos personalizados, Yoast, GPAI SEO, prompts, variaciones |
+| 📄 **Post** | `GPAI_post` | Gestión de posts: campos personalizados, Yoast, GPAI SEO, prompts, variaciones, ajustes de imágenes |
 | 🧹 **Optimización HTML** | `GPAI_html` | Optimización de HTML estático con IA (solo visible si **Static Page** está activo) |
 | 🗺️ **Site Maps** | `GPAI_sitemaps` | Gestión de archivos XML de sitemaps. Tres pestañas: **Site Maps** (lista, editar, generar con IA, descargar), **Crear Site Map** (nuevo archivo XML), **URLs** (seleccionar posts/páginas, configurar frecuencia/prioridad, generar XML). |
 | 🌐 **Campos Globales** | `GPAI_campos_globales` | CRUD de campos globales reutilizables (text, textarea, number, email, url, wysiwyg) |
@@ -422,6 +427,8 @@ El submenú **.htaccess** permite gestionar archivos `.htaccess` desde el admin:
 - `wp_ajax_gpai_sitemap_generate` — Generar contenido XML de sitemap con IA usando Gemini. Reemplaza `{{URL_BASE}}`, `{{URL_PAGINAS_LIST}}`, `{{URL_POSTS_LIST}}`, `{{PAGINAS_IMAGES}}` y `{{POSTS_IMAGES}}` con datos reales del sitio.
 - `wp_ajax_gpai_sitemap_save_generate` — Guardar configuración + generar XML de sitemap con IA.
 - `wp_ajax_gpai_sitemap_save_xml` — Escribir archivo XML de sitemap en la raíz de WordPress.
+- `wp_ajax_gpai_imagenes_get` — Obtener todas las imágenes de un post (destacada, adjuntas, contenido, Elementor, galerías) con sus metadatos actuales.
+- `wp_ajax_gpai_imagenes_save` — Guardar metadatos de imágenes (alt, título, leyenda, descripción) de un post.
 
 ---
 
