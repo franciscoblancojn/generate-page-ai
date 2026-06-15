@@ -31,7 +31,7 @@
     }
   },
   "skills": {
-    "paths": [".opencode/skills"]
+    "paths": [".rules"]
   },
   "permission": {
     "edit": "allow",

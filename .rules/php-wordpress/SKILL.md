@@ -3,16 +3,16 @@ name: php-wordpress
 description: >-
   Use when writing or editing PHP code for WordPress. Covers WordPress Coding
   Standards, security best practices, WordPress APIs, and PHP compatibility
-  requirements for this plugin (PHP 5.6+).
+  requirements for this plugin (PHP 7.0+).
 ---
 
 # WordPress PHP — Estándares y Buenas Prácticas
 
 ---
 
-## PHP Compatibility (≥5.6)
+## PHP Compatibility (≥7.0)
 
-El plugin requiere PHP 5.6+. Esto significa que NO puedes usar:
+El plugin requiere PHP 7.0+. Esto significa que NO puedes usar:
 
 ### Prohibido
 ```php
