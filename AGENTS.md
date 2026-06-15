@@ -8,7 +8,7 @@ Este archivo contiene las reglas, validaciones y convenciones que toda IA debe s
 
 ### PHP
 - **WordPress Coding Standards**: Sigue los estándares de codificación de WordPress para PHP.
-- **PHP 5.6+**: No uses sintaxis moderna de PHP (nullsafe `?->`, named arguments, match, readonly properties, etc).
+- **PHP 7.0+**: No uses sintaxis moderna de PHP (nullsafe `?->`, named arguments, match, readonly properties, etc).
 - **Nombrado**: Las clases usan prefijo `GPAI_` (ej: `GPAI_AI`, `GPAI_CONTENT`). Métodos y propiedades en `camelCase` o `UPPER_SNAKE` para constantes.
 - **Sanitización**: Toda salida de datos debe escaparse. Usa `esc_html()`, `esc_attr()`, `esc_url()`, `wp_kses_post()` según contexto.
 - **Nonces**: Todo formulario y AJAX debe verificar nonce con `wp_verify_nonce()` o `check_ajax_referer()`.
