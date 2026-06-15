@@ -96,12 +96,36 @@ class GPAI_AI
     public static function sendPrompt($PROMPT)
     {
         $jsonResponse = [];
+
+        /**
+         * Hook: gpai_ai_mock_response
+         * Permite devolver una respuesta simulada sin llamar a la API.
+         * Retornar un array con formato ["status" => "ok", "data" => "...", "message" => "..."].
+         */
+        $mock = apply_filters('gpai_ai_mock_response', null, $PROMPT);
+        if ($mock !== null) {
+            do_action('gpai_ai_mock_used', $PROMPT, $mock);
+            return $mock;
+        }
+
+        /**
+         * Hook: gpai_ai_prompt
+         * Permite modificar el prompt antes de enviarlo a la IA.
+         */
+        $PROMPT = apply_filters('gpai_ai_prompt', $PROMPT);
+
         try {
             $CONFIG = self::getConfig();
             // 1. Configuración de parámetros
             $apiKey = $CONFIG['apikey']; // Reemplaza con tu clave real
             $modelo = $CONFIG['modelo'];
             $url = "https://generativelanguage.googleapis.com/v1/models/{$modelo}:generateContent?key={$apiKey}";
+
+            /**
+             * Hook: gpai_ai_api_url
+             * Permite modificar la URL de la API.
+             */
+            $url = apply_filters('gpai_ai_api_url', $url, $PROMPT, $modelo, $apiKey);
 
             // 2. Estructura del cuerpo de la petición (JSON)
             $data = [
@@ -118,7 +142,26 @@ class GPAI_AI
                 ]
             ];
 
+            /**
+             * Hook: gpai_ai_request_data
+             * Permite modificar el payload completo de la petición.
+             */
+            $data = apply_filters('gpai_ai_request_data', $data, $PROMPT);
+
+            /**
+             * Action: gpai_ai_before_request
+             * Se ejecuta justo antes de enviar la petición a la API.
+             */
+            do_action('gpai_ai_before_request', $PROMPT, $data, $url);
+
             $result = self::request($url, "POST", $data);
+
+            /**
+             * Action: gpai_ai_after_request
+             * Se ejecuta después de recibir la respuesta de la API.
+             */
+            do_action('gpai_ai_after_request', $PROMPT, $data, $url, $result);
+
             if ($result['status'] == 'error') {
                 return $result;
             }
@@ -219,6 +262,12 @@ class GPAI_AI
             throw new \RuntimeException('Respuesta vacía');
         }
 
+        /**
+         * Hook: gpai_ai_parse_raw
+         * Permite modificar el texto plano antes del parsing JSON.
+         */
+        $dataString = apply_filters('gpai_ai_parse_raw', $dataString);
+
         // 1. Quitar bloques ```json ... ```
         $dataString = preg_replace('/^```json\s*/i', '', $dataString);
         $dataString = preg_replace('/^```/i', '', $dataString);
@@ -247,6 +296,12 @@ class GPAI_AI
                     ' | String recibido: ' . substr($dataString, 0, 500)
             );
         }
+
+        /**
+         * Hook: gpai_ai_parsed_data
+         * Permite modificar el array/objeto ya parseado.
+         */
+        $data = apply_filters('gpai_ai_parsed_data', $data);
 
         return $data;
     }
