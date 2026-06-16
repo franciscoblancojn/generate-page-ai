@@ -14,28 +14,28 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
             $this->set($DUPLICADOS);
         }
     }
-    public function deletePrompt($post_id, $prompt)
+    public function deletePrompt($post_id, $uuid)
     {
         $DUPLICADOS = $this->get();
-        if (isset($DUPLICADOS[$post_id]['variations'][$prompt])) {
-            unset($DUPLICADOS[$post_id]['variations'][$prompt]);
+        if (isset($DUPLICADOS[$post_id]['variations'][$uuid])) {
+            unset($DUPLICADOS[$post_id]['variations'][$uuid]);
             $this->set($DUPLICADOS);
             if (count($DUPLICADOS[$post_id]['variations']) == 0) {
                 $this->deletePost($post_id);
             }
         }
     }
-    public function deleteVariation($post_id, $prompt, $v)
+    public function deleteVariation($post_id, $uuid, $v)
     {
         $DUPLICADOS = $this->get();
-        if (isset($DUPLICADOS[$post_id]['variations'][$prompt][$v])) {
-            unset($DUPLICADOS[$post_id]['variations'][$prompt][$v]);
-            $DUPLICADOS[$post_id]['variations'][$prompt] = array_values(
-                $DUPLICADOS[$post_id]['variations'][$prompt]
+        if (isset($DUPLICADOS[$post_id]['variations'][$uuid]['items'][$v])) {
+            unset($DUPLICADOS[$post_id]['variations'][$uuid]['items'][$v]);
+            $DUPLICADOS[$post_id]['variations'][$uuid]['items'] = array_values(
+                $DUPLICADOS[$post_id]['variations'][$uuid]['items']
             );
             $this->set($DUPLICADOS);
-            if (count($DUPLICADOS[$post_id]['variations'][$prompt]) == 0) {
-                $this->deletePrompt($post_id, $prompt);
+            if (count($DUPLICADOS[$post_id]['variations'][$uuid]['items']) == 0) {
+                $this->deletePrompt($post_id, $uuid);
             }
         }
     }
@@ -206,12 +206,12 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
         return $new_post_id;
     }
 
-    public function generateVariation($post_id, $prompt, $v)
+    public function generateVariation($post_id, $uuid, $v)
     {
         try {
             $DUPLICADOS = $this->get();
-            if (isset($DUPLICADOS[$post_id]['variations'][$prompt][$v])) {
-                $DATA = $DUPLICADOS[$post_id]['variations'][$prompt][$v];
+            if (isset($DUPLICADOS[$post_id]['variations'][$uuid]['items'][$v])) {
+                $DATA = $DUPLICADOS[$post_id]['variations'][$uuid]['items'][$v];
                 $new_post_id = $this->generateDuplicado(
                     $post_id,
                     $DATA['title'],
@@ -219,7 +219,7 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
                     $DATA['gpaiSeoFields'] ?? [],
                     $DATA['globalFields'] ?? [],
                 );
-                $this->deleteVariation($post_id, $prompt, $v);
+                $this->deleteVariation($post_id, $uuid, $v);
                 return [
                     "status" => "ok",
                     "message" => "Duplicacion Exitosa.",
@@ -293,10 +293,9 @@ class GPAI_USE_DATA_DUPLICADOS extends GPAI_USE_DATA_BASE
             $respond = [];
             foreach ($DUPLICADOS as $post_id => $duplication) {
                 $variations = $duplication['variations'];
-                foreach ($variations as $prompt => $variation) {
-                    foreach ($variation as $v => $DATA) {
-                        $respond[] = $this->generateVariationWithData($post_id, $prompt, $DATA);
-                        // $this->deleteVariation($post_id, $prompt, $v);
+                foreach ($variations as $uuid => $variation) {
+                    foreach ($variation['items'] as $v => $DATA) {
+                        $respond[] = $this->generateVariationWithData($post_id, $variation['prompt'], $DATA);
                     }
                 }
             }

@@ -34,10 +34,10 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
         ];
     }
     if (isset($_POST['submit_delete']) && $_POST['submit_delete'] != 'generate_all') {
-        [$post_id, $prompt, $v] = explode(GPAI_KEY_SEPARETE, $_POST['submit_delete']);
+        [$post_id, $uuid, $v] = explode(GPAI_KEY_SEPARETE, $_POST['submit_delete']);
         $post_id = (int)$post_id;
         $v = (int)$v;
-        $GPAI_USE_DATA_DUPLICADOS->deleteVariation($post_id, $prompt, $v);
+        $GPAI_USE_DATA_DUPLICADOS->deleteVariation($post_id, $uuid, $v);
         $DUPLICADOS = $GPAI_USE_DATA_DUPLICADOS->get();
         $respond_duplicates_pendding = [
             "status" => "ok",
@@ -50,14 +50,14 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
         $DUPLICADOS = $GPAI_USE_DATA_DUPLICADOS->get();
     }
     if (isset($_POST['submit_generate']) && $_POST['submit_generate'] != 'generate_all') {
-        [$post_id, $prompt, $v] = explode(GPAI_KEY_SEPARETE, $_POST['submit_generate']);
+        [$post_id, $uuid, $v] = explode(GPAI_KEY_SEPARETE, $_POST['submit_generate']);
         $post_id = (int)$post_id;
         $v = (int)$v;
-        $respond_duplicates_pendding = $GPAI_USE_DATA_DUPLICADOS->generateVariation($post_id, $prompt, $v);
+        $respond_duplicates_pendding = $GPAI_USE_DATA_DUPLICADOS->generateVariation($post_id, $uuid, $v);
         $DUPLICADOS = $GPAI_USE_DATA_DUPLICADOS->get();
     }
     if (isset($_POST['submit_save_custom_fields'])) {
-        [$post_id, $prompt, $v] = explode(GPAI_KEY_SEPARETE, $_POST['submit_save_custom_fields']);
+        [$post_id, $uuid, $v] = explode(GPAI_KEY_SEPARETE, $_POST['submit_save_custom_fields']);
         $post_id = (int)$post_id;
         $v = (int)$v;
 
@@ -68,7 +68,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
         }
 
         $DUPLICADOS = $GPAI_USE_DATA_DUPLICADOS->get();
-        $DATA = $DUPLICADOS[$post_id]['variations'][$prompt][$v];
+        $DATA = $DUPLICADOS[$post_id]['variations'][$uuid]['items'][$v];
 
         if (!empty($save_options['custom_fields'])) {
             $customFields = $DATA['customFields'] ?? [];
@@ -105,7 +105,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
                 ];
             }
         }
-        if(isset($respond_duplicates_pendding['status']) && $respond_duplicates_pendding['status'] === "ok"){
+        if(isset($respond_duplicates_pendding['status']) && $respond_duplicates_pendding['status'] === "ok" && isset($TAGS)){
             ?>
             <script>
                 document.querySelector('[data-tab="<?= $TAGS[1]['key'] ?>"]').click()
@@ -120,7 +120,7 @@ if (isset($_POST['save']) && $_POST['save'] == "duplicates_pendding") {
     }
 }
 
-function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, $gpaiSeoFields = [], $globalFields = [])
+function getHeadCollapseVariation($value, $customFields, $post_id, $uuid, $v, $gpaiSeoFields = [], $globalFields = [])
 {
     ob_start();
 ?>
@@ -130,13 +130,13 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, 
         </strong>
         <div style="margin-left: auto;margin-right:2rem;">
             <?php
-            $uuid = wp_generate_uuid4();
-            set_transient('gpai_pv_' . $uuid, [
+            $pv_uuid = wp_generate_uuid4();
+            set_transient('gpai_pv_' . $pv_uuid, [
                 'customFields' => $customFields,
                 'gpaiSeoFields' => $gpaiSeoFields,
                 'globalFields' => $globalFields,
             ], HOUR_IN_SECONDS);
-            $url = add_query_arg('GPAI_preview_variation', $uuid, get_permalink($post_id)) . "&STPA_DISABLE&GPAI_DISABLE";
+            $url = add_query_arg('GPAI_preview_variation', $pv_uuid, get_permalink($post_id)) . "&STPA_DISABLE&GPAI_DISABLE";
             ?>
 
             <a href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer" class="button delete">
@@ -145,7 +145,7 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, 
             <button
                 type="submit"
                 name="submit_delete"
-                value="<?= $post_id . GPAI_KEY_SEPARETE . $prompt . GPAI_KEY_SEPARETE . $v ?>"
+                value="<?= $post_id . GPAI_KEY_SEPARETE . $uuid . GPAI_KEY_SEPARETE . $v ?>"
                 class="button button-primary">
                 Eliminar
             </button>
@@ -153,14 +153,14 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, 
             <button
                 type="submit"
                 name="submit_generate"
-                value="<?= $post_id . GPAI_KEY_SEPARETE . $prompt . GPAI_KEY_SEPARETE . $v ?>"
+                value="<?= $post_id . GPAI_KEY_SEPARETE . $uuid . GPAI_KEY_SEPARETE . $v ?>"
                 class="button button-primary">
                 Generar Nueva Pagina
             </button>
             <button
                 type="button"
                 class="button gpai-save-content-btn"
-                data-value="<?= $post_id . GPAI_KEY_SEPARETE . $prompt . GPAI_KEY_SEPARETE . $v ?>">
+                data-value="<?= $post_id . GPAI_KEY_SEPARETE . $uuid . GPAI_KEY_SEPARETE . $v ?>">
                 Guardar Contenido en Pagina Inicial
             </button>
         </div>
@@ -270,7 +270,8 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, 
                 <td colspan="2">
                     <table class="form-table">
                         <?php
-                        foreach ($variations as $prompt => $variation) {
+                        foreach ($variations as $uuid => $variation) {
+                            $prompt_text = isset($variation['prompt']) ? $variation['prompt'] : $uuid;
                         ?>
                             <tr>
                                 <th scope="row">
@@ -280,20 +281,21 @@ function getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, 
                                 </th>
                                 <td>
                                     <i>
-                                        "<?= $prompt ?>"
+                                        "<?= esc_html($prompt_text) ?>"
                                     </i>
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="2">
                                     <?php
-                                    foreach ($variation as $v => $value) {
+                                    $items = isset($variation['items']) ? $variation['items'] : array();
+                                    foreach ($items as $v => $value) {
                                         $customFields = $value['customFields'];
                                         $gpaiSeoFields = $value['gpaiSeoFields'] ?? [];
                                         $globalFields = $value['globalFields'] ?? [];
                                     ?>
                                         <?php FWUCollapse::render(
-                                            getHeadCollapseVariation($value, $customFields, $post_id, $prompt, $v, $gpaiSeoFields, $globalFields),
+                                            getHeadCollapseVariation($value, $customFields, $post_id, $uuid, $v, $gpaiSeoFields, $globalFields),
                                             "" .
                                                 FWUCollapse::html(
                                                     "Custom Fields",

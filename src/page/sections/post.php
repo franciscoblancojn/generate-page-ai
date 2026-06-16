@@ -120,12 +120,18 @@ if (isset($_POST['save']) && $_POST['save'] == "duplication") {
 
                 $respond_content = GPAI_CONTENT::getContent($CONFIG);
                 if ($respond_content['status'] == 'ok') {
-                    $POST_DATA = $DUPLICADOS[$post_id] ?? [];
+                    $POST_DATA = $DUPLICADOS[$post_id] ?? array();
                     $POST_DATA['post_id'] = $post_id;
                     $POST_DATA['customFields'] = $customFields;
                     $POST_DATA['gpaiSeoFields'] = $gpaiSeoFields;
-                    $POST_DATA['variations'] ??= [];
-                    $POST_DATA['variations'][$prompt] = $respond_content['data'];
+                    if (!isset($POST_DATA['variations'])) {
+                        $POST_DATA['variations'] = array();
+                    }
+                    $uuid = wp_generate_uuid4();
+                    $POST_DATA['variations'][$uuid] = array(
+                        'prompt' => $prompt,
+                        'items' => $respond_content['data'],
+                    );
                     $GPAI_USE_DATA_DUPLICADOS->setField($post_id, $POST_DATA);
                 }
             }
