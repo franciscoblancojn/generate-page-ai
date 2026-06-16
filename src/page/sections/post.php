@@ -225,6 +225,12 @@ if (isset($post_id)) {
                             class="button ">
                             Editar Post
                         </a>
+                        <a
+                            href="<?= get_permalink($post_id) ?>?STPA_DISABLE&GPAI_EDIT&GPAI_CUSTOM_FIELDS_DISABLE"
+                            target="_blank"
+                            class="button ">
+                            Editar Campos en Pagina
+                        </a>
                     <?php } ?>
                 </div>
             </td>
