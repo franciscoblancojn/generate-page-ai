@@ -111,6 +111,7 @@ class GPAI_IMAGENES
             $attachment = get_post($id);
             if (!$attachment || $attachment->post_type !== 'attachment') continue;
             if (strpos($attachment->post_mime_type, 'image/') !== 0) continue;
+            if ($attachment->post_mime_type === 'image/svg+xml') continue;
 
             $src = wp_get_attachment_image_url($id, 'medium');
             $full_src = wp_get_attachment_image_url($id, 'full');

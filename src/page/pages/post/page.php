@@ -23,6 +23,10 @@ try {
             'key' => 'imagenes',
             'title' => 'Ajustes de Imágenes',
         ],
+        [
+            'key' => 'analisis',
+            'title' => 'Análisis',
+        ],
     ];
 
     $defaultTag =  $TAGS[0]['key'];
