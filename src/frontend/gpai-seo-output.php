@@ -189,13 +189,14 @@ function GPAI_SEO_output_jsonld($post_id, $post, $values, $title, $desc, $canoni
     if (!empty($values['gpai_wpseo_schema_extra_json'])) {
         $extra = json_decode($values['gpai_wpseo_schema_extra_json'], true);
         if (is_array($extra)) {
-            if (function_exists('GPAI_replace_custom_vars')) {
-                array_walk_recursive($extra, function (&$value) {
-                    if (is_string($value)) {
+            array_walk_recursive($extra, function (&$value) {
+                if (is_string($value)) {
+                    if (function_exists('GPAI_replace_custom_vars')) {
                         $value = GPAI_replace_custom_vars($value);
                     }
-                });
-            }
+                    $value = wp_strip_all_tags($value);
+                }
+            });
             foreach ($extra as $block) {
                 if (isset($block['@type'])) {
                     $graph[] = $block;
