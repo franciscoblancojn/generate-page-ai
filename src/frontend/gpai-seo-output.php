@@ -5,6 +5,14 @@ function GPAI_SEO_is_active($post_id)
     return get_post_meta($post_id, 'gpai_wpseo_active', true) === '1';
 }
 
+function GPAI_SEO_clean_text($text)
+{
+    if (function_exists('GPAI_replace_custom_vars')) {
+        $text = GPAI_replace_custom_vars($text);
+    }
+    return wp_strip_all_tags($text);
+}
+
 function GPAI_SEO_output()
 {
     if (!is_singular() && !is_front_page()) return;
@@ -26,15 +34,15 @@ function GPAI_SEO_output()
     if (!$hasValues) return;
 
     $post = get_post($post_id);
-    $title = $values['gpai_wpseo_title'] ?: get_the_title($post_id);
-    $desc = $values['gpai_wpseo_metadesc'] ?: '';
+    $title = GPAI_SEO_clean_text($values['gpai_wpseo_title']) ?: get_the_title($post_id);
+    $desc = GPAI_SEO_clean_text($values['gpai_wpseo_metadesc']) ?: '';
     $canonical = $values['gpai_wpseo_canonical'] ?: get_permalink($post_id);
-    $ogTitle = $values['gpai_wpseo_opengraph-title'] ?: $title;
-    $ogDesc = $values['gpai_wpseo_opengraph-description'] ?: $desc;
+    $ogTitle = GPAI_SEO_clean_text($values['gpai_wpseo_opengraph-title']) ?: $title;
+    $ogDesc = GPAI_SEO_clean_text($values['gpai_wpseo_opengraph-description']) ?: $desc;
     $ogImage = $values['gpai_wpseo_opengraph-image'] ?: '';
     $ogUrl = $values['gpai_wpseo_opengraph-url'] ?: $canonical;
-    $twTitle = $values['gpai_wpseo_twitter-title'] ?: $ogTitle;
-    $twDesc = $values['gpai_wpseo_twitter-description'] ?: $ogDesc;
+    $twTitle = GPAI_SEO_clean_text($values['gpai_wpseo_twitter-title']) ?: $ogTitle;
+    $twDesc = GPAI_SEO_clean_text($values['gpai_wpseo_twitter-description']) ?: $ogDesc;
     $twImage = $values['gpai_wpseo_twitter-image'] ?: $ogImage;
 
     echo "\n<!-- GPAI SEO Meta Tags -->\n";
@@ -117,19 +125,19 @@ function GPAI_SEO_output_jsonld($post_id, $post, $values, $title, $desc, $canoni
         '@type'        => $pageType,
         '@id'          => $canonical . '#webpage',
         'url'          => $canonical,
-        'name'         => $title,
+        'name'         => GPAI_SEO_clean_text($title),
         'inLanguage'   => $lang,
         'isPartOf'     => ['@id' => $siteUrl . '#website'],
         'publisher'    => ['@id' => $siteUrl . '#organization'],
     ];
     if ($desc) {
-        $webPage['description'] = $desc;
+        $webPage['description'] = GPAI_SEO_clean_text($desc);
     }
     if ($ogImage) {
         $webPage['image'] = $ogImage;
     }
     if (!empty($values['gpai_wpseo_focuskw'])) {
-        $webPage['keywords'] = $values['gpai_wpseo_focuskw'];
+        $webPage['keywords'] = GPAI_SEO_clean_text($values['gpai_wpseo_focuskw']);
     }
     if ($post) {
         $webPage['datePublished'] = get_the_date('c', $post_id);
@@ -222,7 +230,7 @@ function GPAI_SEO_override_yoast_title($title)
     if (!$post_id) return $title;
     if (!GPAI_SEO_is_active($post_id)) return $title;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_title', true);
-    return $gpai ?: $title;
+    return $gpai ? GPAI_SEO_clean_text($gpai) : $title;
 }
 add_filter('wpseo_title', 'GPAI_SEO_override_yoast_title', 20);
 
@@ -232,7 +240,7 @@ function GPAI_SEO_override_yoast_metadesc($desc)
     if (!$post_id) return $desc;
     if (!GPAI_SEO_is_active($post_id)) return $desc;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_metadesc', true);
-    return $gpai ?: $desc;
+    return $gpai ? GPAI_SEO_clean_text($gpai) : $desc;
 }
 add_filter('wpseo_metadesc', 'GPAI_SEO_override_yoast_metadesc', 20);
 
@@ -252,7 +260,7 @@ function GPAI_SEO_override_yoast_og_title($title)
     if (!$post_id) return $title;
     if (!GPAI_SEO_is_active($post_id)) return $title;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_opengraph-title', true);
-    return $gpai ?: $title;
+    return $gpai ? GPAI_SEO_clean_text($gpai) : $title;
 }
 add_filter('wpseo_opengraph_title', 'GPAI_SEO_override_yoast_og_title', 20);
 
@@ -262,7 +270,7 @@ function GPAI_SEO_override_yoast_og_desc($desc)
     if (!$post_id) return $desc;
     if (!GPAI_SEO_is_active($post_id)) return $desc;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_opengraph-description', true);
-    return $gpai ?: $desc;
+    return $gpai ? GPAI_SEO_clean_text($gpai) : $desc;
 }
 add_filter('wpseo_opengraph_desc', 'GPAI_SEO_override_yoast_og_desc', 20);
 
@@ -292,7 +300,7 @@ function GPAI_SEO_override_yoast_twitter_title($title)
     if (!$post_id) return $title;
     if (!GPAI_SEO_is_active($post_id)) return $title;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_twitter-title', true);
-    return $gpai ?: $title;
+    return $gpai ? GPAI_SEO_clean_text($gpai) : $title;
 }
 add_filter('wpseo_twitter_title', 'GPAI_SEO_override_yoast_twitter_title', 20);
 
@@ -302,7 +310,7 @@ function GPAI_SEO_override_yoast_twitter_desc($desc)
     if (!$post_id) return $desc;
     if (!GPAI_SEO_is_active($post_id)) return $desc;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_twitter-description', true);
-    return $gpai ?: $desc;
+    return $gpai ? GPAI_SEO_clean_text($gpai) : $desc;
 }
 add_filter('wpseo_twitter_description', 'GPAI_SEO_override_yoast_twitter_desc', 20);
 
@@ -358,7 +366,7 @@ function GPAI_SEO_override_document_title($title_parts)
     if (!GPAI_SEO_is_active($post_id)) return $title_parts;
     $gpai = get_post_meta($post_id, 'gpai_wpseo_title', true);
     if ($gpai) {
-        $title_parts['title'] = $gpai;
+        $title_parts['title'] = GPAI_SEO_clean_text($gpai);
     }
     return $title_parts;
 }
