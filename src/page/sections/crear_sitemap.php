@@ -84,23 +84,10 @@ if (isset($_POST['save']) && $_POST['save'] == "crear_sitemap") {
                     placeholder="Pega o genera el contenido XML del sitemap..."><?= isset($_POST['sitemap_content']) ? esc_textarea($_POST['sitemap_content']) : '' ?></textarea>
             </td>
         </tr>
-        <tr>
-            <th scope="row">
-                <?php FWUTooltip::render("Prompt personalizado", "Instrucciones adicionales para la IA al generar el contenido XML.") ?>
-            </th>
-            <td>
-                <textarea
-                    name="custom_prompt"
-                    class="large-text code"
-                    style="min-height:80px;font-family:monospace;"
-                    rows="4"
-                    placeholder="Ej: Incluye solo URLs de categorias, con prioridad 0.5..."></textarea>
-            </td>
-        </tr>
-    </table>
+        </table>
     <div class="content-btn">
         <button type="submit" class="button button-primary">Crear Site Map</button>
-        <button type="button" class="button gpai-sitemap-crear-generate-btn">Generar con IA</button>
+        <button type="button" class="button gpai-sitemap-crear-generate-btn">Generar XML</button>
         <span class="gpai-sitemap-crear-generate-status" style="margin-left:1rem;"></span>
     </div>
 </form>
@@ -119,15 +106,12 @@ document.addEventListener('click', function(e) {
         return;
     }
 
-    const customPrompt = btn.closest('form').querySelector('[name="custom_prompt"]') ? btn.closest('form').querySelector('[name="custom_prompt"]').value : '';
-
     btn.disabled = true;
     if (statusEl) statusEl.textContent = 'Generando...';
 
     const formData = new FormData();
     formData.append('action', 'gpai_sitemap_generate');
     formData.append('sitemap_name', sitemapName.replace(/\.xml$/i, ''));
-    formData.append('custom_prompt', customPrompt);
 
     fetch(ajaxurl, { method: 'POST', body: formData })
         .then(r => r.json())

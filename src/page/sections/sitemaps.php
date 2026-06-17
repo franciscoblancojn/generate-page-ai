@@ -92,16 +92,10 @@ if (isset($_POST['save']) && $_POST['save'] == "sitemap_delete") {
                         <textarea name="sitemap_content" class="large-text code" style="min-height:250px;font-family:monospace;" rows="15">' . esc_textarea($sitemap['content']) . '</textarea>
                     </td>
                 </tr>
-                <tr>
-                    <th scope="row">Prompt personalizado</th>
-                    <td>
-                        <textarea name="custom_prompt" class="large-text code" style="min-height:80px;font-family:monospace;" rows="4" placeholder="Instrucciones adicionales para la IA (opcional)..."></textarea>
-                    </td>
-                </tr>
-            </table>
+                </table>
             <div class="content-btn">
                 <button type="submit" class="button button-primary">Guardar</button>
-                <button type="button" class="button gpai-sitemap-generate-btn" data-sitemap-file="' . esc_attr($filename) . '">Generar con IA</button>
+                <button type="button" class="button gpai-sitemap-generate-btn" data-sitemap-file="' . esc_attr($filename) . '">Generar XML</button>
                 <button type="submit" name="save" value="sitemap_delete" class="button" style="color:#b32d2e;" onclick="return confirm(\'¿Eliminar ' . esc_js($filename) . '?\')">Eliminar</button>
                 <span class="gpai-sitemap-generate-status" style="margin-left:1rem;"></span>
             </div>
@@ -125,12 +119,9 @@ document.addEventListener('click', function(e) {
     btn.disabled = true;
     if (statusEl) statusEl.textContent = 'Generando...';
 
-    const customPrompt = btn.closest('form').querySelector('[name="custom_prompt"]') ? btn.closest('form').querySelector('[name="custom_prompt"]').value : '';
-
     const formData = new FormData();
     formData.append('action', 'gpai_sitemap_generate');
     formData.append('sitemap_name', sitemapFile.replace('.xml', ''));
-    formData.append('custom_prompt', customPrompt);
 
     fetch(ajaxurl, { method: 'POST', body: formData })
         .then(r => r.json())

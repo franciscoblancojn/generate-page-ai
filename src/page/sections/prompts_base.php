@@ -9,7 +9,6 @@ $types = [
     // 'content_img' => 'Generar imagen (getPromptImg)', //de momento no esta disponible
     'seo' => 'SEO (getSEOBasePromptDefault)',
     'html' => 'Optimización HTML (getHTMLBasePromptDefault)',
-    'sitemap' => 'Site Maps (getSitemapBasePrompt)',
 ];
 
 $placeholders = [
@@ -39,15 +38,6 @@ $placeholders = [
     'html' => [
         '{{htmlContent}}' => 'Codigo HTML completo de la pagina',
     ],
-    'sitemap' => [
-        '{{sitemap_name}}' => 'Nombre del sitemap',
-        '{{URL_BASE}}' => 'URL base del sitio',
-        '{{URL_PAGINAS_LIST}}' => 'Lista de URLs de paginas habilitadas',
-        '{{URL_POSTS_LIST}}' => 'Lista de URLs de posts habilitados',
-        '{{PAGINAS_IMAGES}}' => 'Imagenes extraidas de cada pagina',
-        '{{POSTS_IMAGES}}' => 'Imagenes extraidas de cada post',
-        '{{custom_prompt}}' => 'Prompt personalizado del usuario',
-    ],
 ];
 function getBasePromptDefaultForType($type)
 {
@@ -56,9 +46,6 @@ function getBasePromptDefaultForType($type)
     }
     if ($type === 'html') {
         return GPAI_SEO::getHTMLBasePromptDefault();
-    }
-    if ($type === 'sitemap') {
-        return GPAI_SITEMAPS_API::getSitemapBasePromptDefault();
     }
     return GPAI_CONTENT::getBasePromptDefault($type);
 }

@@ -21,24 +21,6 @@ class GPAI_SITEMAPS_API
         return get_option('GPAI_SITEMAP_URLS', []);
     }
 
-    public static function getSitemapBasePrompt()
-    {
-        $config = new GPAI_USE_DATA_CONFIG();
-        $data = $config->get();
-        $promptsBase = $data['prompts_base'] ?? [];
-
-        return $promptsBase['sitemap'] ?? self::getSitemapBasePromptDefault();
-    }
-
-    public static function getSitemapBasePromptDefault()
-    {
-        $file = GPAI_DIR . 'src/prompts/sitemap-v1.txt';
-        if (!file_exists($file)) {
-            return '';
-        }
-        return file_get_contents($file);
-    }
-
     public static function getPostImages($post_id)
     {
         $images = [];
@@ -75,39 +57,42 @@ class GPAI_SITEMAPS_API
         return $images;
     }
 
-    public static function generate()
+    public static function buildSitemapXml($sitemap_name, $enabled_posts, $config = [])
     {
-        $sitemap_name = isset($_POST['sitemap_name'])
-            ? sanitize_text_field(wp_unslash($_POST['sitemap_name']))
-            : '';
-        $custom_prompt = isset($_POST['custom_prompt'])
-            ? sanitize_textarea_field(wp_unslash($_POST['custom_prompt']))
-            : '';
+        $defaults = [
+            'changefreq_page' => 'monthly',
+            'priority_page' => '0.8',
+            'changefreq_post' => 'weekly',
+            'priority_post' => '0.9',
+            'changefreq_default' => 'monthly',
+            'priority_default' => '0.5',
+        ];
+        $config = array_merge($defaults, $config);
 
-        if (empty($sitemap_name)) {
-            wp_send_json_error('El nombre del Site Map es requerido.');
-            return;
+        $home_url = home_url('/');
+
+        $xsl_url = '';
+        if (defined('WPSEO_URL')) {
+            $xsl_url = untrailingslashit(WPSEO_URL) . '/css/main-sitemap.xsl';
+        } elseif (defined('WPSEO_PLUGIN_URL')) {
+            $xsl_url = untrailingslashit(WPSEO_PLUGIN_URL) . '/css/main-sitemap.xsl';
         }
+        $xsl_decl = !empty($xsl_url)
+            ? '<?xml-stylesheet type="text/xsl" href="' . esc_url($xsl_url) . '"?>'
+            : '';
 
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error('Sin permisos.');
-            return;
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        if (!empty($xsl_decl)) {
+            $xml .= $xsl_decl . "\n";
         }
+        $xml .= '<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
-        $template = self::getSitemapBasePrompt();
-        $site_url = untrailingslashit(get_site_url());
-        $prompt = str_replace('{{sitemap_name}}', $sitemap_name, $template);
-        $prompt = str_replace('{{URL_BASE}}', $site_url, $prompt);
-
-        $enabled_posts = self::getEnabledPosts($sitemap_name);
-        $paginas_lines = [];
-        $posts_lines = [];
-        $paginas_images = [];
-        $posts_images = [];
         $skipped = [];
+
         foreach ($enabled_posts as $post_id) {
             $post = get_post($post_id);
             if (!$post) continue;
+
             $permalink = get_permalink($post_id);
             if (!$permalink) continue;
 
@@ -125,60 +110,79 @@ class GPAI_SITEMAPS_API
                 continue;
             }
 
-            $lastmod = get_the_modified_date('Y-m-d', $post_id);
-            $line = "{$permalink} (lastmod: {$lastmod})";
             if ($post->post_type === 'page') {
-                $paginas_lines[] = $line;
+                $changefreq = $config['changefreq_page'];
+                $priority  = $config['priority_page'];
+            } elseif ($post->post_type === 'post') {
+                $changefreq = $config['changefreq_post'];
+                $priority  = $config['priority_post'];
             } else {
-                $posts_lines[] = $line;
+                $changefreq = $config['changefreq_default'];
+                $priority  = $config['priority_default'];
             }
-            $imgs = self::getPostImages($post_id);
-            if (!empty($imgs)) {
-                $img_block = "URL: {$permalink}\n" . implode("\n", array_map(function ($u) {
-                    return "  - {$u}";
-                }, $imgs));
-                if ($post->post_type === 'page') {
-                    $paginas_images[] = $img_block;
-                } else {
-                    $posts_images[] = $img_block;
-                }
+
+            if (untrailingslashit($permalink) === untrailingslashit($home_url)) {
+                $priority = '1.0';
             }
+
+            $lastmod = get_the_modified_time('c', $post_id);
+            $images  = self::getPostImages($post_id);
+
+            $xml .= "\t<url>\n";
+            $xml .= "\t\t<loc>" . esc_url($permalink) . "</loc>\n";
+            $xml .= "\t\t<lastmod>" . esc_html($lastmod) . "</lastmod>\n";
+            $xml .= "\t\t<changefreq>" . esc_html($changefreq) . "</changefreq>\n";
+            $xml .= "\t\t<priority>" . esc_html($priority) . "</priority>\n";
+
+            foreach ($images as $img_url) {
+                $xml .= "\t\t<image:image>\n";
+                $xml .= "\t\t\t<image:loc>" . esc_url($img_url) . "</image:loc>\n";
+                $xml .= "\t\t</image:image>\n";
+            }
+
+            $xml .= "\t</url>\n";
         }
-        $paginas_list = !empty($paginas_lines) ? implode("\n", $paginas_lines) : 'No hay paginas configuradas.';
-        $posts_list = !empty($posts_lines) ? implode("\n", $posts_lines) : 'No hay posts configurados.';
-        $prompt = str_replace('{{URL_PAGINAS_LIST}}', $paginas_list, $prompt);
-        $prompt = str_replace('{{URL_POSTS_LIST}}', $posts_list, $prompt);
 
-        $paginas_images_block = !empty($paginas_images) ? implode("\n\n", $paginas_images) : 'No se encontraron imagenes en paginas.';
-        $posts_images_block = !empty($posts_images) ? implode("\n\n", $posts_images) : 'No se encontraron imagenes en posts.';
-        $prompt = str_replace('{{PAGINAS_IMAGES}}', $paginas_images_block, $prompt);
-        $prompt = str_replace('{{POSTS_IMAGES}}', $posts_images_block, $prompt);
-        $prompt = str_replace('{{custom_prompt}}', $custom_prompt, $prompt);
-            FWUSystemLog::add(GPAI_KEY, [
-                'type' => "prompt",
-                'data' => $prompt
-            ]);
+        $xml .= '</urlset>';
 
-        $result = GPAI_AI::sendPrompt($prompt);
+        return [
+            'xml' => $xml,
+            'skipped' => $skipped,
+        ];
+    }
 
-        if ($result['status'] === 'ok') {
-            $content = $result['data'];
-            $content = preg_replace('/^```xml\s*/i', '', $content);
-            $content = preg_replace('/^```\s*/i', '', $content);
-            $content = preg_replace('/```$/', '', $content);
-            $content = trim($content);
+    public static function generate()
+    {
+        $sitemap_name = isset($_POST['sitemap_name'])
+            ? sanitize_text_field(wp_unslash($_POST['sitemap_name']))
+            : '';
 
-            $message = 'Contenido generado correctamente.';
-            if (!empty($skipped)) {
-                $message .= ' URLs omitidas: ' . implode(', ', $skipped);
-            }
-            wp_send_json_success([
-                'content' => $content,
-                'message' => $message,
-            ]);
-        } else {
-            wp_send_json_error($result['message']);
+        if (empty($sitemap_name)) {
+            wp_send_json_error('El nombre del Site Map es requerido.');
+            return;
         }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Sin permisos.');
+            return;
+        }
+
+        $enabled_posts = self::getEnabledPosts($sitemap_name);
+        $sitemap_file  = $sitemap_name . '.xml';
+        $all_configs   = get_option('GPAI_SITEMAP_CONFIGS', []);
+        $config        = $all_configs[$sitemap_file] ?? [];
+
+        $result = self::buildSitemapXml($sitemap_name, $enabled_posts, $config);
+
+        $message = 'XML generado correctamente.';
+        if (!empty($result['skipped'])) {
+            $message .= ' URLs omitidas: ' . implode(', ', $result['skipped']);
+        }
+
+        wp_send_json_success([
+            'content' => $result['xml'],
+            'message' => $message,
+        ]);
     }
 
     public static function saveXml()
@@ -214,8 +218,6 @@ class GPAI_SITEMAPS_API
     {
         $sitemap_name = isset($_POST['sitemap_name'])
             ? sanitize_text_field(wp_unslash($_POST['sitemap_name'])) : '';
-        $custom_prompt = isset($_POST['custom_prompt'])
-            ? sanitize_textarea_field(wp_unslash($_POST['custom_prompt'])) : '';
 
         if (empty($sitemap_name)) {
             wp_send_json_error('El nombre del Site Map es requerido.');
@@ -231,9 +233,7 @@ class GPAI_SITEMAPS_API
         $enabled_posts = isset($_POST['enabled_posts']) && is_array($_POST['enabled_posts'])
             ? array_map('intval', $_POST['enabled_posts']) : [];
 
-        // Save per-sitemap config
-        $all_configs = get_option('GPAI_SITEMAP_CONFIGS', []);
-        $all_configs[$sitemap_file] = [
+        $config = [
             'enabled_posts' => $enabled_posts,
             'changefreq_page' => sanitize_text_field($_POST['changefreq_page'] ?? 'monthly'),
             'priority_page' => sanitize_text_field($_POST['priority_page'] ?? '0.8'),
@@ -242,95 +242,22 @@ class GPAI_SITEMAPS_API
             'changefreq_default' => sanitize_text_field($_POST['changefreq_default'] ?? 'monthly'),
             'priority_default' => sanitize_text_field($_POST['priority_default'] ?? '0.5'),
         ];
+
+        $all_configs = get_option('GPAI_SITEMAP_CONFIGS', []);
+        $all_configs[$sitemap_file] = $config;
         update_option('GPAI_SITEMAP_CONFIGS', $all_configs);
 
-        // Build prompt and generate XML
-        $template = self::getSitemapBasePrompt();
-        $site_url = untrailingslashit(get_site_url());
-        $prompt = str_replace('{{sitemap_name}}', $sitemap_name, $template);
-        $prompt = str_replace('{{URL_BASE}}', $site_url, $prompt);
+        $result = self::buildSitemapXml($sitemap_name, $enabled_posts, $config);
 
-        $paginas_lines = [];
-        $posts_lines = [];
-        $paginas_images = [];
-        $posts_images = [];
-        $skipped = [];
-        foreach ($enabled_posts as $post_id) {
-            $post = get_post($post_id);
-            if (!$post) continue;
-            $permalink = get_permalink($post_id);
-            if (!$permalink) continue;
-
-            if (strpos($permalink, '?page_id=') !== false) {
-                $skipped[] = "{$permalink} (?page_id)";
-                continue;
-            }
-
-            $response = wp_remote_head($permalink, [
-                'timeout' => 5,
-                'blocking' => true,
-            ]);
-            if (is_wp_error($response) || wp_remote_retrieve_response_code($response) === 404) {
-                $skipped[] = "{$permalink} (404)";
-                continue;
-            }
-
-            $lastmod = get_the_modified_date('Y-m-d', $post_id);
-            $line = "{$permalink} (lastmod: {$lastmod})";
-            if ($post->post_type === 'page') {
-                $paginas_lines[] = $line;
-            } else {
-                $posts_lines[] = $line;
-            }
-            $imgs = self::getPostImages($post_id);
-            if (!empty($imgs)) {
-                $img_block = "URL: {$permalink}\n" . implode("\n", array_map(function ($u) {
-                    return "  - {$u}";
-                }, $imgs));
-                if ($post->post_type === 'page') {
-                    $paginas_images[] = $img_block;
-                } else {
-                    $posts_images[] = $img_block;
-                }
-            }
+        $message = 'Configuracion guardada y XML generado correctamente. Revisa el XML y usa "Guardar XML" para escribirlo al archivo.';
+        if (!empty($result['skipped'])) {
+            $message .= ' URLs omitidas: ' . implode(', ', $result['skipped']);
         }
 
-        $paginas_list = !empty($paginas_lines) ? implode("\n", $paginas_lines) : 'No hay paginas configuradas.';
-        $posts_list = !empty($posts_lines) ? implode("\n", $posts_lines) : 'No hay posts configurados.';
-        $prompt = str_replace('{{URL_PAGINAS_LIST}}', $paginas_list, $prompt);
-        $prompt = str_replace('{{URL_POSTS_LIST}}', $posts_list, $prompt);
-
-        $paginas_images_block = !empty($paginas_images) ? implode("\n\n", $paginas_images) : 'No se encontraron imagenes en paginas.';
-        $posts_images_block = !empty($posts_images) ? implode("\n\n", $posts_images) : 'No se encontraron imagenes en posts.';
-        $prompt = str_replace('{{PAGINAS_IMAGES}}', $paginas_images_block, $prompt);
-        $prompt = str_replace('{{POSTS_IMAGES}}', $posts_images_block, $prompt);
-        $prompt = str_replace('{{custom_prompt}}', $custom_prompt, $prompt);
-
-        FWUSystemLog::add(GPAI_KEY, [
-            'type' => "prompt",
-            'data' => $prompt
+        wp_send_json_success([
+            'content' => $result['xml'],
+            'message' => $message,
         ]);
-
-        $result = GPAI_AI::sendPrompt($prompt);
-
-        if ($result['status'] === 'ok') {
-            $content = $result['data'];
-            $content = preg_replace('/^```xml\s*/i', '', $content);
-            $content = preg_replace('/^```\s*/i', '', $content);
-            $content = preg_replace('/```$/', '', $content);
-            $content = trim($content);
-
-            $message = 'Configuracion guardada y XML generado correctamente. Revisa el XML y usa "Guardar XML" para escribirlo al archivo.';
-            if (!empty($skipped)) {
-                $message .= ' URLs omitidas: ' . implode(', ', $skipped);
-            }
-            wp_send_json_success([
-                'content' => $content,
-                'message' => $message,
-            ]);
-        } else {
-            wp_send_json_error($result['message']);
-        }
     }
 }
 

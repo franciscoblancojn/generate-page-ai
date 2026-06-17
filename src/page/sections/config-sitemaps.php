@@ -248,7 +248,7 @@ ksort($pages_by_segment);
 
         <div class="content-btn" style="margin-bottom:1rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <button type="submit" name="save" value="sitemap_config_save" class="button button-primary">Guardar Configuracion</button>
-            <button type="button" id="gpai-sitemap-save-generate" class="button button-primary" data-sitemap="<?= esc_attr($selected_sitemap) ?>">Guardar y Generar con IA</button>
+            <button type="button" id="gpai-sitemap-save-generate" class="button button-primary" data-sitemap="<?= esc_attr($selected_sitemap) ?>">Guardar y Generar XML</button>
             <span id="gpai-sitemap-save-generate-status" style="font-size:13px;color:#666;"></span>
             <?php
             $total = 0;
