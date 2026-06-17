@@ -32,6 +32,7 @@ $defaults = [
     'priority_post' => '0.9',
     'changefreq_default' => 'monthly',
     'priority_default' => '0.5',
+    'include_images' => '1',
 ];
 $sitemap_config = array_merge($defaults, $sitemap_config);
 
@@ -47,6 +48,7 @@ if (isset($_POST['save']) && $_POST['save'] == 'sitemap_config_save' && !empty($
         'priority_post' => sanitize_text_field($_POST['priority_post'] ?? '0.9'),
         'changefreq_default' => sanitize_text_field($_POST['changefreq_default'] ?? 'monthly'),
         'priority_default' => sanitize_text_field($_POST['priority_default'] ?? '0.5'),
+        'include_images' => !empty($_POST['include_images']) ? '1' : '0',
     ];
     $all_configs[$selected_sitemap] = $config;
     update_option('GPAI_SITEMAP_CONFIGS', $all_configs);
@@ -189,6 +191,15 @@ ksort($pages_by_segment);
                             </select>
                         </td>
                     </tr>
+                    <tr>
+                        <td colspan="3">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <input type="hidden" name="include_images" value="0">
+                                <input type="checkbox" name="include_images" value="1" <?= checked($sitemap_config['include_images'], '1', false) ?>>
+                                Agregar <code>&lt;image:image&gt;</code> (imágenes destacadas, del contenido y galerías)
+                            </label>
+                        </td>
+                    </tr>
                 </table>
             </div>
         </details>
@@ -285,6 +296,7 @@ ksort($pages_by_segment);
         form.querySelectorAll('[name^="changefreq_"], [name^="priority_"], [name="selected_sitemap"]').forEach(function(input) {
             fields[input.name] = input.value;
         });
+        fields.include_images = form.querySelector('[name="include_images"][type="checkbox"]').checked ? '1' : '0';
 
         var enabledPosts = [];
         form.querySelectorAll('input[name="enabled_posts[]"]:checked').forEach(function(cb) {

@@ -66,6 +66,7 @@ class GPAI_SITEMAPS_API
             'priority_post' => '0.9',
             'changefreq_default' => 'monthly',
             'priority_default' => '0.5',
+            'include_images' => '1',
         ];
         $config = array_merge($defaults, $config);
 
@@ -81,11 +82,16 @@ class GPAI_SITEMAPS_API
             ? '<?xml-stylesheet type="text/xsl" href="' . esc_url($xsl_url) . '"?>'
             : '';
 
+        $include_images = !empty($config['include_images']) && $config['include_images'] === '1';
+        $image_ns = $include_images
+            ? ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"'
+            : '';
+
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         if (!empty($xsl_decl)) {
             $xml .= $xsl_decl . "\n";
         }
-        $xml .= '<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        $xml .= '<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' . $image_ns . ' xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd' . ($include_images ? ' http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd' : '') . '" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
         $skipped = [];
 
@@ -126,7 +132,6 @@ class GPAI_SITEMAPS_API
             }
 
             $lastmod = get_the_modified_time('c', $post_id);
-            $images  = self::getPostImages($post_id);
 
             $xml .= "\t<url>\n";
             $xml .= "\t\t<loc>" . esc_url($permalink) . "</loc>\n";
@@ -134,10 +139,13 @@ class GPAI_SITEMAPS_API
             $xml .= "\t\t<changefreq>" . esc_html($changefreq) . "</changefreq>\n";
             $xml .= "\t\t<priority>" . esc_html($priority) . "</priority>\n";
 
-            foreach ($images as $img_url) {
-                $xml .= "\t\t<image:image>\n";
-                $xml .= "\t\t\t<image:loc>" . esc_url($img_url) . "</image:loc>\n";
-                $xml .= "\t\t</image:image>\n";
+            if ($include_images) {
+                $images = self::getPostImages($post_id);
+                foreach ($images as $img_url) {
+                    $xml .= "\t\t<image:image>\n";
+                    $xml .= "\t\t\t<image:loc>" . esc_url($img_url) . "</image:loc>\n";
+                    $xml .= "\t\t</image:image>\n";
+                }
             }
 
             $xml .= "\t</url>\n";
@@ -241,6 +249,7 @@ class GPAI_SITEMAPS_API
             'priority_post' => sanitize_text_field($_POST['priority_post'] ?? '0.9'),
             'changefreq_default' => sanitize_text_field($_POST['changefreq_default'] ?? 'monthly'),
             'priority_default' => sanitize_text_field($_POST['priority_default'] ?? '0.5'),
+            'include_images' => !empty($_POST['include_images']) ? '1' : '0',
         ];
 
         $all_configs = get_option('GPAI_SITEMAP_CONFIGS', []);
