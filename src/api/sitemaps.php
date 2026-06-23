@@ -72,15 +72,8 @@ class GPAI_SITEMAPS_API
 
         $home_url = home_url('/');
 
-        $xsl_url = '';
-        if (defined('WPSEO_URL')) {
-            $xsl_url = untrailingslashit(WPSEO_URL) . '/css/main-sitemap.xsl';
-        } elseif (defined('WPSEO_PLUGIN_URL')) {
-            $xsl_url = untrailingslashit(WPSEO_PLUGIN_URL) . '/css/main-sitemap.xsl';
-        }
-        $xsl_decl = !empty($xsl_url)
-            ? '<?xml-stylesheet type="text/xsl" href="' . esc_url($xsl_url) . '"?>'
-            : '';
+        $xsl_url = GPAI_URL . 'src/css/sitemap.xsl';
+        $xsl_decl = '<?xml-stylesheet type="text/xsl" href="' . esc_url($xsl_url) . '"?>';
 
         $include_images = !empty($config['include_images']) && $config['include_images'] === '1';
         $image_ns = $include_images
