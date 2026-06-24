@@ -28,7 +28,7 @@ if (isset($_POST['save']) && $_POST['save'] === 'api_seo') {
     $respond_config = ['status' => 'ok', 'message' => 'Configuración API SEO guardada.'];
 }
 
-$restUrl = rest_url(GPAI_KEY . '/seo');
+$restUrl = rest_url(GPAI_KEY . '/seo')."/";
 
 ?>
 <form method="post">
