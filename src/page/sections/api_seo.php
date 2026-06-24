@@ -96,14 +96,36 @@ $restUrl = rest_url(GPAI_KEY . '/seo');
                     class="large-text code"
                     rows="12"
                     style="font-family:monospace;font-size:13px;">{
-    "post_id": 1,
-    "gpai_wpseo_title": "Título SEO de ejemplo",
-    "gpai_wpseo_metadesc": "Descripción meta generada desde API externa",
-    "gpai_wpseo_focuskw": "palabra clave ejemplo",
-    "gpai_wpseo_opengraph-title": "Título Open Graph desde API",
-    "gpai_wpseo_opengraph-description": "Descripción Open Graph desde API",
-    "gpai_wpseo_twitter-title": "Título Twitter desde API",
-    "gpai_wpseo_twitter-description": "Descripción Twitter desde API"
+  "post_id": 1,
+  "post_name": "ejemplo-slug",
+  "gpai_wpseo_active": "1",
+  "gpai_wpseo_title": "Título SEO de ejemplo",
+  "gpai_wpseo_metadesc": "Descripción meta de ejemplo para la página.",
+  "gpai_wpseo_focuskw": "palabra clave ejemplo",
+  "gpai_wpseo_focuskeywords": "palabra clave 1, palabra clave 2, palabra clave 3",
+  "gpai_wpseo_canonical": "https://ejemplo.com/pagina-ejemplo/",
+  "gpai_wpseo_bctitle": "Título Breadcrumb",
+  "gpai_wpseo_redirect": "",
+  "gpai_wpseo_post_name": "ejemplo-slug",
+  "gpai_wpseo_is_cornerstone": "0",
+  "gpai_wpseo_meta-robots-noindex": "0",
+  "gpai_wpseo_meta-robots-nofollow": "0",
+  "gpai_wpseo_meta-robots-adv": "max-snippet:-1,max-image-preview:large,max-video-preview:-1",
+  "gpai_wpseo_meta-robots-noarchive": "0",
+  "gpai_wpseo_meta-robots-nosnippet": "0",
+  "gpai_wpseo_meta-robots-noimageindex": "0",
+  "gpai_wpseo_opengraph-title": "Título Open Graph de ejemplo",
+  "gpai_wpseo_opengraph-description": "Descripción Open Graph de ejemplo.",
+  "gpai_wpseo_opengraph-image": "https://ejemplo.com/wp-content/uploads/og-image.jpg",
+  "gpai_wpseo_opengraph-image-id": "123",
+  "gpai_wpseo_opengraph-url": "https://ejemplo.com/pagina-ejemplo/",
+  "gpai_wpseo_twitter-title": "Título Twitter de ejemplo",
+  "gpai_wpseo_twitter-description": "Descripción Twitter de ejemplo.",
+  "gpai_wpseo_twitter-image": "https://ejemplo.com/wp-content/uploads/twitter-image.jpg",
+  "gpai_wpseo_schema_page_type": "WebPage",
+  "gpai_wpseo_schema_article_type": "Article",
+  "gpai_wpseo_schema_extra_json": "[{\"@type\":\"Service\",\"name\":\"Servicio de ejemplo\"},{\"@type\":\"FAQPage\",\"mainEntity\":[{\"@type\":\"Question\",\"name\":\"¿Pregunta de ejemplo?\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Respuesta de ejemplo.\"}}]}]",
+  "gpai_wpseo_remove_other_jsonld": "0"
 }</textarea>
             </td>
         </tr>

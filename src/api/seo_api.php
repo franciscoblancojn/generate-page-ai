@@ -80,6 +80,14 @@ class GPAI_API_SEO
 
         GPAI_SEO::SET($post_id, $seoData);
 
+        // Actualizar post_name si se envió en el cuerpo principal
+        if (!empty($params['post_name'])) {
+            $slug = sanitize_title($params['post_name']);
+            global $wpdb;
+            $wpdb->update($wpdb->posts, ['post_name' => $slug], ['ID' => $post_id]);
+            clean_post_cache($post_id);
+        }
+
         FWUSystemLog::add(GPAI_KEY, [
             'type' => 'API_SEO_SAVE',
             'post_id' => $post_id,
