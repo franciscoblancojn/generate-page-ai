@@ -7,3 +7,6 @@ require_once GPAI_DIR . 'src/api/export_import.php';
 require_once GPAI_DIR . 'src/api/sitemaps.php';
 require_once GPAI_DIR . 'src/api/imagenes.php';
 require_once GPAI_DIR . 'src/api/analisis.php';
+require_once GPAI_DIR . 'src/api/seo_api.php';
+
+GPAI_API_SEO::init();
