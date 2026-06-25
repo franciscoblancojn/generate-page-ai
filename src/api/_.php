@@ -9,6 +9,8 @@ require_once GPAI_DIR . 'src/api/imagenes.php';
 require_once GPAI_DIR . 'src/api/analisis.php';
 require_once GPAI_DIR . 'src/api/seo_api.php';
 require_once GPAI_DIR . 'src/api/cf_api.php';
+require_once GPAI_DIR . 'src/api/gf_api.php';
 
 GPAI_API_SEO::init();
 GPAI_API_CF::init();
+GPAI_API_GF::init();

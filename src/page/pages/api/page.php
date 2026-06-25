@@ -18,6 +18,10 @@ $TAGS = [
         'key' => 'api_cf',
         'title' => 'API Custom Fields',
     ],
+    [
+        'key' => 'api_gf',
+        'title' => 'API Global Fields',
+    ],
 ];
 $defaultTag = $TAGS[0]['key'];
 
