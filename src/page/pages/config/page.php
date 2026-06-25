@@ -15,14 +15,6 @@ $TAGS = [
         'title' => 'Configuracion IA',
     ],
     [
-        'key' => 'api_seo',
-        'title' => 'API SEO',
-    ],
-    [
-        'key' => 'api_cf',
-        'title' => 'API Custom Fields',
-    ],
-    [
         'key' => 'prompts_base',
         'title' => 'Prompts Base',
     ],

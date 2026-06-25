@@ -28,8 +28,8 @@ if (isset($_POST['save']) && $_POST['save'] === 'api_cf') {
     $respond_config = ['status' => 'ok', 'message' => 'Configuración API Custom Fields guardada.'];
 }
 
-$getUrl = rest_url(GPAI_KEY . '/cf/get');
-$setUrl = rest_url(GPAI_KEY . '/cf/set');
+$getUrl = rest_url(GPAI_KEY . '/cf/get/');
+$setUrl = rest_url(GPAI_KEY . '/cf/set/');
 
 ?>
 <form method="post">
