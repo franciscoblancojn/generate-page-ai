@@ -45,7 +45,7 @@ $restUrl = rest_url(GPAI_KEY . '/seo')."/";
                     type="checkbox"
                     id="api_seo_enabled"
                     name="api_seo_enabled"
-                    <?= $apiSeoEnabled ? "checked" : "" ?>
+                    <?= esc_attr($apiSeoEnabled ? 'checked' : '') ?>
                     class="regular-text" />
                 <label for="api_seo_enabled">
                     Activar API SEO
@@ -260,7 +260,8 @@ jQuery(function($) {
                 data: JSON.stringify(bodyJson),
                 success: function(res) {
                     if (res.success) {
-                        testResult.innerHTML = '<div class="notice notice-success inline"><p>✓ ' + (res.message || 'Datos guardados.') + '</p><pre style="background:#f0f0f1;padding:8px;margin-top:8px;max-height:200px;overflow:auto;">' + JSON.stringify(res.data, null, 2) + '</pre></div>';
+                        var jsonStr = JSON.stringify(res.data, null, 2).replace(/\\\//g, '/').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        testResult.innerHTML = '<div class="notice notice-success inline"><p>✓ ' + (res.message || 'Datos guardados.') + '</p><pre style="background:#f0f0f1;padding:8px;margin-top:8px;max-height:200px;overflow:auto;">' + jsonStr + '</pre></div>';
                     } else {
                         testResult.innerHTML = '<div class="notice notice-error inline"><p>✗ ' + (res.message || 'Error') + '</p></div>';
                     }

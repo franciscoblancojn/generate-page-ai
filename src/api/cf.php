@@ -4,17 +4,6 @@ use franciscoblancojn\wordpress_utils\FWUSystemLog;
 
 class GPAI_CF
 {
-    public static function init()
-    {
-        register_rest_route(GPAI_KEY, '/cf/get', [
-            'methods' => 'GET',
-            'callback' => [self::class, 'GET_Enpoint'],
-        ]);
-        register_rest_route(GPAI_KEY, '/cf/set', [
-            'methods' => 'POST',
-            'callback' => [self::class, 'SET_Enpoint'],
-        ]);
-    }
     private static function extractKeys($data, &$keys)
     {
         if (is_array($data)) {
