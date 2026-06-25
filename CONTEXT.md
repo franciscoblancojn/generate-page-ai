@@ -1,6 +1,6 @@
 # Generate Page AI — Contexto para IAs
 
-> Plug-in WordPress v1.15.1 — Generado automáticamente para que IAs entren en contexto rápido.
+> Plug-in WordPress v2.9.2 — Generado automáticamente para que IAs entren en contexto rápido.
 
 ---
 
@@ -49,16 +49,23 @@ src/
     ai.php              → GPAI_AI: Cliente HTTP Google Gemini
     content.php         → GPAI_CONTENT: Orquestador generación contenido
     prompt.php          → GPAI_PROMPT: Mejora de prompts vía IA
+    harness.php         → GPAI_AI_HARNESS: Harness de pruebas para respuestas IA
   api/
     cf.php              → GPAI_CF: CRUD custom fields + AJAX Elementor
     yoast.php           → GPAI_YOAST: API metadatos Yoast
     gpai_seo.php        → GPAI_SEO: API campos SEO personalizados
-    export_import.php   → GPAI_EXPORT_IMPORT: Export/Import JSON
+    export_import.php   → GPAI_EXPORT_IMPORT: Export/Import JSON (posts + global fields)
     sitemaps.php        → GPAI_SITEMAPS_API: Generación sitemaps con IA
     imagenes.php        → GPAI_IMAGENES: AJAX para obtener/guardar metadatos de imágenes del post
+    analisis.php        → GPAI_ANALISIS: Análisis SEO, validación de enlaces, PageSpeed
+    seo_api.php         → GPAI_API_SEO: REST API para campos SEO
+    cf_api.php          → GPAI_API_CF: REST API para custom fields
+    gf_api.php          → GPAI_API_GF: REST API para campos globales
   css/
     global.php          → Estilos admin inline
     elementor-editor.css → Estilos panel flotante Elementor
+    gpai-edit.css       → Estilos panel edición frontend
+    sitemap.xsl         → Hoja XSL para sitemaps XML
   data/
     base.php            → GPAI_USE_DATA_BASE: CRUD genérico wp_options
     config.php          → GPAI_USE_DATA_CONFIG: Config plugin
@@ -71,13 +78,17 @@ src/
     frontend.php        → Filtros de reemplazo {{key}} (hoy desactivados)
   frontend/
     gpai-seo-output.php → Salida <head>: meta tags, JSON-LD, anulación Yoast
+    gpai-edit.php       → GPAI_Edit_Assets(): assets panel edición frontend
   hook/
     content.php         → GPAI_replace_custom_vars(): reemplazo en frontend
   js/
     global.php          → JS admin: tabs, modales, export/import, SEO generate, HTML optimize/swap
     elementor-editor.js → Panel flotante de campos personalizados en Elementor
+    gpai-edit.js        → JS panel edición frontend
   meta-box/
     gpai-seo.php        → Meta box GPAI SEO (5 grupos, 27 campos, guardado AJAX)
+    gpai-parent.php     → Meta box GPAI Parent (contenido independiente)
+    gpai-box.php        → Meta box GPAI Box (enlace a edición frontend)
   page/
     add.php             → add_menu_page('Generate Page AI')
     page.php            → Layout con tabs (Config, Post, Prompts Base, etc.)
@@ -88,6 +99,7 @@ src/
       sitemaps/         → Submenú "Site Maps"
       htaccess/         → Submenú ".htaccess"
       campos_globales/  → Submenú "Campos Globales"
+      api/              → Submenú "API"
     sections/
       config.php        → API Key, modelo Gemini, toggle contenido independiente
       post.php          → Gestión de posts (campos, prompts, generar)
@@ -101,6 +113,10 @@ src/
       campos_globales.php → CRUD campos globales (opciones)
       test.php          → Pruebas (solo dev mode)
       htaccess.php      → Editor .htaccess
+      analisis.php      → Análisis SEO, validación enlaces, PageSpeed
+      api_seo.php       → Config API key para REST SEO
+      api_cf.php        → Config API key para REST Custom Fields
+      api_gf.php        → Config API key para REST Global Fields
   prompts/
     content-v1.txt      → Prompt legacy para contenido
     content-v2.txt      → Prompt para generar contenido (incluye GPAI SEO)
@@ -112,9 +128,10 @@ src/
     table_fields.php    → GPAI_Table_Fields(): tabla genérica
     custom_fields.php   → GPAI_Custom_Fields(): campos personalizados
     custom_yoast.php    → GPAI_Custom_Yoast(): campos Yoast
-    custom_gpai_seo.php → GPAI_Custom_Gpai_Seo(): campos GPAI SEO
+    custom_gpai_seo.php → GPAI_Custom_Gpai_Seo(): campos GPAI SEO (+ grouped)
     table_post_by_url.php → GPAI_Table_Post_By_Url(): posts con checkbox
     imagenes_post.php   → GPAI_Imagenes_Post(): tabla de imágenes con preview, campos editables y descarga
+    analisis.php        → GPAI_Analisis_Post(): análisis SEO de un post
 ```
 
 ---
@@ -256,6 +273,8 @@ STPA_KEY_CONFIG                     → Config de Static Page
 |---|---|---|
 | `gpai_export_post` | `GPAI_EXPORT_IMPORT::exportPost()` | Exporta post completo a JSON |
 | `gpai_import_post` | `GPAI_EXPORT_IMPORT::importPost()` | Importa JSON a post |
+| `gpai_export_global_fields` | `GPAI_EXPORT_IMPORT::exportGlobalFields()` | Exporta campos globales a JSON |
+| `gpai_import_global_fields` | `GPAI_EXPORT_IMPORT::importGlobalFields()` | Importa JSON a campos globales |
 | `gpai_seo_save` | `GPAI_SEO_save_ajax()` | Guarda campos SEO desde meta box |
 | `gpai_seo_generate` | `GPAI_SEO::generateSEO_ajax()` | Genera SEO con IA |
 | `gpai_seo_export` | `GPAI_SEO_export_ajax()` | Exporta campos SEO a JSON |
@@ -270,6 +289,9 @@ STPA_KEY_CONFIG                     → Config de Static Page
 | `gpai_sitemap_save_xml` | `GPAI_SITEMAPS_API::saveXml()` | Escribe archivo XML |
 | `gpai_imagenes_get` | `GPAI_IMAGENES::getImagesAjax()` | Obtiene imágenes del post con metadatos |
 | `gpai_imagenes_save` | `GPAI_IMAGENES::saveImagesAjax()` | Guarda metadatos de imágenes (alt, título, leyenda, descripción) |
+| `gpai_analisis_seo` | `GPAI_ANALISIS::analyzeSEO_ajax()` | Analiza SEO del post (títulos, desc, OG, keywords) |
+| `gpai_analisis_links` | `GPAI_ANALISIS::validateLinks_ajax()` | Valida enlaces internos del post |
+| `gpai_analisis_pagespeed` | `GPAI_ANALISIS::pageSpeed_ajax()` | Consulta PageSpeed Insights de la URL del post |
 
 ---
 
@@ -279,15 +301,24 @@ STPA_KEY_CONFIG                     → Config de Static Page
 ```php
 add_action('admin_menu', ...)                        → Registra menú principal y submenús
 add_action('add_meta_boxes', 'GPAI_SEO_MetaBox_register') → Meta box GPAI SEO
+add_action('add_meta_boxes', 'GPAI_Parent_MetaBox_register') → Meta box GPAI Parent
+add_action('add_meta_boxes', 'GPAI_Box_MetaBox_register') → Meta box GPAI Box
 add_action('save_post', 'GPAI_SEO_MetaBox_save')     → Guardado tradicional SEO
+add_action('save_post', 'GPAI_Parent_MetaBox_save')  → Guardado contenido independiente
 add_action('wp_head', 'GPAI_SEO_output', 20)         → Meta tags + Schema JSON-LD
 add_action('template_redirect', 'GPAI_SEO_handle_redirect', 1) → Redirección 301
 add_action('template_redirect', 'GPAI_SEO_remove_other_jsonld', 0) → Elimina otros JSON-LD
+add_action('template_redirect', [closure], ...)      → Reemplazo frontend páginas hijas
 add_action('elementor/editor/after_enqueue_scripts', 'GPAI_Elementor_Editor_Assets')
 add_action('elementor/editor/after_enqueue_styles', 'GPAI_Elementor_Editor_Assets')
+add_action('wp_enqueue_scripts', 'GPAI_Edit_Assets') → Assets panel edición frontend
 add_action('wp_ajax_*', ...)                         → Todos los AJAX (ver tabla arriba)
 add_action('admin_init', ['GPAI_EXPORT_IMPORT', 'init'])
 add_action('admin_init', ['GPAI_IMAGENES', 'init'])
+add_action('admin_init', ['GPAI_ANALISIS', 'init'])
+add_action('rest_api_init', ['GPAI_API_SEO', 'registerRoutes'])
+add_action('rest_api_init', ['GPAI_API_CF', 'registerRoutes'])
+add_action('rest_api_init', ['GPAI_API_GF', 'registerRoutes'])
 ```
 
 ### Filtros
@@ -321,7 +352,7 @@ Disponible para hooks externos. Se aplica en `gpai-seo-output.php:185` sobre el 
 - **API**: `https://generativelanguage.googleapis.com/v1/models/{model}:generateContent?key={apiKey}`
 - **Modelo**: Configurable (default: primero que soporte `generateContent`)
 - **Config**: `maxOutputTokens: 65536`, `temperature: 0.2`
-- **Timeout**: 300 segundos (configurable vía `GPAI_HTTP_TIMEOUT`)
+- **Timeout**: 300 segundos
 - La IA devuelve JSON que el plugin parsea con `GPAI_AI::parseJson()`
 - Los prompts son templates editables desde admin (guardados en `GPAI_CONFIG['prompts_base']`)
 - Fallback a archivos `src/prompts/*.txt` si no hay prompts guardados

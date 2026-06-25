@@ -61,17 +61,24 @@ generate-page-ai/
 │   ├── ai/                       # Capa de IA (cliente Gemini, generación de contenido)
 │   │   ├── ai.php                # GPAI_AI - Cliente HTTP para Gemini
 │   │   ├── content.php           # GPAI_CONTENT - Orquestador de generación con templates editables
-│   │   └── prompt.php            # GPAI_PROMPT - Mejora de prompts vía IA
+│   │   ├── prompt.php            # GPAI_PROMPT - Mejora de prompts vía IA
+│   │   └── harness.php           # GPAI_AI_HARNESS - Harness de pruebas para respuestas IA
 │   ├── api/                      # API REST y handlers AJAX
 │   │   ├── cf.php                # GPAI_CF - CRUD de campos personalizados (incl. endpoints Elementor)
 │   │   ├── yoast.php             # GPAI_YOAST - API para metadatos Yoast SEO
 │   │   ├── gpai_seo.php          # GPAI_SEO - API para campos SEO personalizados
 │   │   ├── export_import.php     # GPAI_EXPORT_IMPORT - Exportación/Importación JSON
 │   │   ├── sitemaps.php          # GPAI_SITEMAPS_API - AJAX para generar XML de sitemaps con IA
-│   │   └── imagenes.php          # GPAI_IMAGENES - AJAX para gestionar metadatos de imágenes del post
+│   │   ├── imagenes.php          # GPAI_IMAGENES - AJAX para gestionar metadatos de imágenes del post
+│   │   ├── analisis.php          # GPAI_ANALISIS - Análisis SEO, validación enlaces, PageSpeed
+│   │   ├── seo_api.php           # GPAI_API_SEO - REST API para campos SEO
+│   │   ├── cf_api.php            # GPAI_API_CF - REST API para custom fields
+│   │   └── gf_api.php            # GPAI_API_GF - REST API para campos globales
 │   ├── css/                      # Estilos CSS inline
 │   │   ├── global.php            # Estilos generales del admin
-│   │   └── elementor-editor.css  # Estilos del panel flotante en editor Elementor
+│   │   ├── elementor-editor.css  # Estilos del panel flotante en editor Elementor
+│   │   ├── gpai-edit.css         # Estilos panel edición frontend
+│   │   └── sitemap.xsl           # Hoja XSL para sitemaps XML
 │   ├── data/                     # Persistencia de datos (opciones de WP)
 │   │   ├── base.php              # GPAI_USE_DATA_BASE - CRUD genérico con wp_options
 │   │   ├── config.php            # GPAI_USE_DATA_CONFIG - Configuración del plugin
@@ -83,17 +90,21 @@ generate-page-ai/
 │   │   ├── editor.php            # Encola assets en el editor de Elementor
 │   │   └── frontend.php          # Filtros de reemplazo {{key}} en frontend de Elementor
 │   ├── frontend/                 # Salida en frontend
-│   │   └── gpai-seo-output.php   # GPAI_SEO_output - Etiquetas <head>, JSON-LD, anulación Yoast
+│   │   ├── gpai-seo-output.php   # GPAI_SEO_output - Etiquetas <head>, JSON-LD, anulación Yoast
+│   │   └── gpai-edit.php         # GPAI_Edit_Assets - Assets panel edición frontend
 │   ├── hook/                     # Hooks de WordPress
-│   │   └── content.php           # GPAI_replace_custom_vars() - filtro the_content
+│   │   └── content.php           # GPAI_replace_custom_vars() - filtro the_content + reemplazo frontend
 │   ├── js/                       # JavaScript
 │   │   ├── global.php            # JS general del admin (tabs, modales, export/import)
-│   │   └── elementor-editor.js   # Panel flotante de campos personalizados en Elementor
+│   │   ├── elementor-editor.js   # Panel flotante de campos personalizados en Elementor
+│   │   └── gpai-edit.js          # JS panel edición frontend
 │   ├── meta-box/                 # Meta boxes en el editor de posts
-│   │   └── gpai-seo.php          # GPAI SEO meta box (5 grupos, 27 campos, guardado AJAX)
+│   │   ├── gpai-seo.php          # GPAI SEO meta box (5 grupos, 27 campos, guardado AJAX)
+│   │   ├── gpai-parent.php       # GPAI Parent meta box (contenido independiente)
+│   │   └── gpai-box.php          # GPAI Box meta box (enlace a edición frontend)
 │   ├── page/                     # Páginas del admin
 │   │   ├── add.php               # Registro del menú principal
-│   │   ├── page.php              # (no usado)
+│   │   ├── page.php              # Layout con tabs
 │   │   ├── pages/
 │   │   │   ├── config/           # Página de configuración
 │   │   │   │   ├── add.php       # Submenú "Configuración"
@@ -103,16 +114,19 @@ generate-page-ai/
 │   │   │   │   └── page.php      # Layout con tabs
 │   │   │   ├── html/             # Página de optimización HTML
 │   │   │   │   ├── add.php       # Submenú "Optimización HTML" (solo si Static Page activo)
-│   │   │   │   └── page.php      # Layout con tabs
+│   │   │   │   └── page.php      # Layout
 │   │   │   ├── sitemaps/         # Página de Site Maps
 │   │   │   │   ├── add.php       # Submenú "Site Maps"
 │   │   │   │   └── page.php      # Layout con tabs
 │   │   │   ├── htaccess/         # Página de .htaccess
 │   │   │   │   ├── add.php       # Submenú ".htaccess"
 │   │   │   │   └── page.php      # Layout
-│   │   │   └── campos_globales/  # Página de Campos Globales
-│   │   │       ├── add.php       # Submenú "Campos Globales"
-│   │   │       └── page.php      # Layout
+│   │   │   ├── campos_globales/  # Página de Campos Globales
+│   │   │   │   ├── add.php       # Submenú "Campos Globales"
+│   │   │   │   └── page.php      # Layout
+│   │   │   └── api/              # Página de API
+│   │   │       ├── add.php       # Submenú "API"
+│   │   │       └── page.php      # Layout con tabs: SEO API, CF API, GF API
 │   │   └── sections/             # Secciones de cada página
 │   │       ├── config.php        # API Key, modelo, toggle de imágenes
 │   │       ├── prompts_base.php  # Editor de prompts base (templates editables)
@@ -120,19 +134,24 @@ generate-page-ai/
 │   │       ├── post.php          # Gestión de posts
 │   │       ├── imagenes.php      # Ajustes de imágenes del post (alt, título, leyenda, descripción, descarga)
 │   │       ├── procesar_contenido.php# Variaciones de contenido
+│   │       ├── analisis.php      # Análisis SEO, validación de enlaces, PageSpeed
 │   │       ├── html.php          # Optimización HTML (selector de post, estado static, mejora con IA)
 │   │       ├── sitemaps.php      # Site Maps: listado de archivos XML con edición y generación IA
 │   │       ├── config-sitemaps.php# Site Maps: configuración de URLs por tipo de contenido
 │   │       ├── crear_sitemap.php # Site Maps: formulario para crear nuevos archivos XML
 │   │       ├── campos_globales.php# CRUD de campos globales
-│   │       └── htaccess.php      # Editor de archivos .htaccess
+│   │       ├── htaccess.php      # Editor de archivos .htaccess
+│   │       ├── api_seo.php       # Config API key para REST SEO
+│   │       ├── api_cf.php        # Config API key para REST Custom Fields
+│   │       └── api_gf.php        # Config API key para REST Global Fields
 │   └── templates/                # Helpers de renderizado
 │       ├── table_fields.php      # GPAI_Table_Fields() - Tabla genérica clave/valor
 │       ├── custom_fields.php     # GPAI_Custom_Fields() - Campos personalizados
 │       ├── custom_yoast.php      # GPAI_Custom_Yoast() - Campos Yoast
-│       ├── custom_gpai_seo.php   # GPAI_Custom_Gpai_Seo() - Campos GPAI SEO
+│       ├── custom_gpai_seo.php   # GPAI_Custom_Gpai_Seo() - Campos GPAI SEO (incl. grouped)
 │       ├── table_post_by_url.php # GPAI_Table_Post_By_Url() - Tabla de posts con checkboxes para sitemaps
-│       └── imagenes_post.php     # GPAI_Imagenes_Post() - Tabla de imágenes con preview, campos editables y descarga
+│       ├── imagenes_post.php     # GPAI_Imagenes_Post() - Tabla de imágenes con preview, campos editables y descarga
+│       └── analisis.php          # GPAI_Analisis_Post() - Análisis SEO de un post
 ```
 
 ---
@@ -156,6 +175,36 @@ generate-page-ai/
 | `GPAI_USE_DATA_SITEMAPS` | `src/data/sitemaps_data.php` | 🗺️ CRUD de archivos XML de sitemaps en la raíz de WordPress |
 | `GPAI_SITEMAPS_API` | `src/api/sitemaps.php` | 🤖 AJAX para generar XML de sitemaps con Gemini, reemplaza `{{URL_BASE}}`, `{{URL_PAGINAS_LIST}}`, `{{URL_POSTS_LIST}}`, `{{PAGINAS_IMAGES}}`, `{{POSTS_IMAGES}}` |
 | `GPAI_IMAGENES` | `src/api/imagenes.php` | 🖼️ AJAX para obtener y guardar metadatos de imágenes del post (alt, título, leyenda, descripción) |
+| `GPAI_ANALISIS` | `src/api/analisis.php` | 🔍 Análisis SEO, validación de enlaces internos y PageSpeed Insights |
+| `GPAI_API_SEO` | `src/api/seo_api.php` | 🔌 REST API para campos GPAI SEO (POST `/GPAI/seo`) |
+| `GPAI_API_CF` | `src/api/cf_api.php` | 🔌 REST API para custom fields (GET/SET `/GPAI/cf/*`) |
+| `GPAI_API_GF` | `src/api/gf_api.php` | 🔌 REST API para campos globales (GET/SET `/GPAI/gf/*`) |
+| `GPAI_AI_HARNESS` | `src/ai/harness.php` | 🧪 Harness de pruebas para capturar/responser respuestas de IA |
+
+---
+
+## 🔌 REST API
+
+El plugin expone endpoints REST para integrar GPAI SEO, custom fields y campos globales con sistemas externos.
+
+### Endpoints
+
+| Método | Ruta | Descripción | Header API Key |
+|--------|------|-------------|----------------|
+| `POST` | `/wp-json/GPAI/seo` | Guarda campos GPAI SEO de un post | `X-GPAI-SEO-Key` |
+| `GET` | `/wp-json/GPAI/cf/get` | Obtiene custom fields de un post | `X-GPAI-CF-Key` |
+| `POST` | `/wp-json/GPAI/cf/set` | Guarda custom fields de un post | `X-GPAI-CF-Key` |
+| `GET` | `/wp-json/GPAI/gf/get` | Obtiene todos los campos globales | `X-GPAI-GF-Key` |
+| `POST` | `/wp-json/GPAI/gf/set` | Guarda/actualiza campos globales | `X-GPAI-GF-Key` |
+
+### Configuración
+
+Las API keys se gestionan desde **Generate Page AI → API**, donde hay 3 pestañas independientes:
+- **API SEO** → Clave para `X-GPAI-SEO-Key`
+- **API Custom Fields** → Clave para `X-GPAI-CF-Key`
+- **API Global Fields** → Clave para `X-GPAI-GF-Key`
+
+Cada endpoint verifica que el header `X-GPAI-{type}-Key` coincida con la clave configurada antes de procesar la solicitud.
 
 ---
 
@@ -171,6 +220,7 @@ generate-page-ai/
 | 🗺️ **Site Maps** | `GPAI_sitemaps` | Gestión de archivos XML de sitemaps. Tres pestañas: **Site Maps** (lista, editar, generar con IA, descargar), **Crear Site Map** (nuevo archivo XML), **URLs** (seleccionar posts/páginas, configurar frecuencia/prioridad, generar XML). |
 | 🌐 **Campos Globales** | `GPAI_campos_globales` | CRUD de campos globales reutilizables (text, textarea, number, email, url, wysiwyg) |
 | 🔒 **.htaccess** | `GPAI_htaccess` | Listar, editar, crear y eliminar archivos .htaccess |
+| 🔌 **API** | `GPAI_api` | Configuración de API keys para REST endpoints: SEO API, Custom Fields API, Global Fields API |
 
 ---
 
@@ -415,6 +465,8 @@ El submenú **.htaccess** permite gestionar archivos `.htaccess` desde el admin:
 ### AJAX
 - `wp_ajax_gpai_export_post` — Exportar datos de un post.
 - `wp_ajax_gpai_import_post` — Importar datos a un post.
+- `wp_ajax_gpai_export_global_fields` — Exportar campos globales a JSON.
+- `wp_ajax_gpai_import_global_fields` — Importar JSON a campos globales.
 - `wp_ajax_gpai_save_custom_field` — Guardar/actualizar campo personalizado (usado desde Elementor).
 - `wp_ajax_gpai_list_custom_fields` — Listar campos personalizados de un post.
 - `wp_ajax_gpai_delete_custom_field` — Eliminar un campo personalizado.
@@ -429,6 +481,9 @@ El submenú **.htaccess** permite gestionar archivos `.htaccess` desde el admin:
 - `wp_ajax_gpai_sitemap_save_xml` — Escribir archivo XML de sitemap en la raíz de WordPress.
 - `wp_ajax_gpai_imagenes_get` — Obtener todas las imágenes de un post (destacada, adjuntas, contenido, Elementor, galerías) con sus metadatos actuales.
 - `wp_ajax_gpai_imagenes_save` — Guardar metadatos de imágenes (alt, título, leyenda, descripción) de un post.
+- `wp_ajax_gpai_analisis_seo` — Analizar SEO del post (títulos, descripción, OG, keywords, Schema).
+- `wp_ajax_gpai_analisis_links` — Validar enlaces internos del post (HTTP HEAD request).
+- `wp_ajax_gpai_analisis_pagespeed` — Consultar PageSpeed Insights de la URL del post.
 
 ---
 

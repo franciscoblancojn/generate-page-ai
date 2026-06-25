@@ -8,7 +8,7 @@ Este archivo contiene las reglas, validaciones y convenciones que toda IA debe s
 
 ### PHP
 - **WordPress Coding Standards**: Sigue los estándares de codificación de WordPress para PHP.
-- **PHP 7.0+**: No uses sintaxis moderna de PHP (nullsafe `?->`, named arguments, match, readonly properties, etc).
+- **PHP 7.0+**: No uses sintaxis moderna de PHP (nullsafe `?->`, named arguments, match, readonly properties, etc). El operador `??` (null coalescing) está permitido.
 - **Nombrado**: Las clases usan prefijo `GPAI_` (ej: `GPAI_AI`, `GPAI_CONTENT`). Métodos y propiedades en `camelCase` o `UPPER_SNAKE` para constantes.
 - **Sanitización**: Toda salida de datos debe escaparse. Usa `esc_html()`, `esc_attr()`, `esc_url()`, `wp_kses_post()` según contexto.
 - **Nonces**: Todo formulario y AJAX debe verificar nonce con `wp_verify_nonce()` o `check_ajax_referer()`.
@@ -31,13 +31,18 @@ Este archivo contiene las reglas, validaciones y convenciones que toda IA debe s
 ### Sistema de Archivos
 - `index.php` → Plugin header y constantes globales. No agregues lógica aquí.
 - `src/_.php` → Cargador maestro. Todo nuevo módulo debe ser require desde aquí.
-- `src/ai/` → Clientes IA (Google Gemini).
-- `src/api/` → APIs AJAX y CRUD.
+- `src/ai/` → Clientes IA (Google Gemini, harness de pruebas).
+- `src/api/` → APIs AJAX, CRUD y REST.
 - `src/data/` → Capa de datos (wp_options CRUD).
-- `src/frontend/` → Salida frontend (meta tags, JSON-LD).
+- `src/frontend/` → Salida frontend (meta tags, JSON-LD, panel de edición).
+- `src/meta-box/` → Meta boxes (GPAI SEO, Parent, Box).
 - `src/page/` → Páginas admin.
 - `src/templates/` → Templates reutilizables.
 - `src/prompts/` → Archivos de prompt default (.txt).
+- `src/css/` → Estilos (admin, Elementor, frontend edit, XSL sitemap).
+- `src/js/` → JavaScript admin, Elementor, frontend edit.
+- `src/hook/` → Hooks de WordPress.
+- `src/elementor/` → Integración con Elementor.
 
 ### Constantes
 Usa las constantes definidas en `index.php`:
@@ -73,6 +78,16 @@ Toda opción global debe usar `GPAI_USE_DATA_BASE` o una subclase. No uses `add_
 - Los handlers deben estar en `src/api/` o en el archivo correspondiente.
 - Respuesta siempre en JSON: `wp_send_json_success($data)` o `wp_send_json_error($message)`.
 
+### REST API
+- Namespace: `GPAI_KEY` (`'GPAI'`).
+- Endpoints existentes:
+  - `POST /GPAI/seo` → Guarda campos GPAI SEO, clave vía header `X-GPAI-SEO-Key`.
+  - `GET /GPAI/cf/get` → Obtiene custom fields de un post, clave vía header `X-GPAI-CF-Key`.
+  - `POST /GPAI/cf/set` → Guarda custom fields de un post, clave vía header `X-GPAI-CF-Key`.
+  - `GET /GPAI/gf/get` → Obtiene campos globales, clave vía header `X-GPAI-GF-Key`.
+  - `POST /GPAI/gf/set` → Guarda campos globales, clave vía header `X-GPAI-GF-Key`.
+- Las API keys se configuran en la página admin "API".
+
 ### Hooks
 - Acciones: `add_action('hook', 'callback', priority)`.
 - Filtros: `add_filter('hook', 'callback', priority, args)`.
@@ -101,6 +116,6 @@ Toda opción global debe usar `GPAI_USE_DATA_BASE` o una subclase. No uses `add_
 - ✗ NO elimines el prefijo `GPAI_` de ninguna clase/función.
 - ✗ NO agregues dependencias npm/composer sin autorización explícita.
 - ✗ NO edites archivos en `libs/` (vendor de Composer).
-- ✗ NO uses sintaxis moderna de PHP (>=7.0) — el plugin requiere PHP 5.6+.
+- ✗ NO uses sintaxis moderna de PHP (>=7.0) — el plugin requiere PHP 7.0+ (usa `??` pero no `?->`, named arguments, match, readonly properties).
 - ✗ NO hardcodees URLs o paths — usa `GPAI_URL`, `GPAI_DIR`.
 - ✗ NO añadas archivos nuevos sin require desde `src/_.php` o desde subcarpetas `src/*/_.php`.

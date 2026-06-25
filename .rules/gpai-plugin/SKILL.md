@@ -89,6 +89,8 @@ gpai_wpseo_remove_other_jsonld    // '1'/'0'
 |---|---|---|
 | `gpai_export_post` | `GPAI_EXPORT_IMPORT::exportPost()` | `src/api/export_import.php` |
 | `gpai_import_post` | `GPAI_EXPORT_IMPORT::importPost()` | `src/api/export_import.php` |
+| `gpai_export_global_fields` | `GPAI_EXPORT_IMPORT::exportGlobalFields()` | `src/api/export_import.php` |
+| `gpai_import_global_fields` | `GPAI_EXPORT_IMPORT::importGlobalFields()` | `src/api/export_import.php` |
 | `gpai_seo_save` | `GPAI_SEO_save_ajax()` | `src/meta-box/gpai-seo.php` |
 | `gpai_seo_generate` | `GPAI_SEO::generateSEO_ajax()` | `src/api/gpai_seo.php` |
 | `gpai_seo_export` | `GPAI_SEO_export_ajax()` | `src/meta-box/gpai-seo.php` |
@@ -103,6 +105,9 @@ gpai_wpseo_remove_other_jsonld    // '1'/'0'
 | `gpai_sitemap_save_xml` | `GPAI_SITEMAPS_API::saveXml()` | `src/api/sitemaps.php` |
 | `gpai_imagenes_get` | `GPAI_IMAGENES::getImagesAjax()` | `src/api/imagenes.php` |
 | `gpai_imagenes_save` | `GPAI_IMAGENES::saveImagesAjax()` | `src/api/imagenes.php` |
+| `gpai_analisis_seo` | `GPAI_ANALISIS::analyzeSEO_ajax()` | `src/api/analisis.php` |
+| `gpai_analisis_links` | `GPAI_ANALISIS::validateLinks_ajax()` | `src/api/analisis.php` |
+| `gpai_analisis_pagespeed` | `GPAI_ANALISIS::pageSpeed_ajax()` | `src/api/analisis.php` |
 
 Todos los AJAX deben:
 - Verificar nonce con `check_ajax_referer('gpai_nonce', 'nonce')`.
@@ -130,6 +135,59 @@ Todos los AJAX deben:
 | `GPAI_GLOBAL_FIELDS_{key}` | Valor de campo global individual |
 
 ---
+
+## REST API
+
+- Namespace: `GPAI_KEY` (`'GPAI'`).
+- Endpoints:
+  - `POST /GPAI/seo` → `GPAI_API_SEO::handleRequest()` — Guarda campos GPAI SEO.
+  - `GET /GPAI/cf/get` → `GPAI_API_CF::handleGet()` — Obtiene custom fields.
+  - `POST /GPAI/cf/set` → `GPAI_API_CF::handleSet()` — Guarda custom fields.
+  - `GET /GPAI/gf/get` → `GPAI_API_GF::handleGet()` — Obtiene campos globales.
+  - `POST /GPAI/gf/set` → `GPAI_API_GF::handleSet()` — Guarda campos globales.
+- Autenticación vía header `X-GPAI-{type}-Key`, configurable en admin "API".
+
+## GPAI_ANALISIS (`src/api/analisis.php`)
+
+- `analyzeSEO_ajax()` — Analiza título, descripción, focus keyword, OG, Twitter, Schema del post.
+- `validateLinks_ajax()` — Extrae enlaces internos del contenido + Elementor y verifica HTTP status.
+- `pageSpeed_ajax()` — Consulta Google PageSpeed Insights API públicamente.
+
+## Meta Boxes Adicionales
+
+### GPAI Parent (`src/meta-box/gpai-parent.php`)
+- Meta box "GPAI Parent" en todos los post types públicos.
+- Muestra el ID del post padre y enlace de edición.
+- Checkbox "Cargar contenido del padre" guarda `GPAI_CONTENT_INDEPENDIENTE_META` como `'1'`/`'0'`.
+
+### GPAI Box (`src/meta-box/gpai-box.php`)
+- Meta box "GPAI" con botón que abre el panel de edición frontend en una nueva pestaña.
+
+## Frontend Edit Panel
+
+- Activo via `wp_enqueue_scripts` → `GPAI_Edit_Assets()`.
+- Se activa con parámetro URL `?GPAI_EDIT`.
+- Assets: `src/js/gpai-edit.js`, `src/css/gpai-edit.css`.
+- Permite editar campos personalizados directamente desde el frontend.
+
+## AI Harness (`src/ai/harness.php`)
+
+- `GPAI_AI_HARNESS` — Harness de pruebas para capturar y mockear respuestas de IA.
+- Dispara hooks `gpai_ai_before_request` y `gpai_ai_after_request` durante las llamadas a Gemini.
+- Usa filtro `gpai_ai_mock_response` para simular respuestas sin llamar a la API real.
+
+## Templates
+
+| Template | Archivo | Propósito |
+|---|---|---|
+| `GPAI_Table_Fields()` | `src/templates/table_fields.php` | Tabla genérica clave/valor |
+| `GPAI_Custom_Fields()` | `src/templates/custom_fields.php` | Campos personalizados |
+| `GPAI_Custom_Yoast()` | `src/templates/custom_yoast.php` | Campos Yoast |
+| `GPAI_Custom_Gpai_Seo()` | `src/templates/custom_gpai_seo.php` | Campos GPAI SEO |
+| `GPAI_Custom_Gpai_Seo_Grouped()` | `src/templates/custom_gpai_seo.php` | Campos GPAI SEO agrupados |
+| `GPAI_Table_Post_By_Url()` | `src/templates/table_post_by_url.php` | Posts con checkbox |
+| `GPAI_Imagenes_Post()` | `src/templates/imagenes_post.php` | Tabla de imágenes con preview |
+| `GPAI_Analisis_Post()` | `src/templates/analisis.php` | Análisis SEO de un post |
 
 ## Elementor Integration
 
