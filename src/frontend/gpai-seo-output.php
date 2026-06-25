@@ -368,6 +368,7 @@ function GPAI_SEO_override_document_title($title_parts)
     $gpai = get_post_meta($post_id, 'gpai_wpseo_title', true);
     if ($gpai) {
         $title_parts['title'] = GPAI_SEO_clean_text($gpai);
+        unset($title_parts['tagline']);
     }
     return $title_parts;
 }
