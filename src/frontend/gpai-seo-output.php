@@ -369,6 +369,7 @@ function GPAI_SEO_override_document_title($title_parts)
     if ($gpai) {
         $title_parts['title'] = GPAI_SEO_clean_text($gpai);
         unset($title_parts['tagline']);
+        unset($title_parts['site']);
     }
     return $title_parts;
 }
