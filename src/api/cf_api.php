@@ -80,7 +80,16 @@ class GPAI_API_CF
             ], 404);
         }
 
+        // 1. Campos encontrados en contenido y Elementor
         $customFields = GPAI_CF::GET($post_id);
+
+        // 2. Todos los post_meta del post (excluye los que empiezan con _)
+        $allMeta = get_post_meta($post_id);
+        foreach ($allMeta as $key => $values) {
+            if (strpos($key, '_') !== 0 && !isset($customFields[$key])) {
+                $customFields[$key] = $values[0];
+            }
+        }
 
         return new WP_REST_Response([
             'success' => true,
