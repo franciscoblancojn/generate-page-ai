@@ -169,6 +169,7 @@ if (isset($post_id)) {
                         'show_option_none'  => '-- Seleccionar --',
                         'option_none_value' => '',
                         'selected'          => $post_id,
+                        'post_type'         => 'any',
                     ]);
 
                     $data = ob_get_clean();
