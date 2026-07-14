@@ -83,7 +83,6 @@ function GPAI_replace_custom_vars($content, $depth = 0)
         }
 
         if ($value !== null && $value !== '') {
-
             $content = str_replace(
                 ["{{{$key}}}", "__{$key}__"],
                 $value,
@@ -98,7 +97,6 @@ function GPAI_replace_custom_vars($content, $depth = 0)
     |--------------------------------------------------------------------------
     */
     if ($content !== $original_content) {
-
         return GPAI_replace_custom_vars($content, $depth + 1);
     }
 
@@ -107,41 +105,43 @@ function GPAI_replace_custom_vars($content, $depth = 0)
 
 add_filter('the_content', 'GPAI_replace_custom_vars', 20);
 
+function gpai_should_skip_frontend_replacement()
+{
+    if (isset($_GET['GPAI_DISABLE'])) return true;
+    if (isset($_GET['GPAI_EDIT'])) return true;
+    if (isset($_GET['preview']) && $_GET['preview'] == 'true') return true;
+    if (isset($_GET["action"]) && $_GET["action"] == "elementor") return true;
+    if (defined('ELEMENTOR_VERSION') && class_exists('\Elementor\Plugin')) {
+        if (\Elementor\Plugin::$instance->editor->is_edit_mode()) return true;
+        if (\Elementor\Plugin::$instance->preview->is_preview_mode()) return true;
+    }
+    if (is_admin()) return true;
+    if (wp_doing_ajax()) return true;
+    if (defined('REST_REQUEST') && REST_REQUEST) return true;
+    return false;
+}
+
 add_action('template_redirect', function () {
 
-    if (isset($_GET['GPAI_DISABLE'])) {
-        return;
-    }
-    if (isset($_GET['GPAI_EDIT'])) {
-        return;
-    }
-    if (isset($_GET['preview']) && $_GET['preview'] == 'true') {
-        return;
-    }
-    if (isset($_GET["action"]) && $_GET["action"] == "elementor") {
-        return;
-    }
-    if (
-        defined('ELEMENTOR_VERSION') &&
-        (
-            \Elementor\Plugin::$instance->editor->is_edit_mode()
-            || \Elementor\Plugin::$instance->preview->is_preview_mode()
-        )
-    ) {
-        return;
-    }
-    // Admin
-    if (is_admin()) {
+    if (gpai_should_skip_frontend_replacement()) {
         return;
     }
 
-    // AJAX
-    if (wp_doing_ajax()) {
-        return;
-    }
+    ob_start(function ($html) {
+        if (isset($_GET['GPAI_CUSTOM_FIELDS_DISABLE'])) {
+            return $html;
+        }
+        if (strpos($html, '{{') === false && strpos($html, '__') === false) {
+            return $html;
+        }
+        return GPAI_replace_custom_vars($html);
+    });
 
-    // REST API
-    if (defined('REST_REQUEST') && REST_REQUEST) {
+}, 10);
+
+add_action('template_redirect', function () {
+
+    if (gpai_should_skip_frontend_replacement()) {
         return;
     }
     if (!is_page()) {
