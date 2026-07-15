@@ -59,10 +59,15 @@ function GPAI_SEO_output()
         echo '<meta property="og:description" content="' . esc_attr($ogDesc) . '" class="gpai-seo-meta-tag">' . "\n";
     }
     echo '<meta property="og:url" content="' . esc_url($ogUrl) . '" class="gpai-seo-meta-tag">' . "\n";
-    echo '<meta property="og:type" content="website" class="gpai-seo-meta-tag">' . "\n";
+    $ogType = 'website';
+    if (get_post_type($post_id) === 'post') {
+        $ogType = 'article';
+    }
+    echo '<meta property="og:type" content="' . esc_attr($ogType) . '" class="gpai-seo-meta-tag">' . "\n";
     if ($ogImage) {
         echo '<meta property="og:image" content="' . esc_url($ogImage) . '" class="gpai-seo-meta-tag">' . "\n";
     }
+    echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" class="gpai-seo-meta-tag">' . "\n";
 
     echo '<meta name="twitter:card" content="summary_large_image" class="gpai-seo-meta-tag">' . "\n";
     echo '<meta name="twitter:title" content="' . esc_attr($twTitle) . '" class="gpai-seo-meta-tag">' . "\n";
@@ -143,6 +148,14 @@ function GPAI_SEO_output_jsonld($post_id, $post, $values, $title, $desc, $canoni
         $webPage['datePublished'] = get_the_date('c', $post_id);
         $webPage['dateModified']  = get_the_modified_date('c', $post_id);
     }
+
+    $articleTypes = ['Article', 'BlogPosting', 'NewsArticle', 'ScholarlyArticle', 'TechArticle', 'Report'];
+    if (in_array($pageType, $articleTypes)) {
+        $webPage['headline'] = GPAI_SEO_clean_text($title);
+        $webPage['author'] = ['@id' => $siteUrl . '#organization'];
+        $webPage['mainEntityOfPage'] = ['@id' => $canonical . '#webpage'];
+    }
+
     $graph[] = $webPage;
 
     // --- WebSite ---
