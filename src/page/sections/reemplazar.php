@@ -187,6 +187,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 
+    form.addEventListener('invalid', function() {
+        btn.classList.remove('fwue-loader');
+    }, true);
+
     function renderResult(res) {
         var isOk = !!res.success;
         var data = res.data || {};
