@@ -12,7 +12,10 @@
 - Validación con clave de seguridad interna (`GPAI_API_KEY_INTERNA`) en la operación de reemplazo
 - Fix: loader infinito en el botón al fallar la validación de campos del formulario
 - Ajustes visuales del loader y la sección
-- Añadida documentación de API SEO (`DOC-API-SEO.md`)
+- Añadida documentación de API SEO (`doc/DOC-API-SEO.md`)
+- Harness de validación del proyecto (`bin/harness.sh`) con script `npm run check`
+- Añadida referencia de hooks/AJAX/REST (`HOOKS.md`) y contexto de arquitectura (`CONTEXT.md`) actualizado
+- Añadidas guías: `doc/DOC-REEMPLAZAR-URL.md` y `doc/DOC-LIBS.md`
 
 ## [2.10.5] — 2026
 
@@ -49,6 +52,10 @@
 - Añadida página admin "API" con 3 pestañas (SEO, CF, GF)
 - Añadida REST API para custom fields (`GPAI_API_CF`)
 - Fix: título SEO en homepage ya no incluye el tagline del sitio
+- Fix: trailing slash en canonical
+
+## [2.9.1] — 2025
+
 - Fix: trailing slash en canonical
 
 ## [2.9.0] — 2025

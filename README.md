@@ -26,13 +26,14 @@ Generate Page AI es un plugin de WordPress que potencia tus páginas con **intel
 - 🖼️ **Ajustes de Imágenes** — Nueva pestaña en la sección Post que carga todas las imágenes del post seleccionado (destacada, contenido, Elementor, galerías) y permite editar **Texto Alternativo, Título, Leyenda y Descripción** con vista previa y botón de descarga.
 - ✅ **Confirmación en Generar SEO** — El botón "Generar SEO con IA" ahora pide confirmación antes de sobrescribir los valores actuales.
 - 🧼 **Limpieza de Schema Yoast** — Filtro automático que remueve propiedades internas no estándar (`description_schema_fallback`) del schema de Yoast antes de renderizar.
+- 🔗 **Reemplazar URL** — Subpágina para reemplazar una URL o fragmento en **toda la base de datos** (equivalente a `wp search-replace 'vieja' 'nueva' --all-tables`) con soporte para datos serializados de Elementor, y redirección **301 opcional** agregada automáticamente al `.htaccess`.
 
 ---
 
 ## 📋 Requisitos
 
 - WordPress 5.0+
-- PHP 5.6+
+- PHP 7.0+
 - Plugin [Yoast Duplicate Post](https://wordpress.org/plugins/duplicate-post/) (obligatorio)
 - Plugin [Elementor](https://wordpress.org/plugins/elementor/) (para funcionalidad de plantillas y editor visual)
 - Clave de API de [Google Gemini](https://aistudio.google.com/)
@@ -54,8 +55,12 @@ Generate Page AI es un plugin de WordPress que potencia tus páginas con **intel
 generate-page-ai/
 ├── index.php                     # Archivo principal (plugin header, constantes, updater vía Composer)
 ├── composer.json                 # Dependencias Composer
-├── package.json                  # Scripts de release/versionado
+├── package.json                  # Scripts de release/versionado/QA
 ├── libs/                         # Dependencias (Composer vendor renombrado)
+├── bin/harness.sh                # Harness de validación del proyecto
+├── doc/                          # Documentación: DOC-API-SEO.md, DOC-REEMPLAZAR-URL.md, DOC-LIBS.md
+├── HOOKS.md                      # Referencia de hooks, AJAX y REST
+├── CHANGELOG.md                  # Historial de versiones
 ├── src/
 │   ├── _.php                     # Cargador maestro
 │   ├── ai/                       # Capa de IA (cliente Gemini, generación de contenido)
@@ -71,6 +76,7 @@ generate-page-ai/
 │   │   ├── sitemaps.php          # GPAI_SITEMAPS_API - AJAX para generar XML de sitemaps con IA
 │   │   ├── imagenes.php          # GPAI_IMAGENES - AJAX para gestionar metadatos de imágenes del post
 │   │   ├── analisis.php          # GPAI_ANALISIS - Análisis SEO, validación enlaces, PageSpeed
+│   │   ├── reemplazar.php        # GPAI_REEMPLAZAR - Search-replace en DB + redirect .htaccess
 │   │   ├── seo_api.php           # GPAI_API_SEO - REST API para campos SEO
 │   │   ├── cf_api.php            # GPAI_API_CF - REST API para custom fields
 │   │   └── gf_api.php            # GPAI_API_GF - REST API para campos globales
@@ -127,6 +133,9 @@ generate-page-ai/
 │   │   │   └── api/              # Página de API
 │   │   │       ├── add.php       # Submenú "API"
 │   │   │       └── page.php      # Layout con tabs: SEO API, CF API, GF API
+│   │   │   ├── reemplazar/       # Página de Reemplazar URL
+│   │   │   │   ├── add.php       # Submenú "Reemplazar URL"
+│   │   │   │   └── page.php      # Layout
 │   │   └── sections/             # Secciones de cada página
 │   │       ├── config.php        # API Key, modelo, toggle de imágenes
 │   │       ├── prompts_base.php  # Editor de prompts base (templates editables)
@@ -135,6 +144,7 @@ generate-page-ai/
 │   │       ├── imagenes.php      # Ajustes de imágenes del post (alt, título, leyenda, descripción, descarga)
 │   │       ├── procesar_contenido.php# Variaciones de contenido
 │   │       ├── analisis.php      # Análisis SEO, validación de enlaces, PageSpeed
+│   │       ├── reemplazar.php    # Reemplazar URL (formulario + AJAX + resultados) 
 │   │       ├── html.php          # Optimización HTML (selector de post, estado static, mejora con IA)
 │   │       ├── sitemaps.php      # Site Maps: listado de archivos XML con edición y generación IA
 │   │       ├── config-sitemaps.php# Site Maps: configuración de URLs por tipo de contenido
@@ -179,6 +189,7 @@ generate-page-ai/
 | `GPAI_API_SEO` | `src/api/seo_api.php` | 🔌 REST API para campos GPAI SEO (POST `/GPAI/seo`) |
 | `GPAI_API_CF` | `src/api/cf_api.php` | 🔌 REST API para custom fields (GET/SET `/GPAI/cf/*`) |
 | `GPAI_API_GF` | `src/api/gf_api.php` | 🔌 REST API para campos globales (GET/SET `/GPAI/gf/*`) |
+| `GPAI_REEMPLAZAR` | `src/api/reemplazar.php` | 🔗 Search-replace en toda la DB + redirección 301 en .htaccess |
 | `GPAI_AI_HARNESS` | `src/ai/harness.php` | 🧪 Harness de pruebas para capturar/responser respuestas de IA |
 
 ---
@@ -220,6 +231,7 @@ Cada endpoint verifica que el header `X-GPAI-{type}-Key` coincida con la clave c
 | 🗺️ **Site Maps** | `GPAI_sitemaps` | Gestión de archivos XML de sitemaps. Tres pestañas: **Site Maps** (lista, editar, generar con IA, descargar), **Crear Site Map** (nuevo archivo XML), **URLs** (seleccionar posts/páginas, configurar frecuencia/prioridad, generar XML). |
 | 🌐 **Campos Globales** | `GPAI_campos_globales` | CRUD de campos globales reutilizables (text, textarea, number, email, url, wysiwyg) |
 | 🔒 **.htaccess** | `GPAI_htaccess` | Listar, editar, crear y eliminar archivos .htaccess |
+| 🔗 **Reemplazar URL** | `GPAI_reemplazar` | Search-replace de URL/fragmento en toda la DB + redirección 301 opcional en .htaccess |
 | 🔌 **API** | `GPAI_api` | Configuración de API keys para REST endpoints: SEO API, Custom Fields API, Global Fields API |
 
 ---
@@ -427,6 +439,60 @@ El submenú **.htaccess** permite gestionar archivos `.htaccess` desde el admin:
 
 ---
 
+## 🔗 Reemplazar URL
+
+El submenú **Reemplazar URL** permite cambiar una URL o fragmento en **toda la base de datos**, equivalente a:
+
+```bash
+wp search-replace 'url_vieja' 'url_nueva' --all-tables
+```
+
+### Funcionamiento
+
+1. Ingresa la **URL vieja** y la **URL nueva** (o fragmentos).
+2. Opcionalmente activa **"Agregar redirección"** para sumar una regla 301 al `.htaccess`:
+
+   ```
+   RewriteRule ^url_vieja/?$ /url_nueva [R=301,L]
+   ```
+
+3. El reemplazo se ejecuta vía **AJAX** y muestra el reporte inline: tablas procesadas, filas/celdas actualizadas, errores, tiempo y regla generada.
+
+### Características técnicas
+
+- Recorre todas las tablas (`SHOW TABLES`) en chunks de 500 filas.
+- **Preserva la serialización** de PHP/Elementor (`recursiveUnserializeReplace()`), evita romper `_elementor_data` y valores serializados.
+- **Segunda pasada** para URLs escapadas `\/` (formato JSON/Elementor).
+- Omite la columna `guid`.
+- La regla 301 se inserta en un bloque único `# GPAI Redirect URL` antes de `# BEGIN WordPress` (con detección de duplicados).
+- La operación valida nonce, capability `manage_options` y la clave interna `GPAI_API_KEY_INTERNA`.
+
+> 📄 Documentación: `doc/DOC-REEMPLAZAR-URL.md`.
+
+---
+
+## 🧰 Librería compartida (wordpress_utils)
+
+El plugin usa `franciscoblancojn/wordpress_utils` (vendor en `libs/`) para construir interfaces del admin, el auto-updater y los logs:
+
+| Componente | Clase | Uso |
+|---|---|---|
+| Páginas con tabs | `FWUPage` | Layout principal de submenús |
+| Tooltips | `FWUTooltip` | Ayudas en formularios |
+| Modales | `FWUModal` | Confirmaciones/diálogos |
+| Colapsos | `FWUCollapse` | Secciones plegables |
+| Export/Import | `FWUExportImport` | Bloque estándar export/import |
+| Respuestas | `FWURespond` | Mensajes de resultado |
+| Logs | `FWUSystemLog` | `FWS` → barra admin de WordPress |
+| Auto-update | `FWUUpdate` | GitHub releases |
+
+- **Instalación/actualización de la librería:** usa los comandos de `package.json` (nunca manipules `libs/` a mano):
+  - `npm run install` — composer install + limpieza + renombra `vendor` → `libs`
+  - `npm run update` — reinstala la librería desde cero
+- 📄 Convenciones detalladas: `doc/DOC-LIBS.md`.
+
+---
+
 ## 🔌 Hooks
 
 ### Filtros de Contenido
@@ -484,6 +550,9 @@ El submenú **.htaccess** permite gestionar archivos `.htaccess` desde el admin:
 - `wp_ajax_gpai_analisis_seo` — Analizar SEO del post (títulos, descripción, OG, keywords, Schema).
 - `wp_ajax_gpai_analisis_links` — Validar enlaces internos del post (HTTP HEAD request).
 - `wp_ajax_gpai_analisis_pagespeed` — Consultar PageSpeed Insights de la URL del post.
+- `wp_ajax_gpai_reemplazar_url` — Reemplazar URL/fragmento en toda la DB (con datos serializados) y agregar redirección 301 en .htaccess.
+
+> 📄 Lista completa de acciones, filtros, AJAX y REST: `HOOKS.md`.
 
 ---
 
@@ -510,6 +579,7 @@ El submenú **.htaccess** permite gestionar archivos `.htaccess` desde el admin:
 | `GPAI_URL` | `plugin_dir_url(__FILE__)` | URL base del plugin |
 | `GPAI_KEY_SEPARETE` | `'____GPAI____'` | Separador en valores de formularios |
 | `GPAI_CONTENT_INDEPENDIENTE_META` | `'GPAI_CONTENT_INDEPENDIENTE'` | Post meta flag de contenido independiente |
+| `GPAI_API_KEY_INTERNA` | Clave random (persistida en `wp_options`) | Valida la operación "Reemplazar URL" |
 
 
 
@@ -565,6 +635,36 @@ gpai_wpseo_remove_other_jsonld    → '1'/'0'
 | `GPAI_SITEMAP_CONFIGS` | Config de sitemaps: URLs habilitadas, frecuencia, prioridad |
 | `GPAI_GLOBAL_FIELDS_INDEX` | Índice de campos globales |
 | `GPAI_GLOBAL_FIELDS_{key}` | Valor de campo global individual |
+| `GPAI_API_KEY_INTERNA` | Clave interna random (valida "Reemplazar URL") |
+
+---
+
+## 🧪 Desarrollo y QA
+
+Harness de validación del proyecto (lint PHP, compatibilidad PHP 7.0+, ES5, prefijos CSS, clases requeridas, requires de cargadores y referencias a docs):
+
+```bash
+bash bin/harness.sh         # validaciones
+bash bin/harness.sh doc     # lista y valida los docs en doc/
+bash bin/harness.sh doc DOC-NUEVO   # crea un doc en doc/ si no existe
+```
+
+Gestión de documentación:
+| Comando | Propósito |
+|---|---|
+| `bash bin/harness.sh doc` | Lista los `.md` de `doc/` y valida las referencias |
+| `bash bin/harness.sh doc DOC-X` | Crea `doc/DOC-X.md` con plantilla si no existe |
+| `bash bin/harness.sh` | Verifica que cada `DOC-*.md` referenciado exista en `doc/` |
+
+Comandos útiles de `package.json`:
+
+| Script | Propósito |
+|---|---|
+| `npm run install` | Instala `wordpress_utils` (composer) y renombra `vendor` → `libs` |
+| `npm run update` | Reinstala la librería desde cero |
+| `npm run push-v -- patch` | Bump de versión (major/minor/patch) |
+| `npm run push-tag` | Sincroniza versión + commit + tag + push |
+| `npm run check` | Ejecuta el harness de validación |
 
 ---
 

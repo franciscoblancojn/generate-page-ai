@@ -1,6 +1,6 @@
 # Generate Page AI — Contexto para IAs
 
-> Plug-in WordPress v2.9.2 — Generado automáticamente para que IAs entren en contexto rápido.
+> Plug-in WordPress v2.11.0 — Generado automáticamente para que IAs entren en contexto rápido.
 
 ---
 
@@ -16,6 +16,7 @@ Genera páginas y contenido usando Google Gemini. Permite:
 - Export/Import de configuraciones en JSON
 - Auto-update vía GitHub
 - Ajustes de imágenes de posts (alt, título, leyenda, descripción, descarga)
+- Reemplazo de URL/fragmentos en toda la base de datos con redirección 301 opcional (.htaccess)
 
 ---
 
@@ -35,6 +36,7 @@ Genera páginas y contenido usando Google Gemini. Permite:
 | `GPAI_LOG_KEY` | `'GPAI_LOG'` | Clave para opción de logs |
 | `GPAI_LOG_COUNT` | `100` | Máximo de entradas de log |
 | `GPAI_BASENAME` | `plugin_basename(__FILE__)` | Base name del plugin |
+| `GPAI_API_KEY_INTERNA` | Clave random generada en `index.php` | Se persiste en `wp_options` `GPAI_API_KEY_INTERNA` y valida la operación "Reemplazar URL" |
 
 ---
 
@@ -61,6 +63,7 @@ src/
     seo_api.php         → GPAI_API_SEO: REST API para campos SEO
     cf_api.php          → GPAI_API_CF: REST API para custom fields
     gf_api.php          → GPAI_API_GF: REST API para campos globales
+    reemplazar.php      → GPAI_REEMPLAZAR: Search-replace en DB + redirect .htaccess
   css/
     global.php          → Estilos admin inline
     elementor-editor.css → Estilos panel flotante Elementor
@@ -99,6 +102,7 @@ src/
       sitemaps/         → Submenú "Site Maps"
       htaccess/         → Submenú ".htaccess"
       campos_globales/  → Submenú "Campos Globales"
+      reemplazar/       → Submenú "Reemplazar URL"
       api/              → Submenú "API"
     sections/
       config.php        → API Key, modelo Gemini, toggle contenido independiente
@@ -114,6 +118,7 @@ src/
       test.php          → Pruebas (solo dev mode)
       htaccess.php      → Editor .htaccess
       analisis.php      → Análisis SEO, validación enlaces, PageSpeed
+      reemplazar.php    → Formulario Reemplazar URL (AJAX + resultados inline)
       api_seo.php       → Config API key para REST SEO
       api_cf.php        → Config API key para REST Custom Fields
       api_gf.php        → Config API key para REST Global Fields
@@ -210,6 +215,16 @@ src/
 | `saveImagesAjax()` | AJAX: guarda metadatos de múltiples imágenes (alt, título, leyenda, descripción) |
 | `getPostImages($post_id)` | Escanea post en busca de imágenes (destacada, adjuntas, contenido, Elementor, galería) y retorna array con datos completos |
 
+### GPAI_REEMPLAZAR (`src/api/reemplazar.php`)
+| Método | Descripción |
+|---|---|
+| `reemplazarAjax()` | AJAX handler: valida nonce, clave interna, permisos; ejecuta search-replace + redirect |
+| `replaceUrl($search, $replace)` | Recorre todas las tablas DB, reemplaza con soporte serializado; segunda pasada para URLs escapadas `\/` |
+| `recursiveUnserializeReplace($from, $to, $data)` | Reemplazo recursivo preservando serialización de PHP/Elementor |
+| `processTable($table, $search, $replace, &$report)` | Procesa una tabla individual en chunks de 500 |
+| `buildRedirectRule($urlVieja, $urlNueva)` | Genera regla `RewriteRule ^old/?$ /new [R=301,L]` |
+| `addRedirectToHtaccess($urlVieja, $urlNueva)` | Inserta bloque `# GPAI Redirect URL` en `.htaccess` antes de `# BEGIN WordPress` |
+
 ---
 
 ## Post Meta Keys usados
@@ -264,6 +279,7 @@ STPA_KEY_CONFIG                     → Config de Static Page
 | `GPAI_SITEMAP_URLS` | (legacy) | URLs habilitadas para sitemap (reemplazado por GPAI_SITEMAP_CONFIGS) |
 | `GPAI_GLOBAL_FIELDS_INDEX` | `GPAI_USE_DATA_GLOBAL_FIELDS` | Índice de campos globales |
 | `GPAI_GLOBAL_FIELDS_{key}` | `GPAI_USE_DATA_GLOBAL_FIELDS` | Valor de campo global individual |
+| `GPAI_API_KEY_INTERNA` | `index.php` (define) | Clave interna generada random; valida la operación "Reemplazar URL" |
 
 ---
 
@@ -292,6 +308,7 @@ STPA_KEY_CONFIG                     → Config de Static Page
 | `gpai_analisis_seo` | `GPAI_ANALISIS::analyzeSEO_ajax()` | Analiza SEO del post (títulos, desc, OG, keywords) |
 | `gpai_analisis_links` | `GPAI_ANALISIS::validateLinks_ajax()` | Valida enlaces internos del post |
 | `gpai_analisis_pagespeed` | `GPAI_ANALISIS::pageSpeed_ajax()` | Consulta PageSpeed Insights de la URL del post |
+| `gpai_reemplazar_url` | `GPAI_REEMPLAZAR::reemplazarAjax()` | Search-replace en toda la DB + redirect .htaccess |
 
 ---
 
@@ -316,6 +333,7 @@ add_action('wp_ajax_*', ...)                         → Todos los AJAX (ver tab
 add_action('admin_init', ['GPAI_EXPORT_IMPORT', 'init'])
 add_action('admin_init', ['GPAI_IMAGENES', 'init'])
 add_action('admin_init', ['GPAI_ANALISIS', 'init'])
+add_action('admin_init', ['GPAI_REEMPLAZAR', 'init'])
 add_action('rest_api_init', ['GPAI_API_SEO', 'registerRoutes'])
 add_action('rest_api_init', ['GPAI_API_CF', 'registerRoutes'])
 add_action('rest_api_init', ['GPAI_API_GF', 'registerRoutes'])
@@ -344,6 +362,13 @@ add_filter('gpai_seo_schema', ...)   → Filtro para modificar Schema JSON-LD an
 
 ### Filtro `gpai_seo_schema`
 Disponible para hooks externos. Se aplica en `gpai-seo-output.php:185` sobre el array `$schema` completo antes de `wp_json_encode`. Permite modificar/añadir/eliminar cualquier nodo del `@graph`.
+
+### Hooks de IA (harness)
+```php
+do_action('gpai_ai_before_request', $PROMPT, $data, $url)    → Disparado antes de cada request a Gemini (3 args)
+do_action('gpai_ai_after_request', $PROMPT, $data, $url, $result) → Disparado después de cada request (4 args)
+apply_filters('gpai_ai_mock_response', null, $PROMPT)        → Si retorna array, reemplaza la llamada real
+```
 
 ---
 
@@ -454,3 +479,23 @@ Disponible para hooks externos. Se aplica en `gpai-seo-output.php:185` sobre el 
 - `GPAI_replace_custom_vars()` usa `get_the_ID()` — asegurar que el global `$post` esté correcto
 - El schema extra JSON (`gpai_wpseo_schema_extra_json`) se procesa así: `json_decode` → `array_walk_recursive` con `GPAI_replace_custom_vars` → filtrar por `@type`
 - Modo desarrollo: `GPAI_MODE_DEV` se activa si `$_SERVER['HTTP_HOST']` es `wordpress.local`, `localhost` o `127.0.0.1`
+
+---
+
+## Flujo: Reemplazar URL
+
+1. **Admin** → Submenú "Reemplazar URL" (`GPAI_reemplazar`)
+2. **Formulario** → Ingreso de URL vieja, URL nueva, checkbox redirect; envía `api_key` = `GPAI_API_KEY_INTERNA`
+3. **Handler** → `GPAI_REEMPLAZAR::reemplazarAjax()` valida nonce + clave interna + permisos
+4. **Reemplazo** → `replaceUrl()` recorre todas las tablas con `SHOW TABLES`, por cada tabla lee filas en chunks de 500 y reemplaza con `recursiveUnserializeReplace()` preservando serialización PHP/Elementor
+5. **Segunda pasada** → Se repite con URLs escapadas `\/` (formato Elementor/JSON en `_elementor_data`)
+6. **Redirect** → Si el checkbox está activo, `addRedirectToHtaccess()` inserta regla `RewriteRule ^old/?$ /new [R=301,L]` dentro de un bloque `# GPAI Redirect URL` antes de `# BEGIN WordPress` (reutiliza bloque existente, dedup con `normalizeForCompare()`)
+7. **Resultado** → Se devuelve reporte inline (tablas procesadas, filas/celdas actualizadas, errores, tiempo, regla generada)
+
+---
+
+## Referencias
+
+- **doc/** → Carpeta de documentación: `DOC-API-SEO.md`, `DOC-REEMPLAZAR-URL.md`, `DOC-LIBS.md`
+- **HOOKS.md** → Lista completa de acciones, filtros, AJAX, REST e hooks de IA
+- **bin/harness.sh** → Harness de validación del proyecto (lint, sintaxis, convenciones) — lee y crea los docs de `doc/`

@@ -108,6 +108,7 @@ gpai_wpseo_remove_other_jsonld    // '1'/'0'
 | `gpai_analisis_seo` | `GPAI_ANALISIS::analyzeSEO_ajax()` | `src/api/analisis.php` |
 | `gpai_analisis_links` | `GPAI_ANALISIS::validateLinks_ajax()` | `src/api/analisis.php` |
 | `gpai_analisis_pagespeed` | `GPAI_ANALISIS::pageSpeed_ajax()` | `src/api/analisis.php` |
+| `gpai_reemplazar_url` | `GPAI_REEMPLAZAR::reemplazarAjax()` | `src/api/reemplazar.php` |
 
 Todos los AJAX deben:
 - Verificar nonce con `check_ajax_referer('gpai_nonce', 'nonce')`.
@@ -133,6 +134,27 @@ Todos los AJAX deben:
 | `GPAI_SITEMAP_CONFIGS` | Config de sitemaps: enabled_posts, changefreq, priority |
 | `GPAI_GLOBAL_FIELDS_INDEX` | Índice de campos globales |
 | `GPAI_GLOBAL_FIELDS_{key}` | Valor de campo global individual |
+| `GPAI_API_KEY_INTERNA` | Clave interna random en `wp_options` + constante `GPAI_API_KEY_INTERNA`; valida la operación "Reemplazar URL" |
+
+---
+
+## Reemplazar URL (`GPAI_REEMPLAZAR`)
+
+- Archivo: `src/api/reemplazar.php`, AJAX `gpai_reemplazar_url`.
+- Valida en orden: nonce (`check_ajax_referer('gpai_nonce', 'nonce')`) → capability `manage_options` → `api_key` contra constante `GPAI_API_KEY_INTERNA` con `hash_equals()`.
+- `replaceUrl()` recorre `SHOW TABLES`, procesa en chunks de 500 y hace segunda pasada con URLs escapadas `\/` (Elementor/JSON).
+- `recursiveUnserializeReplace()` preserva serialización PHP/Elementor (no rompe datos serializados).
+- Columna `guid` se omite por defecto.
+- `buildRedirectRule()` genera `RewriteRule ^old/?$ /new [R=301,L]`.
+- `addRedirectToHtaccess()` inserta un bloque único `# GPAI Redirect URL` antes de `# BEGIN WordPress`; dedup con `normalizeForCompare()` (ignora `\-`, `\.`, `\/`, etc.).
+- La clave se obtiene del formulario (`data-api-key`) y viaja en el body del AJAX como `api_key`.
+
+## UI con librería FWU (`franciscoblancojn/wordpress_utils`)
+
+- Usa `FWUPage::render()` para páginas con tabs, `FWUTooltip::render()` para tooltips, `FWUModal`, `FWUCollapse`, `FWUExportImport`, `FWURespond`.
+- `FWUPage::js()` agrega la clase `fwue-loader` (spinner, `color: transparent !important`) a todo `[type="submit"]` dentro de la página al hacer **click**. Si la validación HTML5 bloquea el `submit`, la clase queda puesta: en formularios AJAX, escucha el evento `invalid` y haz `btn.classList.remove('fwue-loader')`.
+- Logs: `FWUSystemLog::add(GPAI_KEY, ...)`. Auto-updater: `FWUUpdate::init([...])`. Ver `doc/DOC-LIBS.md`.
+- Nunca uses `error_log()`, `var_dump()`, `print_r()` en producción.
 
 ---
 

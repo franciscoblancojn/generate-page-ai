@@ -9,6 +9,13 @@
       "permission": {
         "edit": "allow",
         "bash": {
+          "git add *": "deny",
+          "git commit *": "deny",
+          "git commit": "deny",
+          "git merge *": "deny",
+          "git merge": "deny",
+          "git push *": "deny",
+          "git push": "deny",
           "git diff *": "allow",
           "git log *": "allow",
           "git status": "allow",
@@ -37,6 +44,16 @@
   "permission": {
     "edit": "allow",
     "bash": {
+      "git add *": "deny",
+      "git commit *": "deny",
+      "git commit": "deny",
+      "git merge *": "deny",
+      "git merge": "deny",
+      "git push *": "deny",
+      "git push": "deny",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "git status": "allow",
       "git *": "allow",
       "npm *": "allow",
       "composer *": "allow",
