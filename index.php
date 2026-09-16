@@ -31,6 +31,19 @@ define("GPAI_BASENAME", plugin_basename(__FILE__));
 define("GPAI_DIR", plugin_dir_path(__FILE__));
 define("GPAI_URL", plugin_dir_url(__FILE__));
 
+if (!defined('GPAI_API_KEY_INTERNA')) {
+    $gpai_api_key_interna = get_option(GPAI_KEY . '_API_KEY_INTERNA');
+    if (empty($gpai_api_key_interna)) {
+        try {
+            $gpai_api_key_interna = bin2hex(random_bytes(32));
+        } catch (Exception $e) {
+            $gpai_api_key_interna = md5(uniqid(GPAI_KEY . time(), true));
+        }
+        add_option(GPAI_KEY . '_API_KEY_INTERNA', $gpai_api_key_interna, '', false);
+    }
+    define('GPAI_API_KEY_INTERNA', $gpai_api_key_interna);
+}
+
 function GPAI_get_version()
 {
     $plugin_data = get_plugin_data(__FILE__);

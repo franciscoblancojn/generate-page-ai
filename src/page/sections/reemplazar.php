@@ -62,7 +62,7 @@ $htaccessWritable = !empty($HTACCESS['writable']);
 </style>
 
 <div class="gpai-section">
-    <form method="post" id="gpai-reemplazar-form" data-nonce="<?= esc_attr(wp_create_nonce('gpai_nonce')) ?>">
+    <form method="post" id="gpai-reemplazar-form" data-nonce="<?= esc_attr(wp_create_nonce('gpai_nonce')) ?>" data-api-key="<?= esc_attr(GPAI_API_KEY_INTERNA) ?>">
         <input type="hidden" name="save" value="gpai_reemplazar_url">
         <table class="form-table">
             <tr>
@@ -167,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var formData = new FormData(form);
         formData.append('action', 'gpai_reemplazar_url');
         formData.append('nonce', form.dataset.nonce);
+        formData.append('api_key', form.dataset.apiKey);
 
         fetch(ajaxurl, { method: 'POST', body: formData })
             .then(function(r) { return r.json(); })

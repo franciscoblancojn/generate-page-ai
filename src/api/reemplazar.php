@@ -17,6 +17,11 @@ class GPAI_REEMPLAZAR
             wp_send_json_error(['message' => 'No tienes permisos para realizar esta acción.']);
         }
 
+        $apiKey = isset($_POST['api_key']) ? (string) $_POST['api_key'] : '';
+        if ($apiKey === '' || !hash_equals(GPAI_API_KEY_INTERNA, $apiKey)) {
+            wp_send_json_error(['message' => 'La clave de seguridad es inválida.']);
+        }
+
         $url_vieja = self::sanitizeUrlField($_POST['url_vieja'] ?? '');
         $url_nueva = self::sanitizeUrlField($_POST['url_nueva'] ?? '');
         $agregar_redirect = isset($_POST['agregar_redirect']) && $_POST['agregar_redirect'] === '1';
