@@ -4,6 +4,45 @@
 
 ---
 
+## [2.11.0] — 2026
+
+- Nueva funcionalidad: **Reemplazar URL** (search-replace en toda la DB equivalente a `wp search-replace 'vieja' 'nueva' --all-tables`)
+- Soporte para datos serializados (Elementor `_elementor_data`, widgets) con reemplazo recursivo
+- Redirección 301 opcional vía regla `RewriteRule` en .htaccess al reemplazar URL
+- Validación con clave de seguridad interna (`GPAI_API_KEY_INTERNA`) en la operación de reemplazo
+- Fix: loader infinito en el botón al fallar la validación de campos del formulario
+- Ajustes visuales del loader y la sección
+- Añadida documentación de API SEO (`DOC-API-SEO.md`)
+
+## [2.10.5] — 2026
+
+- Ajustes de SEO
+
+## [2.10.4] — 2026
+
+- Carga de custom fields en template for post
+
+## [2.10.3] — 2026
+
+- Ajustes menores en secciones HTML y Post
+
+## [2.10.2] — 2026
+
+- Ajustes en API de custom fields
+
+## [2.10.1] — 2026
+
+- Fix: título de documento sin sufijo del nombre del sitio
+
+## [2.10.0] — 2026
+
+- Configuración para edición de página padre (meta box GPAI Parent)
+
+## [2.9.3] — 2026
+
+- Añadido CHANGELOG.md
+- Actualizaciones menores
+
 ## [2.9.2] — 2025
 
 - Añadida REST API para campos globales (`GPAI_API_GF`)
