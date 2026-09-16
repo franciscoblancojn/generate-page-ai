@@ -67,7 +67,7 @@ $htaccessWritable = !empty($HTACCESS['writable']);
         <table class="form-table">
             <tr>
                 <th scope="row">
-                    <?php FWUTooltip::render("URL Vieja", "URL o fragmento a reemplazar. Ej: servicios/anticipo-de-recaudo/") ?>
+                    <?php FWUTooltip::render("URL Vieja", "URL o fragmento a reemplazar. Ej: my-old-url/sub-url/") ?>
                 </th>
                 <td>
                     <input
@@ -75,13 +75,14 @@ $htaccessWritable = !empty($HTACCESS['writable']);
                         name="url_vieja"
                         id="gpai-reemplazar-url-vieja"
                         class="regular-text code"
-                        placeholder="ej: servicios/anticipo-de-recaudo/"
+                        placeholder="ej: my-old-url/sub-url/"
+                        style="width:100%"
                         required>
                 </td>
             </tr>
             <tr>
                 <th scope="row">
-                    <?php FWUTooltip::render("URL Nueva", "URL o fragmento que reemplazará a la URL vieja. Ej: servicios/anticipo-de-recaudo-para-ecommerce/") ?>
+                    <?php FWUTooltip::render("URL Nueva", "URL o fragmento que reemplazará a la URL vieja. Ej: my-url/sub-url/") ?>
                 </th>
                 <td>
                     <input
@@ -89,7 +90,8 @@ $htaccessWritable = !empty($HTACCESS['writable']);
                         name="url_nueva"
                         id="gpai-reemplazar-url-nueva"
                         class="regular-text code"
-                        placeholder="ej: servicios/anticipo-de-recaudo-para-ecommerce/"
+                        placeholder="ej: my-url/sub-url/"
+                        style="width:100%"
                         required>
                 </td>
             </tr>
