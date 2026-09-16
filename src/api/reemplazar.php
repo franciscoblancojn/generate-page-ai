@@ -123,6 +123,14 @@ class GPAI_REEMPLAZAR
             self::processTable($table, $search, $replace, $report);
         }
 
+        $escapedSearch = str_replace('/', '\\/', $search);
+        $escapedReplace = str_replace('/', '\\/', $replace);
+        if ($escapedSearch !== $search) {
+            foreach ($tables as $table) {
+                self::processTable($table, $escapedSearch, $escapedReplace, $report);
+            }
+        }
+
         $report['elapsed'] = round(microtime(true) - $start, 2);
 
         return [
