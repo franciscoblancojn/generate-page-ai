@@ -447,6 +447,234 @@ class GPAI_REEMPLAZAR
         $text = str_replace('\\$', '$', $text);
         return $text;
     }
+
+    public static function listRedirectsFromContent($content)
+    {
+        $redirects = [];
+        $content = (string) $content;
+
+        if ($content === '') {
+            return $redirects;
+        }
+
+        $start = strpos($content, '# GPAI Redirect URL');
+        if ($start === false) {
+            return $redirects;
+        }
+
+        $end = strpos($content, '</IfModule>', $start);
+        if ($end === false) {
+            $block = substr($content, $start);
+        } else {
+            $block = substr($content, $start, $end - $start);
+        }
+
+        $lines = preg_split('/\r\n|\r|\n/', $block);
+        if (!is_array($lines)) {
+            return $redirects;
+        }
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (!preg_match('/^RewriteRule\s+(\S+)\s+(\S+)\s+\[.*R=301.*\]$/', $line, $m)) {
+                continue;
+            }
+
+            $old = self::rulePatternToUrl($m[1]);
+            $new = self::ruleDestToUrl($m[2]);
+
+            if ($old !== '' && $new !== '') {
+                $redirects[] = [
+                    'old' => $old,
+                    'new' => $new,
+                    'rule' => $line,
+                ];
+            }
+        }
+
+        return $redirects;
+    }
+
+    private static function rulePatternToUrl($pattern)
+    {
+        $pattern = trim((string) $pattern);
+
+        if (preg_match('/^\^(.+)\/\?\$$/', $pattern, $m)) {
+            return self::unescapeRulePattern($m[1]);
+        }
+
+        if (preg_match('/^\^(.+)\$$/', $pattern, $m)) {
+            return self::unescapeRulePattern($m[1]);
+        }
+
+        return '';
+    }
+
+    private static function ruleDestToUrl($dest)
+    {
+        $dest = trim((string) $dest);
+
+        if (strpos($dest, '/') === 0) {
+            $dest = ltrim($dest, '/');
+        }
+
+        return $dest;
+    }
+
+    private static function unescapeRulePattern($str)
+    {
+        $replacements = [
+            '\\/' => '/',
+            '\\\\' => '\\',
+            '\\-' => '-',
+            '\\.' => '.',
+            '\\+' => '+',
+            '\\*' => '*',
+            '\\?' => '?',
+            '\\[' => '[',
+            '\\]' => ']',
+            '\\^' => '^',
+            '\\$' => '$',
+            '\\(' => '(',
+            '\\)' => ')',
+            '\\{' => '{',
+            '\\}' => '}',
+            '\\=' => '=',
+            '\\!' => '!',
+            '\\<' => '<',
+            '\\>' => '>',
+            '\\|' => '|',
+            '\\:' => ':',
+            '\\#' => '#',
+            '\\~' => '~',
+        ];
+
+        return strtr($str, $replacements);
+    }
+
+    public static function buildRedirectsBlock($redirects)
+    {
+        $redirects = is_array($redirects) ? $redirects : [];
+
+        $lines = [
+            '# GPAI Redirect URL',
+            '<IfModule mod_rewrite.c>',
+            'RewriteEngine On',
+        ];
+
+        foreach ($redirects as $redirect) {
+            $rule = self::buildRedirectRule(
+                isset($redirect['old']) ? $redirect['old'] : '',
+                isset($redirect['new']) ? $redirect['new'] : ''
+            );
+
+            if ($rule !== '') {
+                $lines[] = $rule;
+            }
+        }
+
+        $lines[] = '</IfModule>';
+
+        return implode("\n", $lines) . "\n";
+    }
+
+    public static function saveRedirectsToHtaccess($redirects)
+    {
+        $redirects = is_array($redirects) ? $redirects : [];
+
+        $htaccess = new GPAI_USE_DATA_HTACCESS();
+        $info = $htaccess->get();
+
+        if (!$info['writable']) {
+            return [
+                'status' => 'error',
+                'message' => 'El archivo .htaccess no tiene permisos de escritura.',
+            ];
+        }
+
+        if (!$info['exists'] && (empty($redirects) || trim($info['content']) === '')) {
+            $content = '';
+        } else {
+            $content = (string) $info['content'];
+        }
+
+        $content = self::removeRedirectBlock($content);
+        $hasRedirects = count($redirects) > 0;
+
+        if ($hasRedirects) {
+            $content = self::insertRedirectBlock($content, self::buildRedirectsBlock($redirects));
+        }
+
+        if (!$info['exists']) {
+            $htaccess->backup();
+        }
+
+        $saved = $htaccess->save($content);
+
+        if (!$saved) {
+            return [
+                'status' => 'error',
+                'message' => 'No se pudo guardar el archivo .htaccess.',
+            ];
+        }
+
+        FWUSystemLog::add(GPAI_KEY, [
+            'type' => 'save_redirects',
+            'redirects' => $redirects,
+        ]);
+
+        return [
+            'status' => 'ok',
+            'message' => $hasRedirects
+                ? count($redirects) . ' redirección(es) guardada(s) en .htaccess.'
+                : 'Redirecciones eliminadas del .htaccess.',
+            'redirects' => count($redirects),
+        ];
+    }
+
+    private static function removeRedirectBlock($content)
+    {
+        $content = (string) $content;
+        $start = strpos($content, '# GPAI Redirect URL');
+
+        if ($start === false) {
+            return $content;
+        }
+
+        $end = strpos($content, '</IfModule>', $start);
+
+        if ($end !== false) {
+            $end += strlen('</IfModule>');
+            $before = trim(substr($content, 0, $start));
+            $after = trim(substr($content, $end));
+
+            return ($before !== '' ? $before . "\n\n" : '') . $after . "\n";
+        }
+
+        $before = trim(substr($content, 0, $start));
+        $afterSnippet = substr($content, $start);
+        $nextComment = strpos($afterSnippet, "\n#");
+
+        if ($nextComment !== false) {
+            $rest = trim(substr($afterSnippet, $nextComment + 1));
+        } else {
+            $rest = '';
+        }
+
+        return ($before !== '' ? $before . "\n\n" : '') . trim($rest) . "\n";
+    }
+
+    private static function insertRedirectBlock($content, $block)
+    {
+        $content = (string) $content;
+        $block = (string) $block;
+
+        if (strpos($content, '# BEGIN WordPress') !== false) {
+            return str_replace('# BEGIN WordPress', $block . '# BEGIN WordPress', $content);
+        }
+
+        return trim($content . "\n\n" . $block) . "\n";
+    }
 }
 
 add_action('admin_init', ['GPAI_REEMPLAZAR', 'init']);

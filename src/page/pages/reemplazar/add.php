@@ -3,8 +3,8 @@
 add_action('admin_menu', function () {
     add_submenu_page(
         GPAI_KEY,
-        'Reemplazar URL',
-        'Reemplazar URL',
+        'Reemplazar URL / Redirect',
+        'Reemplazar URL / Redirect',
         'manage_options',
         GPAI_KEY . '_reemplazar',
         'GPAI_PAGE_REEMPLAZAR_VIEW'
