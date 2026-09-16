@@ -4,6 +4,14 @@
 
 ---
 
+## [2.12.0] — 2026
+
+- Submenú **Reemplazar URL** renombrado a **Reemplazar URL / Redirect** con dos pestañas
+- Nueva pestaña **Redirect**: analiza el .htaccess y lista las redirecciones gestionadas por el plugin (bloque `# GPAI Redirect URL`) mostrando la URL vieja y la URL nueva
+- Edición de las URLs de cada redirección, alta de nuevas y eliminación desde el admin
+- Al guardar se reescribe el bloque de redirecciones en el .htaccess respetando el resto del archivo (inserción antes de `# BEGIN WordPress`)
+- Botón "Ver .htaccess" ahora enlaza a la subpágina admin de .htaccess
+
 ## [2.11.0] — 2026
 
 - Nueva funcionalidad: **Reemplazar URL** (search-replace en toda la DB equivalente a `wp search-replace 'vieja' 'nueva' --all-tables`)
