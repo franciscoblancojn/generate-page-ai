@@ -109,6 +109,7 @@ gpai_wpseo_remove_other_jsonld    // '1'/'0'
 | `gpai_analisis_links` | `GPAI_ANALISIS::validateLinks_ajax()` | `src/api/analisis.php` |
 | `gpai_analisis_pagespeed` | `GPAI_ANALISIS::pageSpeed_ajax()` | `src/api/analisis.php` |
 | `gpai_reemplazar_url` | `GPAI_REEMPLAZAR::reemplazarAjax()` | `src/api/reemplazar.php` |
+| `gpai_htaccess_generate` | `GPAI_REEMPLAZAR::generateHtaccessAjax()` | `src/api/reemplazar.php` |
 
 Todos los AJAX deben:
 - Verificar nonce con `check_ajax_referer('gpai_nonce', 'nonce')`.
@@ -140,7 +141,7 @@ Todos los AJAX deben:
 
 ## Reemplazar URL (`GPAI_REEMPLAZAR`)
 
-- Archivo: `src/api/reemplazar.php`, AJAX `gpai_reemplazar_url`.
+- Archivo: `src/api/reemplazar.php`, AJAX `gpai_reemplazar_url` y `gpai_htaccess_generate`.
 - Valida en orden: nonce (`check_ajax_referer('gpai_nonce', 'nonce')`) → capability `manage_options` → `api_key` contra constante `GPAI_API_KEY_INTERNA` con `hash_equals()`.
 - `replaceUrl()` recorre `SHOW TABLES`, procesa en chunks de 500 y hace segunda pasada con URLs escapadas `\/` (Elementor/JSON).
 - `recursiveUnserializeReplace()` preserva serialización PHP/Elementor (no rompe datos serializados).
@@ -148,6 +149,7 @@ Todos los AJAX deben:
 - `buildRedirectRule()` genera `RewriteRule ^old/?$ /new [R=301,L]`.
 - `addRedirectToHtaccess()` inserta un bloque único `# GPAI Redirect URL` antes de `# BEGIN WordPress`; dedup con `normalizeForCompare()` (ignora `\-`, `\.`, `\/`, etc.).
 - La clave se obtiene del formulario (`data-api-key`) y viaja en el body del AJAX como `api_key`.
+- Sin permisos de escritura en `.htaccess`: `reemplazarAjax()` devuelve `redirect.status = 'manual'` con el contenido nuevo; `generateHtaccessAjax()` genera el contenido del `.htaccess` con los redirects dados. Ambos construyen el contenido con `buildContentWithRedirects()` (no escriben archivo) para descarga manual y subida por el cliente.
 
 ## UI con librería FWU (`franciscoblancojn/wordpress_utils`)
 

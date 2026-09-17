@@ -120,6 +120,7 @@ Usados por `GPAI_AI_HARNESS` (`src/ai/harness.php`):
 | `gpai_analisis_links` | `GPAI_ANALISIS::validateLinks_ajax()` | Valida enlaces internos |
 | `gpai_analisis_pagespeed` | `GPAI_ANALISIS::pageSpeed_ajax()` | PageSpeed Insights |
 | `gpai_reemplazar_url` | `GPAI_REEMPLAZAR::reemplazarAjax()` | Search-replace en DB + redirect |
+| `gpai_htaccess_generate` | `GPAI_REEMPLAZAR::generateHtaccessAjax()` | Genera contenido .htaccess para descarga manual (sin escribir) |
 
 ---
 

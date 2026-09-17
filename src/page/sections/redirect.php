@@ -89,6 +89,11 @@ $htaccessWritable = !empty($HTACCESS['writable']);
         font-weight: 600;
         padding: 0.5rem 0;
     }
+    .gpai-redirect-ok {
+        color: #25992f;
+        font-weight: 600;
+        padding: 0.5rem 0;
+    }
     .gpai-redirect-empty {
         padding: 1rem;
         background: #f6f7f7;
@@ -109,6 +114,12 @@ $htaccessWritable = !empty($HTACCESS['writable']);
         Los cambios se aplican a .htaccess únicamente al guardar.
     </p>
 
+    <?php if (!$htaccessWritable): ?>
+        <div class="notice notice-warning inline" style="margin:0.75rem 0;">
+            <p><strong>Importante:</strong> El archivo .htaccess no tiene permisos de escritura en el servidor. Edita, crea o elimina tus redirects y pulsa <strong>Descargar .htaccess</strong> para obtener el archivo actualizado. Luego sube ese archivo manualmente al servidor para que los redirects funcionen.</p>
+        </div>
+    <?php endif; ?>
+
     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem;">
         <code><?= esc_html($HTACCESS['path']) ?></code>
         <?php if ($HTACCESS['exists']): ?>
@@ -127,22 +138,14 @@ $htaccessWritable = !empty($HTACCESS['writable']);
         <?php endif; ?>
     </div>
 
-    <?php if (!$htaccessWritable): ?>
-        <p class="gpai-redirect-msg">
-            No se pueden guardar cambios: el archivo .htaccess no tiene permisos de escritura.
-        </p>
-    <?php endif; ?>
-
     <?php if (empty($REDIRECTS)): ?>
         <div class="gpai-redirect-empty">
             No hay redirecciones gestionadas por el plugin en .htaccess.
-            <?php if ($htaccessWritable): ?>
-                Puedes añadir la primera con el botón «Añadir redirect» o creando una desde el tab «Reemplazar URL».
-            <?php endif; ?>
+            Puedes añadir la primera con el botón «Añadir redirect» o creando una desde el tab «Reemplazar URL».
         </div>
     <?php endif; ?>
 
-    <form method="post" id="gpai-redirects-form">
+    <form method="post" id="gpai-redirects-form" data-nonce="<?= esc_attr(wp_create_nonce('gpai_nonce')) ?>" data-writable="<?= $htaccessWritable ? '1' : '0' ?>">
         <input type="hidden" name="save" value="gpai_redirects_update">
         <?php wp_nonce_field('gpai_redirects_save'); ?>
 
@@ -162,19 +165,17 @@ $htaccessWritable = !empty($HTACCESS['writable']);
                                 type="text"
                                 name="redirects[<?= esc_attr($index) ?>][old]"
                                 value="<?= esc_attr($redirect['old']) ?>"
-                                placeholder="ej: my-old-url/sub-url/"
-                                <?= $htaccessWritable ? '' : 'readonly' ?>>
+                                placeholder="ej: my-old-url/sub-url/">
                         </td>
                         <td>
                             <input
                                 type="text"
                                 name="redirects[<?= esc_attr($index) ?>][new]"
                                 value="<?= esc_attr($redirect['new']) ?>"
-                                placeholder="ej: my-url/sub-url/"
-                                <?= $htaccessWritable ? '' : 'readonly' ?>>
+                                placeholder="ej: my-url/sub-url/">
                         </td>
                         <td>
-                            <button type="button" class="button gpai-redirect-delete" <?= $htaccessWritable ? '' : 'disabled' ?>>
+                            <button type="button" class="button gpai-redirect-delete">
                                 Eliminar
                             </button>
                         </td>
@@ -184,14 +185,15 @@ $htaccessWritable = !empty($HTACCESS['writable']);
         </table>
 
         <p class="gpai-redirect-msg" id="gpai-redirects-error" style="display:none;"></p>
+        <p class="gpai-redirect-ok" id="gpai-redirects-ok" style="display:none;"></p>
 
         <div class="gpai-redirect-actions">
-            <button type="button" class="button" id="gpai-redirect-add" <?= $htaccessWritable ? '' : 'disabled' ?>>
+            <button type="button" class="button" id="gpai-redirect-add">
                 Añadir redirect
             </button>
             <div class="submit">
-                <button type="submit" class="button button-primary" <?= $htaccessWritable ? '' : 'disabled' ?>>
-                    Guardar redirects
+                <button type="submit" class="button button-primary" id="gpai-redirects-submit" data-label="<?= esc_attr($htaccessWritable ? 'Guardar redirects' : 'Descargar .htaccess') ?>">
+                    <?= esc_html($htaccessWritable ? 'Guardar redirects' : 'Descargar .htaccess') ?>
                 </button>
             </div>
         </div>
@@ -204,6 +206,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var addBtn = document.getElementById('gpai-redirect-add');
     var form = document.getElementById('gpai-redirects-form');
     var errorEl = document.getElementById('gpai-redirects-error');
+    var okEl = document.getElementById('gpai-redirects-ok');
+    var submitBtn = document.getElementById('gpai-redirects-submit');
+    var writable = form ? form.dataset.writable === '1' : true;
     var rowIndex = 0;
 
     (function() {
@@ -240,12 +245,77 @@ document.addEventListener('DOMContentLoaded', function() {
             errorEl.style.display = 'none';
             errorEl.textContent = '';
         }
+        if (okEl) {
+            okEl.style.display = 'none';
+            okEl.textContent = '';
+        }
     }
 
     function showMessage(msg) {
         if (!errorEl) return;
         errorEl.textContent = msg;
         errorEl.style.display = 'block';
+    }
+
+    function showSuccess(msg) {
+        if (!okEl) return;
+        okEl.textContent = msg;
+        okEl.style.display = 'block';
+    }
+
+    function downloadHtaccess(content) {
+        var blob = new Blob([content], { type: 'application/octet-stream' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = '.htaccess';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function generateAndDownload() {
+        if (!submitBtn) return;
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('fwue-loader');
+        submitBtn.textContent = 'Generando .htaccess...';
+
+        var rows = tbody.querySelectorAll('tr[data-redirect-row]');
+        var redirects = [];
+        for (var i = 0; i < rows.length; i++) {
+            var inputs = rows[i].querySelectorAll('input');
+            redirects.push({ old: inputs[0].value.trim(), new: inputs[1].value.trim() });
+        }
+
+        var formData = new FormData();
+        formData.append('action', 'gpai_htaccess_generate');
+        formData.append('nonce', form.dataset.nonce);
+        for (var j = 0; j < redirects.length; j++) {
+            formData.append('redirects[' + j + '][old]', redirects[j].old);
+            formData.append('redirects[' + j + '][new]', redirects[j].new);
+        }
+
+        fetch(ajaxurl, { method: 'POST', body: formData })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = submitBtn.dataset.label || 'Descargar .htaccess';
+                if (res.success && res.data.content) {
+                    showMessage('');
+                    showSuccess('Archivo .htaccess generado con ' + res.data.count + ' redirect(s). Súbelo manualmente al servidor para aplicar los redirects.');
+                    downloadHtaccess(res.data.content);
+                } else {
+                    showSuccess('');
+                    showMessage(res.data && res.data.message ? res.data.message : 'No se pudo generar el archivo .htaccess.');
+                }
+            })
+            .catch(function() {
+                submitBtn.disabled = false;
+                submitBtn.textContent = submitBtn.dataset.label || 'Descargar .htaccess';
+                showSuccess('');
+                showMessage('Error de conexión. Intenta de nuevo.');
+            });
     }
 
     if (addBtn) {
@@ -272,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (form) {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
             closeMessage();
             var rows = tbody.querySelectorAll('tr[data-redirect-row]');
             for (var i = 0; i < rows.length; i++) {
@@ -282,14 +352,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (oldVal === '' || newVal === '') {
                     var msg = 'Fila ' + (i + 1) + ': la URL vieja y la URL nueva son obligatorias.';
                     showMessage(msg);
-                    form.querySelector('[type="submit"]').classList.remove('fwue-loader');
+                    if (submitBtn) submitBtn.classList.remove('fwue-loader');
                     if (oldVal === '' && inputs[0]) {
                         inputs[0].focus();
                     } else if (inputs[1]) {
                         inputs[1].focus();
                     }
+                    e.preventDefault();
                     return false;
                 }
+            }
+
+            if (!writable) {
+                e.preventDefault();
+                generateAndDownload();
+                return false;
             }
             return true;
         });

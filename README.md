@@ -551,6 +551,7 @@ El plugin usa `franciscoblancojn/wordpress_utils` (vendor en `libs/`) para const
 - `wp_ajax_gpai_analisis_links` — Validar enlaces internos del post (HTTP HEAD request).
 - `wp_ajax_gpai_analisis_pagespeed` — Consultar PageSpeed Insights de la URL del post.
 - `wp_ajax_gpai_reemplazar_url` — Reemplazar URL/fragmento en toda la DB (con datos serializados) y agregar redirección 301 en .htaccess.
+- `wp_ajax_gpai_htaccess_generate` — Generar el contenido del `.htaccess` para descarga manual (sin escribir archivo) cuando no hay permisos de escritura.
 
 > 📄 Lista completa de acciones, filtros, AJAX y REST: `HOOKS.md`.
 

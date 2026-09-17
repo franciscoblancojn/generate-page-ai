@@ -309,6 +309,7 @@ STPA_KEY_CONFIG                     → Config de Static Page
 | `gpai_analisis_links` | `GPAI_ANALISIS::validateLinks_ajax()` | Valida enlaces internos del post |
 | `gpai_analisis_pagespeed` | `GPAI_ANALISIS::pageSpeed_ajax()` | Consulta PageSpeed Insights de la URL del post |
 | `gpai_reemplazar_url` | `GPAI_REEMPLAZAR::reemplazarAjax()` | Search-replace en toda la DB + redirect .htaccess |
+| `gpai_htaccess_generate` | `GPAI_REEMPLAZAR::generateHtaccessAjax()` | Genera contenido .htaccess para descarga manual (sin permisos de escritura) |
 
 ---
 

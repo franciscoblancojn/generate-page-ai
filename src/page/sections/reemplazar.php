@@ -62,7 +62,7 @@ $htaccessWritable = !empty($HTACCESS['writable']);
 </style>
 
 <div class="gpai-section">
-    <form method="post" id="gpai-reemplazar-form" data-nonce="<?= esc_attr(wp_create_nonce('gpai_nonce')) ?>" data-api-key="<?= esc_attr(GPAI_API_KEY_INTERNA) ?>">
+    <form method="post" id="gpai-reemplazar-form" data-nonce="<?= esc_attr(wp_create_nonce('gpai_nonce')) ?>" data-api-key="<?= esc_attr(GPAI_API_KEY_INTERNA) ?>" data-writable="<?= $htaccessWritable ? '1' : '0' ?>">
         <input type="hidden" name="save" value="gpai_reemplazar_url">
         <table class="form-table">
             <tr>
@@ -105,14 +105,14 @@ $htaccessWritable = !empty($HTACCESS['writable']);
                                 name="agregar_redirect"
                                 id="gpai-reemplazar-redirect"
                                 value="1"
-                                <?= $htaccessWritable ? 'checked' : 'disabled' ?>>
+                                checked>
                             <span>Agregar redirección por defecto</span>
                         </label>
                         <?php if (!$htaccessWritable): ?>
                             <span class="gpai-badge" style="color:#d63638;">Sin permisos de escritura en .htaccess</span>
                             <?php FWUTooltip::render(
-                                "Redirección desactivada",
-                                "El archivo .htaccess no tiene permisos de escritura, por lo que no se agregará la regla de redirección. El reemplazo en la base de datos aún se ejecutará. Da permisos de escritura al archivo .htaccess para habilitar esta opción."
+                                "Redirección para subir manualmente",
+                                "El archivo .htaccess no tiene permisos de escritura, por lo que la regla no se aplicará automáticamente. Se generará el nuevo contenido del .htaccess para que puedas descargarlo y subirlo manualmente al servidor."
                             ) ?>
                         <?php else: ?>
                             <?php FWUTooltip::render(
@@ -145,7 +145,12 @@ $htaccessWritable = !empty($HTACCESS['writable']);
             </tr>
         </table>
         <div class="content-btn">
-            <button type="submit" id="gpai-reemplazar-submit" class="button button-primary">Reemplazar</button>
+            <button type="submit" id="gpai-reemplazar-submit" class="button button-primary" data-label="<?= esc_attr($htaccessWritable ? 'Reemplazar' : 'Reemplazar y generar htaccess') ?>"><?= esc_html($htaccessWritable ? 'Reemplazar' : 'Reemplazar y generar htaccess') ?></button>
+            <?php if (!$htaccessWritable): ?>
+                <div class="notice notice-warning inline" style="margin:0.75rem 0 0;">
+                    <p><strong>Importante:</strong> El archivo .htaccess no tiene permisos de escritura en el servidor. Debes descargar el archivo .htaccess generado y subirlo manualmente al servidor para que los redirects funcionen.</p>
+                </div>
+            <?php endif; ?>
         </div>
     </form>
 </div>
@@ -157,13 +162,23 @@ document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('gpai-reemplazar-form');
     var resultEl = document.getElementById('gpai-reemplazar-result');
     var btn = document.getElementById('gpai-reemplazar-submit');
+    var btnLabel = btn ? btn.dataset.label || 'Reemplazar' : '';
+    var pendingDownload = null;
     if (!form || !resultEl || !btn) return;
+
+    resultEl.addEventListener('click', function(e) {
+        var dl = e.target.closest('.gpai-htaccess-download');
+        if (dl && pendingDownload) {
+            downloadHtaccess(pendingDownload);
+        }
+    });
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         if (btn.disabled) return;
         btn.disabled = true;
         btn.textContent = 'Reemplazando...';
+        pendingDownload = null;
         resultEl.innerHTML = '<p class="gpai-msg gpai-loading">Ejecutando reemplazo en la base de datos...</p>';
 
         var formData = new FormData(form);
@@ -176,13 +191,17 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(function(res) {
                 btn.disabled = false;
                 btn.classList.remove('fwue-loader');
-                btn.textContent = 'Reemplazar';
+                btn.textContent = btnLabel;
                 renderResult(res);
+                if (res.data && res.data.redirect && res.data.redirect.status === 'manual') {
+                    resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             })
             .catch(function() {
                 btn.disabled = false;
                 btn.classList.remove('fwue-loader');
-                btn.textContent = 'Reemplazar';
+                btn.textContent = btnLabel;
+                pendingDownload = null;
                 resultEl.innerHTML = '<p class="gpai-msg gpai-error">Error de conexión. Intenta de nuevo.</p>';
             });
     });
@@ -223,12 +242,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var redirect = data.redirect;
         if (redirect && typeof redirect === 'object') {
-            var cls = redirect.status === 'ok' ? 'gpai-ok' : (redirect.status === 'skipped' ? 'gpai-info' : 'gpai-error');
+            var cls = redirect.status === 'ok' ? 'gpai-ok' : (redirect.status === 'skipped' || redirect.status === 'manual' ? 'gpai-info' : 'gpai-error');
             html += '<div class="gpai-result-box"><h3>Redirección .htaccess</h3><p class="gpai-msg ' + cls + '">'
-                + escHtml(redirect.message) + '</p></div>';
+                + escHtml(redirect.message) + '</p>';
+
+            if (redirect.status === 'manual' && redirect.content) {
+                pendingDownload = redirect.content;
+                html += '<div class="notice notice-warning inline" style="margin:0.75rem 0;"><p><strong>Importante:</strong> Debes descargar el archivo .htaccess y subirlo manualmente al servidor para que los redirects funcionen.</p></div>'
+                    + '<p><button type="button" class="button button-primary gpai-htaccess-download">Descargar .htaccess</button></p>';
+            }
+            html += '</div>';
         }
 
         resultEl.innerHTML = html;
+    }
+
+    function downloadHtaccess(content) {
+        var blob = new Blob([content], { type: 'application/octet-stream' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = '.htaccess';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     function escHtml(str) {

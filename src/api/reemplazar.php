@@ -7,6 +7,7 @@ class GPAI_REEMPLAZAR
     public static function init()
     {
         add_action('wp_ajax_gpai_reemplazar_url', [self::class, 'reemplazarAjax']);
+        add_action('wp_ajax_gpai_htaccess_generate', [self::class, 'generateHtaccessAjax']);
     }
 
     public static function reemplazarAjax()
@@ -48,8 +49,18 @@ class GPAI_REEMPLAZAR
 
             if (!$info['writable']) {
                 $redirect = [
-                    'status' => 'error',
-                    'message' => 'El archivo .htaccess no tiene permisos de escritura.',
+                    'status' => 'manual',
+                    'message' => 'El archivo .htaccess no tiene permisos de escritura. Se generó el contenido para descargarlo y subirlo manualmente al servidor.',
+                    'action' => $rule,
+                    'content' => self::buildContentWithRedirects(
+                        [
+                            [
+                                'old' => $url_vieja,
+                                'new' => $url_nueva,
+                            ],
+                        ],
+                        $info['content']
+                    ),
                 ];
             } else {
                 $res = self::addRedirectToHtaccess($url_vieja, $url_nueva);
@@ -83,6 +94,42 @@ class GPAI_REEMPLAZAR
             'report' => $result['report'],
             'rule' => $rule,
             'redirect' => $redirect,
+        ]);
+    }
+
+    public static function generateHtaccessAjax()
+    {
+        check_ajax_referer('gpai_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'No tienes permisos para realizar esta acción.']);
+        }
+
+        $redirects = [];
+        $postRedirects = isset($_POST['redirects']) && is_array($_POST['redirects']) ? $_POST['redirects'] : [];
+
+        foreach ($postRedirects as $item) {
+            $old = isset($item['old']) ? self::sanitizeUrlField($item['old']) : '';
+            $new = isset($item['new']) ? self::sanitizeUrlField($item['new']) : '';
+
+            if ($old === '' || $new === '' || $old === $new) {
+                continue;
+            }
+
+            $redirects[] = [
+                'old' => $old,
+                'new' => $new,
+            ];
+        }
+
+        $htaccess = new GPAI_USE_DATA_HTACCESS();
+        $info = $htaccess->get();
+
+        $content = self::buildContentWithRedirects($redirects, $info['content']);
+
+        wp_send_json_success([
+            'content' => $content,
+            'count' => count($redirects),
         ]);
     }
 
@@ -630,6 +677,20 @@ class GPAI_REEMPLAZAR
                 : 'Redirecciones eliminadas del .htaccess.',
             'redirects' => count($redirects),
         ];
+    }
+
+    public static function buildContentWithRedirects($redirects, $content)
+    {
+        $redirects = is_array($redirects) ? $redirects : [];
+        $content = (string) $content;
+
+        $content = self::removeRedirectBlock($content);
+
+        if (count($redirects) > 0) {
+            $content = self::insertRedirectBlock($content, self::buildRedirectsBlock($redirects));
+        }
+
+        return trim($content);
     }
 
     private static function removeRedirectBlock($content)
