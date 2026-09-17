@@ -4,6 +4,13 @@
 
 ---
 
+## [2.12.1] — 2026
+
+- **Reemplazar URL** sin permisos de escritura en .htaccess: el botón cambia a **"Reemplazar y generar htaccess"** y, tras reemplazar, aparece un botón **Descargar .htaccess** con el contenido nuevo (bloque `# GPAI Redirect URL` + regla) para subirlo manualmente al servidor
+- **Tab Redirect**: se pueden editar, crear y eliminar redirects incluso sin permisos de escritura; en lugar de guardar, el botón muestra **Descargar .htaccess** y genera el archivo actualizado por AJAX sin escribir en el servidor
+- Añadida nota de advertencia en ambos tabs indicando que el .htaccess debe descargarse y subirse manualmente al servidor para que los redirects funcionen
+- Nuevo AJAX `gpai_htaccess_generate` para generar el contenido del .htaccess sin escribirlo (nonce `gpai_nonce` + capability `manage_options`)
+
 ## [2.12.0] — 2026
 
 - Submenú **Reemplazar URL** renombrado a **Reemplazar URL / Redirect** con dos pestañas
