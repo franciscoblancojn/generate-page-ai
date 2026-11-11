@@ -42,7 +42,7 @@ if (isset($_POST['save']) && $_POST['save'] === 'gpai_redirects_update') {
             ];
         }
 
-        if (!$HTACCESS['exists']) {
+        if ($HTACCESS['exists']) {
             $GPAI_USE_DATA_HTACCESS->backup();
         }
 

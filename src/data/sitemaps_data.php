@@ -28,15 +28,25 @@ class GPAI_USE_DATA_SITEMAPS
         return $sitemaps;
     }
 
+    /**
+     * Recibe el contenido ya "unslashed": no aplica wp_unslash().
+     */
     public function saveSitemap($filename, $content)
     {
+        $filename = $this->sanitizeFilename($filename);
+        if ($filename === '') {
+            return false;
+        }
         $filepath = $this->sitemapDir . $filename;
-        $content = wp_unslash($content);
         return file_put_contents($filepath, $content) !== false;
     }
 
     public function deleteSitemap($filename)
     {
+        $filename = $this->sanitizeFilename($filename);
+        if ($filename === '') {
+            return false;
+        }
         $filepath = $this->sitemapDir . $filename;
         if (file_exists($filepath) && is_file($filepath)) {
             return unlink($filepath);
@@ -49,11 +59,26 @@ class GPAI_USE_DATA_SITEMAPS
         if (!str_ends_with($filename, '.xml')) {
             $filename .= '.xml';
         }
+        $filename = $this->sanitizeFilename($filename);
+        if ($filename === '') {
+            return false;
+        }
         $filepath = $this->sitemapDir . $filename;
         if (file_exists($filepath)) {
             return false;
         }
-        $content = wp_unslash($content);
         return file_put_contents($filepath, $content) !== false;
+    }
+
+    /**
+     * Solo nombres de archivo .xml en la raíz (evita escribir/borrar fuera de ABSPATH).
+     */
+    private function sanitizeFilename($filename)
+    {
+        $filename = sanitize_file_name(basename((string) $filename));
+        if ($filename === '' || substr($filename, -4) !== '.xml') {
+            return '';
+        }
+        return $filename;
     }
 }

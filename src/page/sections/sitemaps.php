@@ -7,8 +7,8 @@ use franciscoblancojn\wordpress_utils\FWUCollapse;
 $respond_sitemaps = null;
 
 if (isset($_POST['save']) && $_POST['save'] == "sitemap_update") {
-    $filename = $_POST['sitemap_file'] ?? '';
-    $content = $_POST['sitemap_content'] ?? '';
+    $filename = isset($_POST['sitemap_file']) ? sanitize_text_field(wp_unslash($_POST['sitemap_file'])) : '';
+    $content = isset($_POST['sitemap_content']) ? wp_unslash($_POST['sitemap_content']) : '';
 
     if (!empty($filename)) {
         $saved = $GPAI_USE_DATA_SITEMAPS->saveSitemap($filename, $content);

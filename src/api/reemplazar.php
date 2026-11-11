@@ -412,7 +412,7 @@ class GPAI_REEMPLAZAR
             ];
         }
 
-        if (!$info['exists']) {
+        if ($info['exists']) {
             $htaccess->backup();
         }
 
@@ -468,7 +468,7 @@ class GPAI_REEMPLAZAR
 
         return [
             'status' => 'error',
-            'message' => 'No se pudo guardar .htaccess.',
+            'message' => $htaccess->getLastError() ?: 'No se pudo guardar .htaccess.',
         ];
     }
 
@@ -652,7 +652,7 @@ class GPAI_REEMPLAZAR
             $content = self::insertRedirectBlock($content, self::buildRedirectsBlock($redirects));
         }
 
-        if (!$info['exists']) {
+        if ($info['exists']) {
             $htaccess->backup();
         }
 
@@ -661,7 +661,7 @@ class GPAI_REEMPLAZAR
         if (!$saved) {
             return [
                 'status' => 'error',
-                'message' => 'No se pudo guardar el archivo .htaccess.',
+                'message' => $htaccess->getLastError() ?: 'No se pudo guardar el archivo .htaccess.',
             ];
         }
 

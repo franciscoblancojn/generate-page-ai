@@ -8,10 +8,10 @@ $respond_crear = null;
 
 if (isset($_POST['save']) && $_POST['save'] == "crear_sitemap") {
     $name = isset($_POST['sitemap_name'])
-        ? trim($_POST['sitemap_name'])
+        ? trim(sanitize_text_field(wp_unslash($_POST['sitemap_name'])))
         : '';
     $content = isset($_POST['sitemap_content'])
-        ? $_POST['sitemap_content']
+        ? wp_unslash($_POST['sitemap_content'])
         : '';
 
     if (!str_ends_with($name, '.xml')) {

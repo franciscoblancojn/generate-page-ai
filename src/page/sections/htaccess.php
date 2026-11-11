@@ -13,9 +13,9 @@ if (isset($_POST['save']) && $_POST['save'] === 'htaccess_update') {
             'data' => [],
         ];
     } else {
-        $content = $_POST['htaccess_content'] ?? '';
+        $content = isset($_POST['htaccess_content']) ? wp_unslash($_POST['htaccess_content']) : '';
 
-        if (!$HTACCESS['exists']) {
+        if ($HTACCESS['exists']) {
             $GPAI_USE_DATA_HTACCESS->backup();
         }
 
@@ -29,7 +29,7 @@ if (isset($_POST['save']) && $_POST['save'] === 'htaccess_update') {
         } else {
             $respond_htaccess = [
                 'status' => 'error',
-                'message' => 'Error al guardar .htaccess.',
+                'message' => $GPAI_USE_DATA_HTACCESS->getLastError() ?: 'Error al guardar .htaccess.',
                 'data' => [],
             ];
         }
